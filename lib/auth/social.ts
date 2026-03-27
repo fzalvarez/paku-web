@@ -16,15 +16,13 @@ export async function signInWithGoogle(): Promise<SocialLoginResponse> {
   if (IS_MOCK) {
     // ── Mock para desarrollo sin credenciales Firebase ──────────────────────
     console.warn("[Firebase] Usando mock — configura .env.local con las credenciales reales.");
-    const { data } = await authService.socialLogin({
-      id_token: "MOCK_FIREBASE_ID_TOKEN",
-    });
-    return data;
+    const res = await authService.socialLogin({ id_token: "MOCK_FIREBASE_ID_TOKEN" });
+    return (res as any).data ?? res;
   }
 
   // ── Flujo real ─────────────────────────────────────────────────────────────
   const result = await signInWithPopup(auth, googleProvider);
   const idToken = await result.user.getIdToken();
-  const { data } = await authService.socialLogin({ id_token: idToken });
-  return data;
+  const res = await authService.socialLogin({ id_token: idToken });
+  return (res as any).data ?? res;
 }

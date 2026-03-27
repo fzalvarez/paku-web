@@ -1,4 +1,24 @@
 /**
+ * Valida que una URL de foto sea absoluta y usable por next/image.
+ * Devuelve null si está vacía, es relativa, contiene espacios o no es una URL válida.
+ */
+export function safePhotoUrl(url?: string | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  // Debe comenzar con http:// o https://
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) return null;
+  try {
+    const parsed = new URL(trimmed);
+    // Verificar que tiene hostname válido (no solo protocolo)
+    if (!parsed.hostname) return null;
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Calcula la edad de una mascota a partir de su fecha de nacimiento.
  * Retorna texto tipo "2 años", "8 meses" o "-".
  */

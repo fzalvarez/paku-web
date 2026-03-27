@@ -113,11 +113,8 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
       await login({ email, password });
       onSuccess();
     } catch (err) {
-      if (err instanceof Error && err.message) {
-        setError(err.message);
-      } else {
-        setError("Credenciales incorrectas. Intenta de nuevo.");
-      }
+      console.error(err);
+      setError("Credenciales incorrectas. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -163,7 +160,7 @@ const INITIAL_REGISTER: RegisterRequest = {
 };
 
 function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
-  const { register } = useAuthContext();
+  const { register, login } = useAuthContext();
   const [form, setForm] = useState<RegisterRequest>(INITIAL_REGISTER);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -178,13 +175,13 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     try {
       await register(form);
+      // register in context performs login automatically in AuthProvider.login flow,
+      // but some backends don't return tokens on register — ensure we login with credentials
+      await login({ email: form.email, password: form.password });
       onSuccess();
     } catch (err) {
-      if (err instanceof Error && err.message) {
-        setError(err.message);
-      } else {
-        setError("No se pudo completar el registro. Intenta de nuevo.");
-      }
+      console.error(err);
+      setError("No se pudo completar el registro. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -280,26 +277,28 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
 // ── Dialog principal ──────────────────────────────────────────────────────────
 export function AuthDialog({ open, onOpenChange, defaultTab = "register" }: AuthDialogProps) {
-  const { loginWithGoogle } = useAuthContext();
   const [tab, setTab] = useState<AuthTab>(defaultTab);
   const [socialLoading, setSocialLoading] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
+  const { loginWithGoogle } = useAuthContext();
 
   function handleSuccess() {
     onOpenChange(false);
+    // TODO: actualizar estado de sesión global cuando esté implementado
   }
 
   async function handleGoogleSignIn() {
     setSocialError(null);
     setSocialLoading(true);
     try {
-      const { isNewUser } = await loginWithGoogle();
-      if (isNewUser) {
-        // TODO: redirigir a /completar-perfil cuando la ruta exista
+      const result = await loginWithGoogle();
+      // loginWithGoogle in context saves tokens and sets user
+      if (result.isNewUser) {
         console.log("[Auth] Usuario nuevo — redirigir a completar perfil");
       }
       handleSuccess();
-    } catch {
+    } catch (err) {
+      console.error(err);
       setSocialError("No se pudo iniciar sesión con Google. Intenta de nuevo.");
     } finally {
       setSocialLoading(false);

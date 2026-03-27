@@ -158,4 +158,12 @@ export const apiClient = {
 export const publicApiClient = {
   post: <T>(path: string, body: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: "POST", body: JSON.stringify(body) }, true),
+  get: <T>(path: string, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "GET" }, true),
+  put: <T>(path: string, body: unknown, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "PUT", body: JSON.stringify(body) }, true),
+  patch: <T>(path: string, body: unknown, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "PATCH", body: JSON.stringify(body) }, true),
+  delete: <T>(path: string, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "DELETE" }, true),
 };

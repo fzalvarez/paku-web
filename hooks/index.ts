@@ -1,6 +1,8 @@
 /**
  * Barrel de hooks personalizados.
- * Agregar los hooks aquí a medida que se vayan creando.
  */
 
-// export { useExample } from "./useExample";
+export { useAddresses } from "./useAddresses";
+export { useAuth } from "./useAuth";
+export { useBreeds } from "./useBreeds";
+export { useCart } from "./useCart";

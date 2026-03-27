@@ -15,4 +15,26 @@ export const ENDPOINTS = {
     LIST: "/pets",
     DETAIL: (id: string) => `/pets/${id}`,
   },
+  STORE: {
+    CATEGORIES: "/store/categories",
+    PRODUCTS: "/store/products",
+    QUOTE: "/store/quote",
+  },
+  ADDRESSES: {
+    LIST: "/addresses",
+    CREATE: "/addresses",
+    DETAIL: (id: string) => `/addresses/${id}`,
+    UPDATE: (id: string) => `/addresses/${id}`,
+    DELETE: (id: string) => `/addresses/${id}`,
+    SET_DEFAULT: (id: string) => `/addresses/${id}/default`,
+  },
+  CATALOG: {
+    BREEDS: "/catalog/breeds",
+  },
+  CART: {
+    ACTIVE: "/cart/active",
+    ITEMS: "/cart/items",
+    ITEM: (itemId: string) => `/cart/items/${itemId}`,
+    CHECKOUT: "/cart/checkout",
+  },
 } as const;

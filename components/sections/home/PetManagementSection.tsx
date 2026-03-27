@@ -5,8 +5,9 @@ import Image from "next/image";
 import { Plus, SlidersHorizontal, Sparkles, ArrowUpRight, Info, Loader2, PawPrint, X } from "lucide-react";
 import { usePets } from "@/hooks/usePets";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useBreeds } from "@/hooks/useBreeds";
 import { petsService } from "@/lib/api/pets";
-import { calcPetAge, speciesLabel } from "@/lib/utils/pets";
+import { calcPetAge, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
 import type { Pet, CreatePetRequest, PetSpecies, PetSex } from "@/types/pets";
 import { Button } from "@/components/ui/button";
 
@@ -31,6 +32,9 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
   const [form, setForm] = useState<CreatePetRequest>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Cargar razas según la especie seleccionada
+  const { breeds, loading: breedsLoading } = useBreeds(form.species);
 
   const handleSubmit = async () => {
     setError(null);
@@ -59,6 +63,11 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
     }
   };
 
+  // Al cambiar de especie, limpiar la raza seleccionada
+  function handleSpeciesChange(species: PetSpecies) {
+    setForm((prev) => ({ ...prev, species, breed: "" }));
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
@@ -85,7 +94,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
             <select
               className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               value={form.species}
-              onChange={(e) => setForm({ ...form, species: e.target.value as PetSpecies })}
+              onChange={(e) => handleSpeciesChange(e.target.value as PetSpecies)}
             >
               <option value="dog">Perro</option>
               <option value="cat">Gato</option>
@@ -102,15 +111,39 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
               <option value="female">Hembra</option>
             </select>
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-semibold">Raza</label>
-            <input
-              className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              value={form.breed ?? ""}
-              onChange={(e) => setForm({ ...form, breed: e.target.value })}
-              placeholder="Ej: Labrador"
-            />
+
+          {/* Raza: select con razas de la API, fallback a input libre */}
+          <div className="col-span-2">
+            <label className="mb-1 block text-sm font-semibold">
+              Raza
+              {breedsLoading && (
+                <Loader2 className="ml-2 inline size-3 animate-spin text-muted-foreground" />
+              )}
+            </label>
+            {breeds.length > 0 ? (
+              <select
+                className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                value={form.breed ?? ""}
+                onChange={(e) => setForm({ ...form, breed: e.target.value })}
+              >
+                <option value="">Sin especificar</option>
+                {breeds.map((b) => (
+                  <option key={b.id} value={b.name}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                value={form.breed ?? ""}
+                onChange={(e) => setForm({ ...form, breed: e.target.value })}
+                placeholder={breedsLoading ? "Cargando razas…" : "Ej: Labrador"}
+                disabled={breedsLoading}
+              />
+            )}
           </div>
+
           <div>
             <label className="mb-1 block text-sm font-semibold">Peso (kg)</label>
             <input
@@ -123,7 +156,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
               placeholder="Ej: 5.2"
             />
           </div>
-          <div className="col-span-2">
+          <div>
             <label className="mb-1 block text-sm font-semibold">Fecha de nacimiento</label>
             <input
               type="date"
@@ -160,11 +193,12 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
 }
 
 function PetCard({ pet }: { pet: Pet }) {
+  const photoUrl = safePhotoUrl(pet.photo_url);
   return (
     <div className="flex items-center gap-4 rounded-xl bg-muted/50 p-4 transition-colors hover:bg-muted">
       <div className="relative size-14 shrink-0 overflow-hidden rounded-full ring-2 ring-border">
-        {pet.photo_url ? (
-          <Image src={pet.photo_url} alt={pet.name} fill className="object-cover" sizes="56px" />
+        {photoUrl ? (
+          <Image src={photoUrl} alt={pet.name} fill className="object-cover" sizes="56px" />
         ) : (
           <div className="flex size-full items-center justify-center bg-primary/10">
             <PawPrint className="size-6 text-primary" />

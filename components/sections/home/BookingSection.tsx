@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, MapPin, Pencil, PlusCircle, PawPrint, Loader2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Pencil, PlusCircle, PawPrint, Loader2, X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePets } from "@/hooks/usePets";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useAddresses } from "@/hooks/useAddresses";
+import { useBreeds } from "@/hooks/useBreeds";
 import { petsService } from "@/lib/api/pets";
-import { calcPetAge, speciesLabel } from "@/lib/utils/pets";
+import { calcPetAge, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
+import { AddressFormDialog } from "@/components/common/AddressFormDialog";
 import type { CreatePetRequest, PetSpecies, PetSex } from "@/types/pets";
+import type { AddressOut, AddressCreateIn } from "@/types/api";
 
 const DAYS_OF_WEEK = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"] as const;
 
@@ -50,6 +54,13 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Cargar razas según la especie seleccionada
+  const { breeds, loading: breedsLoading } = useBreeds(form.species);
+
+  function handleSpeciesChange(species: PetSpecies) {
+    setForm((prev) => ({ ...prev, species, breed: "" }));
+  }
+
   const handleSubmit = async () => {
     setError(null);
     if (!form.name.trim()) {
@@ -58,7 +69,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
     }
     setSubmitting(true);
     try {
-      const body: CreatePetRequest = {
+      await petsService.create({
         name: form.name.trim(),
         species: form.species,
         breed: form.breed || null,
@@ -67,8 +78,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
         notes: form.notes || null,
         photo_url: form.photo_url || null,
         weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
-      };
-      await petsService.create(body);
+      });
       onSuccess();
       onClose();
     } catch {
@@ -105,7 +115,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
             <select
               className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               value={form.species}
-              onChange={(e) => setForm({ ...form, species: e.target.value as PetSpecies })}
+              onChange={(e) => handleSpeciesChange(e.target.value as PetSpecies)}
             >
               <option value="dog">Perro</option>
               <option value="cat">Gato</option>
@@ -124,14 +134,36 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
             </select>
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-semibold">Raza</label>
-            <input
-              className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              value={form.breed ?? ""}
-              onChange={(e) => setForm({ ...form, breed: e.target.value })}
-              placeholder="Ej: Labrador"
-            />
+          {/* Raza: select dinámico con razas de la API, fallback a input libre */}
+          <div className="col-span-2">
+            <label className="mb-1 block text-sm font-semibold">
+              Raza
+              {breedsLoading && (
+                <Loader2 className="ml-2 inline size-3 animate-spin text-muted-foreground" />
+              )}
+            </label>
+            {breeds.length > 0 ? (
+              <select
+                className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                value={form.breed ?? ""}
+                onChange={(e) => setForm({ ...form, breed: e.target.value })}
+              >
+                <option value="">Sin especificar</option>
+                {breeds.map((b) => (
+                  <option key={b.id} value={b.name}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                value={form.breed ?? ""}
+                onChange={(e) => setForm({ ...form, breed: e.target.value })}
+                placeholder={breedsLoading ? "Cargando razas…" : "Ej: Labrador"}
+                disabled={breedsLoading}
+              />
+            )}
           </div>
 
           <div>
@@ -147,7 +179,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
             />
           </div>
 
-          <div className="col-span-2">
+          <div>
             <label className="mb-1 block text-sm font-semibold">Fecha de nacimiento</label>
             <input
               type="date"
@@ -266,11 +298,129 @@ function BookingCalendar() {
   );
 }
 
+// ── Sub-componente: Selector de dirección ────────────────────────────────────
+interface AddressSelectorProps {
+  selectedAddress: AddressOut | null;
+  onSelect: (address: AddressOut) => void;
+}
+
+function AddressSelector({ selectedAddress, onSelect }: AddressSelectorProps) {
+  const { isAuthenticated } = useAuthContext();
+  const { addresses, loading, create } = useAddresses();
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+
+  // Seleccionar la predeterminada automáticamente una vez cargadas las direcciones
+  useEffect(() => {
+    if (!selectedAddress && addresses.length > 0) {
+      const def = addresses.find((a) => a.is_default) ?? addresses[0];
+      onSelect(def);
+    }
+  }, [addresses, selectedAddress, onSelect]);
+
+  async function handleCreate(payload: AddressCreateIn) {
+    await create(payload);
+    setFormOpen(false);
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl bg-card p-4">
+        <MapPin className="size-5 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">Inicia sesión para ver tus direcciones</span>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl bg-card p-4">
+        <Loader2 className="size-4 animate-spin text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">Cargando direcciones…</span>
+      </div>
+    );
+  }
+
+  if (addresses.length === 0) {
+    return (
+      <>
+        <button
+          onClick={() => setFormOpen(true)}
+          className="group flex w-full items-center justify-between rounded-xl bg-card p-4 transition-colors hover:bg-background border-2 border-dashed border-border"
+        >
+          <div className="flex items-center gap-3">
+            <MapPin className="size-5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Agrega una dirección de servicio</span>
+          </div>
+          <Plus className="size-4 text-muted-foreground group-hover:text-primary" />
+        </button>
+        <AddressFormDialog open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      {/* Dirección seleccionada */}
+      <button
+        onClick={() => setPickerOpen((p) => !p)}
+        className="group flex w-full items-center justify-between rounded-xl bg-card p-4 transition-colors hover:bg-background"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <MapPin className="size-5 shrink-0 text-primary" />
+          <div className="text-left min-w-0">
+            <p className="text-sm font-medium truncate">{selectedAddress?.address_line ?? "Selecciona una dirección"}</p>
+            {selectedAddress?.reference && (
+              <p className="text-xs text-muted-foreground truncate">{selectedAddress.reference}</p>
+            )}
+          </div>
+        </div>
+        <Pencil className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+      </button>
+
+      {/* Desplegable con todas las direcciones */}
+      {pickerOpen && (
+        <div className="mt-2 rounded-xl border bg-background shadow-lg overflow-hidden">
+          {addresses.map((addr) => (
+            <button
+              key={addr.id}
+              onClick={() => { onSelect(addr); setPickerOpen(false); }}
+              className={cn(
+                "flex w-full items-start gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-muted",
+                selectedAddress?.id === addr.id && "bg-primary/5 font-medium"
+              )}
+            >
+              <MapPin className="size-4 mt-0.5 shrink-0 text-primary" />
+              <div className="min-w-0">
+                <p className="truncate">{addr.address_line}</p>
+                {addr.label && <p className="text-xs text-muted-foreground">{addr.label}</p>}
+                {addr.is_default && (
+                  <span className="text-xs text-primary font-semibold">Predeterminada</span>
+                )}
+              </div>
+            </button>
+          ))}
+          <button
+            onClick={() => { setPickerOpen(false); setFormOpen(true); }}
+            className="flex w-full items-center gap-3 border-t px-4 py-3 text-sm text-primary hover:bg-muted"
+          >
+            <Plus className="size-4" />
+            Nueva dirección
+          </button>
+        </div>
+      )}
+
+      <AddressFormDialog open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} />
+    </>
+  );
+}
+
 // ── Sub-componente: Selector de mascota + confirmación ────────────────────────
 function BookingSidebar() {
   const { user, isAuthenticated } = useAuthContext();
   const { pets, loading, error, reload } = usePets();
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<AddressOut | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
 
   const displayName = user?.first_name
@@ -293,13 +443,10 @@ function BookingSidebar() {
           <label className="mb-3 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Dirección de Servicio
           </label>
-          <div className="group flex cursor-pointer items-center justify-between rounded-xl bg-card p-4 transition-colors hover:bg-background">
-            <div className="flex items-center gap-3">
-              <MapPin className="size-5 text-primary" />
-              <span className="font-medium">Calle Las Flores 123, San Borja</span>
-            </div>
-            <Pencil className="size-4 text-muted-foreground transition-colors group-hover:text-primary" />
-          </div>
+          <AddressSelector
+            selectedAddress={selectedAddress}
+            onSelect={setSelectedAddress}
+          />
         </div>
 
         {/* Selector de mascota */}
@@ -360,26 +507,31 @@ function BookingSidebar() {
                         : "border-2 border-transparent shadow-sm hover:shadow-md"
                     )}
                   >
-                    <div
-                      className={cn(
-                        "relative mx-auto mb-4 size-20 overflow-hidden rounded-full ring-4 transition-all",
-                        isSelected ? "ring-primary/20" : "ring-muted"
-                      )}
-                    >
-                      {pet.photo_url ? (
-                        <Image
-                          src={pet.photo_url}
-                          alt={pet.name}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center bg-primary/10">
-                          <PawPrint className="size-8 text-primary" />
+                    {(() => {
+                      const photoUrl = safePhotoUrl(pet.photo_url);
+                      return (
+                        <div
+                          className={cn(
+                            "relative mx-auto mb-4 size-20 overflow-hidden rounded-full ring-4 transition-all",
+                            isSelected ? "ring-primary/20" : "ring-muted"
+                          )}
+                        >
+                          {photoUrl ? (
+                            <Image
+                              src={photoUrl}
+                              alt={pet.name}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                            />
+                          ) : (
+                            <div className="flex size-full items-center justify-center bg-primary/10">
+                              <PawPrint className="size-8 text-primary" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                     <h4 className="text-lg font-bold">{pet.name}</h4>
                     <p className="text-xs font-medium text-muted-foreground">
                       {speciesLabel(pet.species)}

@@ -18,20 +18,26 @@ export const authService = {
    * Login con email + contraseña.
    * POST /auth/login → access_token, refresh_token
    */
-  login: (data: LoginEmailRequest) =>
-    publicApiClient.post<LoginResponse>(ENDPOINTS.AUTH.LOGIN, data),
+  login: async (data: LoginEmailRequest) => {
+    const res = await publicApiClient.post<LoginResponse | { data: LoginResponse }>(ENDPOINTS.AUTH.LOGIN, data);
+    return (res as any).data ?? res;
+  },
 
   /**
    * Registro con email + contraseña y datos personales.
    * POST /auth/register → UserResponse
    */
-  register: (data: RegisterRequest) =>
-    publicApiClient.post<RegisterResponse>(ENDPOINTS.AUTH.REGISTER, data),
+  register: async (data: RegisterRequest) => {
+    const res = await publicApiClient.post<RegisterResponse | { data: RegisterResponse }>(ENDPOINTS.AUTH.REGISTER, data);
+    return (res as any).data ?? res;
+  },
 
   /**
    * Login / registro social vía Firebase ID Token.
    * POST /auth/social → AuthTokens + is_new_user flag
    */
-  socialLogin: (data: SocialLoginRequest) =>
-    publicApiClient.post<SocialLoginResponse>(ENDPOINTS.AUTH.SOCIAL, data),
+  socialLogin: async (data: SocialLoginRequest) => {
+    const res = await publicApiClient.post<SocialLoginResponse | { data: SocialLoginResponse }>(ENDPOINTS.AUTH.SOCIAL, data);
+    return (res as any).data ?? res;
+  },
 };
