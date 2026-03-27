@@ -4,10 +4,14 @@
 const ACCESS_KEY = "paku_access";
 const REFRESH_KEY = "paku_refresh";
 
+/** En producción (HTTPS) el flag Secure es obligatorio para que el navegador persista la cookie. */
+const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+
 function setCookie(name: string, value: string, days: number) {
   if (typeof document === "undefined") return;
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+  const secure = isSecure ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${secure}`;
 }
 
 function getCookie(name: string): string | undefined {
@@ -22,7 +26,8 @@ function getCookie(name: string): string | undefined {
 
 function removeCookie(name: string) {
   if (typeof document === "undefined") return;
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
+  const secure = isSecure ? "; Secure" : "";
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax${secure}`;
 }
 
 export function saveTokens(access: string, refresh: string) {

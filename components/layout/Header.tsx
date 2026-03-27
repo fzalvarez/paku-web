@@ -205,9 +205,9 @@ export function Header() {
             <Image
               src="/assets/imagotipo.png"
               alt="Paku"
-              width={90}
-              height={40}
-              className="h-9 w-auto object-contain"
+              width={120}
+              height={52}
+              className="h-12 w-auto object-contain"
               priority
             />
           </Link>
