@@ -2,22 +2,7 @@ import type { RequestOptions } from "@/types/api";
 import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from "@/lib/session";
 import { ENDPOINTS } from "./endpoints";
 
-const BASE_URL = (() => {
-  const url = process.env.NEXT_PUBLIC_API_URL;
-  if (!url) {
-    // En desarrollo se avisa; en producción se lanza error para evitar
-    // llamadas silenciosas a localhost desde Vercel.
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(
-        "[Paku] NEXT_PUBLIC_API_URL no está definida. " +
-        "Configúrala en las variables de entorno de Vercel."
-      );
-    }
-    console.warn("[Paku] NEXT_PUBLIC_API_URL no definida — usando http://localhost:8000");
-    return "http://localhost:8000";
-  }
-  return url;
-})();
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 // ── Error tipado ──────────────────────────────────────────────────────────────
 
