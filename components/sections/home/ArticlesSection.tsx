@@ -2,65 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Article {
-  id: number;
-  title: string;
-  excerpt: string;
-  category: string;
-  readingTime: string;
-  date: string;
-  image: string;
-  imageAlt: string;
-  href: string;
-}
-
-// Datos de ejemplo — reemplazar con llamada a la API
-const ARTICLES: Article[] = [
-  {
-    id: 1,
-    title: "Cómo cuidar la piel de perros y gatos",
-    excerpt:
-      "El mantenimiento de la barrera cutánea es fundamental para prevenir alergias y dermatitis estacionales...",
-    category: "Cuidado",
-    readingTime: "5 min de lectura",
-    date: "12 Oct 2024",
-    image:
-      "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&q=80",
-    imageAlt: "Profesional revisando la piel de un perro",
-    href: "#",
-  },
-  {
-    id: 2,
-    title: "Beneficios del baño regular en casa",
-    excerpt:
-      "Mantener una higiene constante entre servicios profesionales ayuda a fortalecer el vínculo afectivo...",
-    category: "Tips",
-    readingTime: "4 min de lectura",
-    date: "10 Oct 2024",
-    image:
-      "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&q=80",
-    imageAlt: "Perro feliz durante su baño",
-    href: "#",
-  },
-  {
-    id: 3,
-    title: "Protección para el frío: Guía completa",
-    excerpt:
-      "No todas las razas necesitan abrigo, descubre cómo identificar si tu mascota requiere protección extra...",
-    category: "Invierno",
-    readingTime: "7 min de lectura",
-    date: "05 Oct 2024",
-    image:
-      "https://images.unsplash.com/photo-1601758125946-6ec2ef64daf8?w=800&q=80",
-    imageAlt: "Cachorro con suéter de invierno",
-    href: "#",
-  },
-];
+import { ARTICLES, type Article } from "@/lib/data/articles";
 
 function ArticleCard({ article }: { article: Article }) {
   return (
-    <Link href={article.href} className="group flex flex-col">
+    <Link href={`/blog/${article.slug}`} className="group flex flex-col">
       {/* Imagen */}
       <div className="relative mb-6 aspect-4/3 overflow-hidden rounded-xl shadow-md">
         <Image
@@ -117,7 +63,7 @@ export function ArticlesSection() {
           </div>
 
           <Link
-            href="#"
+            href="/blog"
             className="group flex shrink-0 items-center gap-2 text-sm font-bold text-primary transition-all hover:gap-3"
           >
             Ver todos los artículos

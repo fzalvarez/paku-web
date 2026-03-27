@@ -325,7 +325,19 @@ function PakuSpaCard() {
           Accede a servicios premium de relajacion y cuidado estetico para tu mascota.
         </p>
       </div>
-      <div className="mt-12 flex items-center justify-center rounded-full bg-white/20 px-6 py-4 font-bold text-lg text-primary-foreground backdrop-blur-md">
+
+      {/* Imagen de la mascota */}
+      <div className="relative mx-auto mt-6 h-40 w-full transition-transform duration-500 group-hover:scale-105">
+        <Image
+          src="/assets/pakuspa.png"
+          alt="Mascota feliz en Paku Spa"
+          fill
+          className="object-contain object-bottom drop-shadow-xl"
+          sizes="(max-width: 768px) 100vw, 33vw"
+        />
+      </div>
+
+      <div className="mt-4 flex items-center justify-center rounded-full bg-white/20 px-6 py-4 font-bold text-lg text-primary-foreground backdrop-blur-md">
         Solicitar Servicio
       </div>
     </div>

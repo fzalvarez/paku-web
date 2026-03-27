@@ -4,6 +4,7 @@ import {
   PetManagementSection,
   BookingSection,
   ArticlesSection,
+  ContactSection,
 } from "@/components/sections/home";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function Home() {
       <PetManagementSection />
       <BookingSection />
       <ArticlesSection />
+      <ContactSection />
     </>
   );
 }

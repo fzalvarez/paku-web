@@ -4,6 +4,14 @@
  */
 export const ROUTES = {
   HOME: "/",
+  BLOG: "/blog",
+  PAKU_SPA: "/paku-spa",
+  ACCOUNT: {
+    PROFILE: "/account/profile",
+    PETS: "/account/pets",
+    ADDRESSES: "/account/addresses",
+    ORDERS: "/account/orders",
+  },
   POLITICAS: {
     TERMINOS: "/politicas/terminos-y-condiciones",
     PRIVACIDAD: "/politicas/privacidad",

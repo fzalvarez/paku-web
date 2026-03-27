@@ -10,3 +10,4 @@ export { storeService } from "./store";
 export { addressesService } from "./addresses";
 export { catalogService } from "./catalog";
 export { cartService } from "./cart";
+export { bookingService } from "./booking";

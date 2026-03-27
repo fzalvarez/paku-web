@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, Settings, CreditCard, HelpCircle, LogOut, ChevronDown, ShoppingCart as ShoppingCartIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -200,11 +201,15 @@ export function Header() {
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
-          <Link
-            href={ROUTES.HOME}
-            className="text-xl font-bold tracking-tight text-foreground"
-          >
-            Paku
+          <Link href={ROUTES.HOME} className="flex items-center">
+            <Image
+              src="/assets/imagotipo.png"
+              alt="Paku"
+              width={90}
+              height={40}
+              className="h-9 w-auto object-contain"
+              priority
+            />
           </Link>
 
           {/* Nav desktop */}

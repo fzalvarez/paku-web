@@ -37,4 +37,10 @@ export const ENDPOINTS = {
     ITEM: (itemId: string) => `/cart/items/${itemId}`,
     CHECKOUT: "/cart/checkout",
   },
+  BOOKING: {
+    AVAILABILITY: "/booking/availability",
+    HOLDS: "/booking/holds",
+    HOLD_CONFIRM: (id: string) => `/booking/holds/${id}/confirm`,
+    HOLD_CANCEL: (id: string) => `/booking/holds/${id}/cancel`,
+  },
 } as const;

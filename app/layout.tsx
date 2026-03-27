@@ -22,7 +22,12 @@ export const metadata: Metadata = {
     default: "Paku",
     template: "%s | Paku",
   },
-  description: "",
+  description: "El futuro del grooming móvil para tu mascota.",
+  icons: {
+    icon: "/assets/isotipo.png",
+    shortcut: "/assets/isotipo.png",
+    apple: "/assets/isotipo.png",
+  },
 };
 
 export default function RootLayout({

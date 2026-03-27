@@ -6,3 +6,4 @@ export { useAddresses } from "./useAddresses";
 export { useAuth } from "./useAuth";
 export { useBreeds } from "./useBreeds";
 export { useCart } from "./useCart";
+export { useBooking } from "./useBooking";
