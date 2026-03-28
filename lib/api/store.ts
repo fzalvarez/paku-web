@@ -22,7 +22,7 @@ export const storeService = {
     ),
 
   getProduct: (id: string, params?: { pet_id?: string }) =>
-    publicApiClient.get<ProductDetailOut>(`${ENDPOINTS.STORE.PRODUCTS}/${id}${buildQuery(params as Record<string, string>)}`),
+    publicApiClient.get<ProductDetailOut>(`${ENDPOINTS.STORE.PRODUCT(id)}${buildQuery(params as Record<string, string>)}`),
 
   quote: (payload: { pet_id: string; product_id: string; addon_ids?: string[] }) =>
     apiClient.post<QuoteOut>(ENDPOINTS.STORE.QUOTE, payload),
