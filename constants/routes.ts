@@ -5,7 +5,10 @@
 export const ROUTES = {
   HOME: "/",
   BLOG: "/blog",
+  BOOKING: "/booking",
   PAKU_SPA: "/paku-spa",
+  MIS_PEDIDOS: "/mis-pedidos",
+  MIS_PEDIDOS_DETALLE: (id: string) => `/mis-pedidos/${id}`,
   ACCOUNT: {
     PROFILE: "/account/profile",
     PETS: "/account/pets",

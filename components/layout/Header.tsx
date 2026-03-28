@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Menu, X, Settings, CreditCard, HelpCircle, LogOut, ChevronDown, ShoppingCart as ShoppingCartIcon } from "lucide-react";
+import { Menu, X, Settings, CreditCard, HelpCircle, LogOut, ChevronDown, ShoppingCart as ShoppingCartIcon, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +22,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 
 const NAV_LINKS = [
   { label: "Inicio", href: ROUTES.HOME },
+  { label: "Reservar", href: ROUTES.BOOKING },
 ] as const;
 
 // ── Helper: iniciales del usuario ─────────────────────────────────────────────
@@ -125,6 +126,21 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
                 <div>
                   <p className="font-semibold leading-none">Ajustes de cuenta</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">Perfil, contraseña y preferencias</p>
+                </div>
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem asChild>
+              <Link
+                href="/mis-pedidos"
+                className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-primary/5 hover:text-primary focus:bg-primary/5 focus:text-primary"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Package className="size-4" />
+                </span>
+                <div>
+                  <p className="font-semibold leading-none">Mis pedidos</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Historial y estado de tus servicios</p>
                 </div>
               </Link>
             </DropdownMenuItem>
@@ -242,10 +258,19 @@ export function Header() {
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" onClick={openLogin}>
+                <Button
+                  className="rounded-full px-6 py-5 "
+                  variant="ghost"
+                  size="sm"
+                  onClick={openLogin}
+                >
                   Iniciar sesión
                 </Button>
-                <Button size="sm" onClick={openRegister}>
+                <Button
+                  className="rounded-full px-6 py-5 "
+                  size="sm"
+                  onClick={openRegister}
+                >
                   Registrarse
                 </Button>
               </>
@@ -268,7 +293,7 @@ export function Header() {
         <div
           className={cn(
             "overflow-hidden border-b border-border bg-background transition-all duration-200 md:hidden",
-            mobileOpen ? "max-h-96" : "max-h-0"
+            mobileOpen ? "max-h-96" : "max-h-0",
           )}
         >
           <nav className="flex flex-col gap-1 px-4 py-4">
@@ -296,19 +321,30 @@ export function Header() {
                         <span className="absolute inset-0 rounded-full bg-linear-to-br from-primary via-secondary to-tertiary p-0.5" />
                         <Avatar size="sm" className="relative ring-0">
                           {user.profile_photo_url && (
-                            <AvatarImage src={user.profile_photo_url} alt={user.first_name ?? "Usuario"} />
+                            <AvatarImage
+                              src={user.profile_photo_url}
+                              alt={user.first_name ?? "Usuario"}
+                            />
                           )}
                           <AvatarFallback className="bg-white text-xs font-extrabold text-primary">
-                            {getUserInitials(user.first_name, user.last_name, user.email)}
+                            {getUserInitials(
+                              user.first_name,
+                              user.last_name,
+                              user.email,
+                            )}
                           </AvatarFallback>
                         </Avatar>
                       </span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-extrabold tracking-tight text-foreground">
-                          {user.first_name ? `${user.first_name} ${user.last_name ?? ""}`.trim() : user.email}
+                          {user.first_name
+                            ? `${user.first_name} ${user.last_name ?? ""}`.trim()
+                            : user.email}
                         </p>
                         {user.email && (
-                          <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {user.email}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -316,7 +352,10 @@ export function Header() {
 
                   {/* Links de navegación mobile */}
                   <button
-                    onClick={() => { setMobileOpen(false); setCartOpen(true); }}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setCartOpen(true);
+                    }}
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-primary/5 hover:text-primary"
                   >
                     <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -354,7 +393,10 @@ export function Header() {
                     Centro de ayuda
                   </a>
                   <button
-                    onClick={() => { setMobileOpen(false); logout(); }}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      logout();
+                    }}
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
                   >
                     <span className="flex size-7 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
@@ -369,14 +411,20 @@ export function Header() {
                     variant="ghost"
                     size="sm"
                     className="justify-start"
-                    onClick={() => { setMobileOpen(false); openLogin(); }}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      openLogin();
+                    }}
                   >
                     Iniciar sesión
                   </Button>
                   <Button
                     size="sm"
                     className="justify-start"
-                    onClick={() => { setMobileOpen(false); openRegister(); }}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      openRegister();
+                    }}
                   >
                     Registrarse
                   </Button>

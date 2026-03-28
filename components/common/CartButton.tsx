@@ -4,12 +4,9 @@ import { useRef, useEffect } from "react";
 import {
   ShoppingCart,
   X,
-  Plus,
-  Minus,
   Trash2,
   Loader2,
   PackageOpen,
-  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
@@ -17,10 +14,10 @@ import type { CartItemOut } from "@/types/cart";
 import { cn } from "@/lib/utils";
 
 // ── Formateador de precio ──────────────────────────────────────────────────────
-function formatPrice(amount: number, currency = "PEN"): string {
+function formatPrice(amount: number): string {
   return new Intl.NumberFormat("es-PE", {
     style: "currency",
-    currency,
+    currency: "PEN",
     minimumFractionDigits: 2,
   }).format(amount);
 }
@@ -29,12 +26,12 @@ function formatPrice(amount: number, currency = "PEN"): string {
 interface CartItemRowProps {
   item: CartItemOut;
   mutating: boolean;
-  onUpdate: (itemId: string, qty: number) => void;
   onRemove: (itemId: string) => void;
 }
 
-function CartItemRow({ item, mutating, onUpdate, onRemove }: CartItemRowProps) {
-  const isAddon = item.item_type === "addon";
+function CartItemRow({ item, mutating, onRemove }: CartItemRowProps) {
+  const isAddon = item.kind === "service_addon";
+  const subtotal = item.qty * item.unit_price;
 
   return (
     <div
@@ -54,7 +51,7 @@ function CartItemRow({ item, mutating, onUpdate, onRemove }: CartItemRowProps) {
             : "bg-primary/10 text-primary"
         )}
       >
-        {isAddon ? "+" : <ShoppingBag className="size-4" />}
+        {isAddon ? "+" : <ShoppingCart className="size-4" />}
       </span>
 
       {/* Info */}
@@ -63,37 +60,20 @@ function CartItemRow({ item, mutating, onUpdate, onRemove }: CartItemRowProps) {
           {item.name}
         </p>
         <p className="text-xs text-muted-foreground">
-          {formatPrice(item.unit_price, item.currency)} c/u
+          {formatPrice(item.unit_price)} c/u · Cant: {item.qty}
         </p>
-
-        {/* Controles de cantidad */}
-        <div className="mt-2 flex items-center gap-2">
-          <button
-            disabled={mutating || item.quantity <= 1}
-            onClick={() => onUpdate(item.id, item.quantity - 1)}
-            className="flex size-6 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
-            aria-label="Reducir cantidad"
-          >
-            <Minus className="size-3" />
-          </button>
-          <span className="w-6 text-center text-sm font-bold tabular-nums text-foreground">
-            {item.quantity}
-          </span>
-          <button
-            disabled={mutating}
-            onClick={() => onUpdate(item.id, item.quantity + 1)}
-            className="flex size-6 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
-            aria-label="Aumentar cantidad"
-          >
-            <Plus className="size-3" />
-          </button>
-        </div>
+        {item.meta?.scheduled_date && (
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            📅 {item.meta.scheduled_date}
+            {item.meta.scheduled_time ? ` · ${item.meta.scheduled_time}` : ""}
+          </p>
+        )}
       </div>
 
       {/* Subtotal + eliminar */}
       <div className="flex flex-col items-end gap-1.5">
         <span className="text-sm font-bold text-foreground">
-          {formatPrice(item.subtotal, item.currency)}
+          {formatPrice(subtotal)}
         </span>
         <button
           disabled={mutating}
@@ -117,8 +97,7 @@ interface CartButtonProps {
 }
 
 export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) {
-  const { cart, loading, mutating, totalItems, updateItem, removeItem } =
-    useCart();
+  const { cart, loading, mutating, totalItems, total, removeItem } = useCart();
 
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -150,28 +129,20 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
     };
   }, [open, onOpenChange]);
 
-  function handleUpdate(itemId: string, qty: number) {
-    updateItem(itemId, { quantity: qty });
-  }
+  // Separar servicios base de addons
+  const baseItems = cart?.items.filter((i) => i.kind === "service_base" || i.kind === "product") ?? [];
+  const addonItems = cart?.items.filter((i) => i.kind === "service_addon") ?? [];
 
-  function handleRemove(itemId: string) {
-    removeItem(itemId);
-  }
-
-  // Separar productos base de addons para agruparlos visualmente
-  const baseItems = cart?.items.filter((i) => i.item_type === "product") ?? [];
-  const addonItems = cart?.items.filter((i) => i.item_type === "addon") ?? [];
-
-  // Construir lista ordenada: cada producto seguido de sus addons
+  // Lista ordenada: cada servicio seguido de sus addons (por base_service_id)
   const orderedItems: CartItemOut[] = [];
   for (const base of baseItems) {
     orderedItems.push(base);
-    orderedItems.push(...addonItems.filter((a) => a.parent_item_id === base.id));
+    orderedItems.push(...addonItems.filter((a) => a.meta?.base_service_id === base.ref_id));
   }
-  // Addons sin padre (caso borde)
+  // Addons sin base asociada (caso borde)
   orderedItems.push(
     ...addonItems.filter(
-      (a) => !baseItems.some((b) => b.id === a.parent_item_id)
+      (a) => !baseItems.some((b) => b.ref_id === a.meta?.base_service_id)
     )
   );
 
@@ -205,9 +176,9 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
         )}
 
         {/* Total estimado (solo si hay items) */}
-        {cart && cart.total > 0 && (
+        {total > 0 && (
           <span className="hidden text-xs font-bold text-primary sm:inline">
-            {formatPrice(cart.total, cart.currency)}
+            {formatPrice(total)}
           </span>
         )}
       </button>
@@ -291,8 +262,7 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
                     key={item.id}
                     item={item}
                     mutating={mutating}
-                    onUpdate={handleUpdate}
-                    onRemove={handleRemove}
+                    onRemove={removeItem}
                   />
                 ))}
               </div>
@@ -302,14 +272,14 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
           {/* Footer con total + botón checkout */}
           {cart && orderedItems.length > 0 && (
             <div className="border-t border-border/60 bg-background p-3">
-              {/* Desglose */}
+              {/* Desglose por servicio base */}
               <div className="mb-3 space-y-1">
                 {baseItems.map((base) => {
                   const addons = addonItems.filter(
-                    (a) => a.parent_item_id === base.id
+                    (a) => a.meta?.base_service_id === base.ref_id
                   );
                   const addonSubtotal = addons.reduce(
-                    (s, a) => s + a.subtotal,
+                    (s, a) => s + a.qty * a.unit_price,
                     0
                   );
                   return (
@@ -319,7 +289,7 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
                         {addons.length > 0 && ` + ${addons.length} extra`}
                       </span>
                       <span className="shrink-0 font-medium">
-                        {formatPrice(base.subtotal + addonSubtotal, cart.currency)}
+                        {formatPrice(base.qty * base.unit_price + addonSubtotal)}
                       </span>
                     </div>
                   );
@@ -330,7 +300,7 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
               <div className="mb-3 flex items-baseline justify-between border-t border-dashed border-border pt-2">
                 <span className="text-sm font-bold text-foreground">Total estimado</span>
                 <span className="text-base font-extrabold text-primary">
-                  {formatPrice(cart.total, cart.currency)}
+                  {formatPrice(total)}
                 </span>
               </div>
 

@@ -10,7 +10,7 @@ export type AddressesHookState = {
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  create: (payload: AddressCreateIn) => Promise<void>;
+  create: (payload: AddressCreateIn) => Promise<AddressOut>;
   update: (id: string, payload: AddressUpdateIn) => Promise<void>;
   remove: (id: string) => Promise<void>;
   setDefault: (id: string) => Promise<void>;
@@ -46,9 +46,10 @@ export function useAddresses(): AddressesHookState {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const create = useCallback(async (payload: AddressCreateIn) => {
+  const create = useCallback(async (payload: AddressCreateIn): Promise<AddressOut> => {
     const newAddr = await addressesService.create(payload);
     setAddresses((prev) => [...prev, newAddr]);
+    return newAddr;
   }, []);
 
   const update = useCallback(async (id: string, payload: AddressUpdateIn) => {

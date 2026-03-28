@@ -1,5 +1,5 @@
 /**
- * Endpoints de la API — https://paku.dev-qa.site/paku/api/v1
+ * Endpoints de la API — alineados con flujo-compra-servicio.md
  */
 export const ENDPOINTS = {
   AUTH: {
@@ -17,8 +17,12 @@ export const ENDPOINTS = {
   },
   STORE: {
     CATEGORIES: "/store/categories",
-    PRODUCTS: "/store/products",
+    CATEGORY_PRODUCTS: (slug: string) => `/store/categories/${slug}/products`,
+    PRODUCT: (id: string) => `/store/products/${id}`,
     QUOTE: "/store/quote",
+  },
+  GEO: {
+    DISTRICTS: "/geo/districts",
   },
   ADDRESSES: {
     LIST: "/addresses",
@@ -32,15 +36,23 @@ export const ENDPOINTS = {
     BREEDS: "/catalog/breeds",
   },
   CART: {
-    ACTIVE: "/cart/active",
+    ACTIVE: "/cart",
     ITEMS: "/cart/items",
-    ITEM: (itemId: string) => `/cart/items/${itemId}`,
-    CHECKOUT: "/cart/checkout",
+    DETAIL: (id: string) => `/cart/${id}`,
+    CART_ITEMS: (id: string) => `/cart/${id}/items`,
+    ITEM: (cartId: string, itemId: string) => `/cart/${cartId}/items/${itemId}`,
+    VALIDATE: (id: string) => `/cart/${id}/validate`,
+    CHECKOUT: (id: string) => `/cart/${id}/checkout`,
+  },
+  ORDERS: {
+    LIST: "/orders",
+    CREATE: "/orders",
+    DETAIL: (id: string) => `/orders/${id}`,
   },
   BOOKING: {
-    AVAILABILITY: "/booking/availability",
-    HOLDS: "/booking/holds",
-    HOLD_CONFIRM: (id: string) => `/booking/holds/${id}/confirm`,
-    HOLD_CANCEL: (id: string) => `/booking/holds/${id}/cancel`,
+    AVAILABILITY: "/availability",
+    HOLDS: "/holds",
+    HOLD_CONFIRM: (id: string) => `/holds/${id}/confirm`,
+    HOLD_CANCEL: (id: string) => `/holds/${id}/cancel`,
   },
 } as const;
