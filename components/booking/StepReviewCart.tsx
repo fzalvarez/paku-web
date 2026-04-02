@@ -4,11 +4,9 @@ import { useState, useEffect } from "react";
 import { Loader2, AlertCircle, Trash2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
-import { ordersService } from "@/lib/api/orders";
 import { ApiCallError } from "@/lib/api/client";
 import { WizardNavButtons } from "./WizardLayout";
 import type { CartItemOut, CartValidateOut } from "@/types/cart";
-import type { OrderOut } from "@/types/orders";
 import type { ServiceOut, ServiceAddon } from "@/types/services";
 import type { Pet } from "@/types/pets";
 import type { AddressOut } from "@/types/api";
@@ -71,7 +69,7 @@ interface StepReviewCartProps {
   selectedAddress: AddressOut | null;
   // Callbacks
   onBack: () => void;
-  onOrderCreated: (order: OrderOut) => void;
+  onProceedToPayment: (cartId: string, amountCents: number) => void;
 }
 
 export function StepReviewCart({
@@ -82,17 +80,16 @@ export function StepReviewCart({
   selectedTime,
   selectedAddress,
   onBack,
-  onOrderCreated,
+  onProceedToPayment,
 }: StepReviewCartProps) {
-  const { cart, loading, mutating, error, addItems, removeItem, validate, checkout, clearCart } = useCart();
+  const { cart, loading, mutating, error, addItems, removeItem, validate, checkout } = useCart();
   const [cartBuilt, setCartBuilt] = useState(false);
   const [buildingCart, setBuildingCart] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
   const [validation, setValidation] = useState<CartValidateOut | null>(null);
   const [validating, setValidating] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
-  const [creatingOrder, setCreatingOrder] = useState(false);
-  const [orderError, setOrderError] = useState<string | null>(null);
+  const [processError, setProcessError] = useState<string | null>(null);
 
   // Construir el carrito al entrar al paso si no está construido
   useEffect(() => {
@@ -166,48 +163,42 @@ export function StepReviewCart({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartBuilt, cart?.cart.id]);
 
-  async function handleCheckoutAndOrder() {
+  async function handleProceedToPayment() {
     if (!cart?.cart.id) return;
-    setOrderError(null);
+    setProcessError(null);
 
     try {
-      // Paso 7: Validar carrito
+      // Validar carrito
       setValidating(true);
       const validResult = await validate();
       setValidation(validResult);
       setValidating(false);
 
       if (!validResult.valid) {
-        setOrderError("El carrito tiene errores: " + validResult.errors.join(", "));
+        setProcessError("El carrito tiene errores: " + validResult.errors.join(", "));
         return;
       }
 
-      // Paso 8: Checkout
+      // Hacer checkout (bloquea el carrito y congela el precio)
       setCheckingOut(true);
       await checkout();
       setCheckingOut(false);
 
-      // Paso 9: Crear orden
-      setCreatingOrder(true);
-      const order = await ordersService.create({
-        cart_id: cart.cart.id,
-        address_id: selectedAddress?.id,
-      });
-      clearCart();
-      onOrderCreated(order);
+      // Pasar al paso de pago con el cartId y el total en céntimos
+      const totalCents = Math.round((validResult.total ?? total) * 100);
+      onProceedToPayment(cart.cart.id, totalCents);
     } catch (err) {
       setCheckingOut(false);
-      setCreatingOrder(false);
       setValidating(false);
       if (err instanceof ApiCallError) {
-        setOrderError(`Error: ${err.message}`);
+        setProcessError(`Error: ${err.message}`);
       } else {
-        setOrderError("Ocurrió un error al confirmar el pedido. Intenta de nuevo.");
+        setProcessError("Ocurrió un error al preparar el pago. Intenta de nuevo.");
       }
     }
   }
 
-  const isProcessing = buildingCart || mutating || validating || checkingOut || creatingOrder;
+  const isProcessing = buildingCart || mutating || validating || checkingOut;
   const total = cart?.items.reduce((acc, item) => acc + item.qty * item.unit_price, 0) ?? 0;
 
   return (
@@ -299,11 +290,11 @@ export function StepReviewCart({
             </span>
           </div>
 
-          {/* Error de orden */}
-          {(error || orderError) && (
+          {/* Error de proceso */}
+          {(error || processError) && (
             <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               <AlertCircle className="size-4 shrink-0" />
-              {orderError ?? error}
+              {processError ?? error}
             </div>
           )}
         </div>
@@ -320,14 +311,13 @@ export function StepReviewCart({
         canGoBack={!isProcessing}
         onBack={onBack}
         nextLabel={
-          checkingOut ? "Procesando checkout…" :
-          creatingOrder ? "Creando orden…" :
+          checkingOut ? "Preparando pago…" :
           validating ? "Validando…" :
-          "Confirmar pedido"
+          "Ir a pagar"
         }
         nextDisabled={!cart || isProcessing || (validation !== null && !validation.valid)}
         nextLoading={isProcessing}
-        onNext={handleCheckoutAndOrder}
+        onNext={handleProceedToPayment}
       />
     </div>
   );

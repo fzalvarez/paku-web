@@ -8,7 +8,9 @@ import { StepSelectService } from "./StepSelectService";
 import { StepSelectDate } from "./StepSelectDate";
 import { StepSelectAddress } from "./StepSelectAddress";
 import { StepReviewCart } from "./StepReviewCart";
+import { StepPayment } from "./StepPayment";
 import { StepOrderConfirmed } from "./StepOrderConfirmed";
+import { ordersService } from "@/lib/api/orders";
 import type { Pet } from "@/types/pets";
 import type { ServiceOut, ServiceAddon } from "@/types/services";
 import type { AddressOut } from "@/types/api";
@@ -27,6 +29,10 @@ export function BookingWizard() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<AddressOut | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<OrderOut | null>(null);
+
+  // Estado del pago
+  const [cartId, setCartId] = useState<string | null>(null);
+  const [amountCents, setAmountCents] = useState<number>(0);
 
   const handleSelectPet = useCallback((petId: string, pet: Pet) => {
     setSelectedPetId(petId);
@@ -48,10 +54,30 @@ export function BookingWizard() {
     setSelectedAddress(address);
   }, []);
 
-  const handleOrderCreated = useCallback((order: OrderOut) => {
-    setConfirmedOrder(order);
-    goTo("order-confirmed");
+  // Desde StepReviewCart: cart listo para pagar
+  const handleProceedToPayment = useCallback((cId: string, cents: number) => {
+    setCartId(cId);
+    setAmountCents(cents);
+    goTo("payment");
   }, [goTo]);
+
+  // Desde StepPayment: pago exitoso → crear orden y mostrar confirmación
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handlePaymentSuccess = useCallback(async (_paymentOrderId: string) => {
+    if (!cartId || !selectedAddress) return;
+    try {
+      const order = await ordersService.create({
+        cart_id: cartId,
+        address_id: selectedAddress.id,
+      });
+      setConfirmedOrder(order);
+      goTo("order-confirmed");
+    } catch {
+      // Pago exitoso pero error al crear la orden en nuestro sistema.
+      // Aún así, avanzamos y mostramos confirmación básica.
+      goTo("order-confirmed");
+    }
+  }, [cartId, selectedAddress, goTo]);
 
   const handleNewOrder = useCallback(() => {
     setSelectedPetId(null);
@@ -62,6 +88,8 @@ export function BookingWizard() {
     setSelectedTime(null);
     setSelectedAddress(null);
     setConfirmedOrder(null);
+    setCartId(null);
+    setAmountCents(0);
     goTo("select-pet");
   }, [goTo]);
 
@@ -84,7 +112,7 @@ export function BookingWizard() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       {currentStep !== "order-confirmed" && (
         <WizardProgress currentStep={currentStep} />
       )}
@@ -139,15 +167,46 @@ export function BookingWizard() {
           selectedTime={selectedTime}
           selectedAddress={selectedAddress}
           onBack={goBack}
-          onOrderCreated={handleOrderCreated}
+          onProceedToPayment={handleProceedToPayment}
         />
       )}
 
-      {currentStep === "order-confirmed" && confirmedOrder && (
-        <StepOrderConfirmed
-          order={confirmedOrder}
-          onNewOrder={handleNewOrder}
+      {currentStep === "payment" && cartId && (
+        <StepPayment
+          cartId={cartId}
+          amountCents={amountCents}
+          currency="PEN"
+          onPaymentSuccess={handlePaymentSuccess}
+          onBack={goBack}
         />
+      )}
+
+      {currentStep === "order-confirmed" && (
+        confirmedOrder ? (
+          <StepOrderConfirmed
+            order={confirmedOrder}
+            onNewOrder={handleNewOrder}
+          />
+        ) : (
+          /* Pago exitoso pero creación de orden falló — pantalla de fallback */
+          <div className="flex flex-col items-center gap-4 py-16 text-center">
+            <div className="flex size-20 items-center justify-center rounded-full bg-green-100">
+              <svg viewBox="0 0 24 24" className="size-10 text-green-600" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-extrabold">¡Pago recibido!</h2>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              Tu pago fue procesado exitosamente. Nuestro equipo se pondrá en contacto contigo para confirmar tu pedido.
+            </p>
+            <button
+              onClick={handleNewOrder}
+              className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+            >
+              Volver al inicio
+            </button>
+          </div>
+        )
       )}
     </div>
   );

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paku Payments - Pago Rápido</title>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --surface2: #1c1c28;
+            --border: #2a2a3a;
+            --accent: #7c6af7;
+            --accent2: #4fd1c5;
+            --text: #f0f0f8;
+            --muted: #7070a0;
+            --success: #4ade80;
+            --error: #f87171;
+        }
+
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(ellipse 60% 40% at 20% 10%, rgba(124,106,247,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 80% 90%, rgba(79,209,197,0.08) 0%, transparent 60%);
+        }
+
+        .checkout-wrapper {
+            width: 100%;
+            max-width: 420px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .brand-name {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .brand-amount {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.1;
+            margin-top: 4px;
+        }
+        .brand-amount span {
+            font-size: 20px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .card-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(124,106,247,0.5), transparent);
+        }
+
+        /* PASO 1: Selección de tarjeta */
+        .step { display: none; }
+        .step.active { display: block; animation: fadeUp 0.3s ease both; }
+
+        .step-label {
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .card-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .card-option {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .card-option:hover { border-color: var(--accent); background: rgba(124,106,247,0.06); }
+        .card-option.selected {
+            border-color: var(--accent);
+            background: rgba(124,106,247,0.1);
+        }
+        .card-option.selected::after {
+            content: '✓';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .card-icon {
+            width: 44px;
+            height: 30px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            flex-shrink: 0;
+        }
+        .card-icon.visa { background: #1a1f71; color: #fff; }
+        .card-icon.master { background: #eb001b; color: #fff; }
+        .card-icon.amex { background: #007bc1; color: #fff; }
+        .card-icon.default { background: var(--border); color: var(--muted); }
+
+        .card-info { flex: 1; min-width: 0; }
+        .card-number {
+            font-family: 'DM Mono', monospace;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+            letter-spacing: 0.1em;
+        }
+        .card-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        /* PASO 2: CVV */
+        .cvv-section { margin-top: 4px; }
+
+        .selected-card-preview {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .preview-number {
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
+            color: var(--text);
+            letter-spacing: 0.08em;
+        }
+        .preview-brand { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        .change-card {
+            margin-left: auto;
+            font-size: 11px;
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            background: none;
+            border: none;
+            font-family: 'Syne', sans-serif;
+        }
+        .change-card:hover { color: var(--accent2); }
+
+        .field-label {
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* Contenedor del iframe del CVV de MP */
+        #mp-securityCode-container {
+            height: 50px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface2);
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            transition: border-color 0.2s;
+            margin-bottom: 20px;
+        }
+        #mp-securityCode-container:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124,106,247,0.15);
+        }
+
+        .cuotas-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .cuotas-row label { 
+            font-size: 11px; 
+            letter-spacing: 0.15em; 
+            text-transform: uppercase; 
+            color: var(--muted); 
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .cuotas-row select {
+            flex: 1;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            padding: 10px 14px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .cuotas-row select:focus { border-color: var(--accent); }
+        .cuotas-row select option { background: var(--surface2); }
+
+        .btn-pay {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-pay:hover:not(:disabled) {
+            background: #9580ff;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(124,106,247,0.35);
+        }
+        .btn-pay:active:not(:disabled) { transform: translateY(0); }
+        .btn-pay:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-next {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            color: var(--accent);
+            border: 1.5px solid var(--accent);
+            border-radius: 14px;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.2s;
+        }
+        .btn-next:hover { background: rgba(124,106,247,0.1); }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Log */
+        .log-box {
+            margin-top: 20px;
+            background: #0d0d14;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: #4ade80;
+            max-height: 160px;
+            overflow-y: auto;
+            line-height: 1.7;
+        }
+        .log-box .err { color: var(--error); }
+        .log-box .info { color: var(--accent2); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 22px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s ease;
+            z-index: 999;
+            white-space: nowrap;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--error); color: var(--error); }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="checkout-wrapper">
+    <div class="brand">
+        <div class="brand-name">Paku Payments</div>
+        <div class="brand-amount"><span>S/ </span>100.00</div>
+    </div>
+
+    <div class="card-box">
+
+        <!-- PASO 1: Seleccionar tarjeta -->
+        <div class="step active" id="step-1">
+            <div class="step-label">Seleccioná tu tarjeta</div>
+            <div class="card-list" id="card-list">
+                <div class="empty-state">
+                    <div class="icon">⏳</div>
+                    Cargando tarjetas guardadas...
+                </div>
+            </div>
+            <button class="btn-next" id="btn-next" disabled>Continuar →</button>
+        </div>
+
+        <!-- PASO 2: Ingresar CVV -->
+        <div class="step" id="step-2">
+            <div class="step-label">Confirmá tu seguridad</div>
+
+            <div class="selected-card-preview" id="selected-preview">
+                <div class="card-icon default" id="preview-icon">?</div>
+                <div>
+                    <div class="preview-number" id="preview-number">•••• •••• •••• ••••</div>
+                    <div class="preview-brand" id="preview-brand">—</div>
+                </div>
+                <button class="change-card" id="btn-change">Cambiar</button>
+            </div>
+
+            <label class="field-label">Código de seguridad (CVV)</label>
+            <div id="mp-securityCode-container"></div>
+
+            <div class="cuotas-row">
+                <label>Cuotas</label>
+                <select id="select-installments">
+                    <option value="1">1 cuota sin interés</option>
+                    <option value="3">3 cuotas</option>
+                    <option value="6">6 cuotas</option>
+                    <option value="12">12 cuotas</option>
+                </select>
+            </div>
+
+            <button class="btn-pay" id="btn-pay" disabled>
+                Pagar S/ 100.00
+            </button>
+        </div>
+
+    </div>
+
+    <div class="log-box" id="log-box">› Iniciando...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // ─── CONFIG ────────────────────────────────────────────────────────────────
+    const PUBLIC_KEY   = "TEST-19a2d813-aaa6-4ad8-8ec7-5346ff969d1a";  // Tu public key
+    const BACKEND_URL  = "http://localhost:8000/api/payments/pay";      // Tu backend
+    const PAYMENT_METHODS_URL = "http://localhost:8000/api/payment-methods";
+    const AUTH_BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMzMxIiwiZW1haWwiOiJxYTIyRnJhbmtAbG9jYWwudGVzdCIsImV4cCI6MTc3MzA5MjM2Mn0.gtEVArIhPIrMqOqDH9crFkSlpYvCn25QquxpobOguRQ"; // Pega aqui tu JWT (sin el prefijo "Bearer ")
+    const CART_ID      = "11111111-1111-1111-1111-111111111118";
+    const AMOUNT       = "100.00";
+    // ───────────────────────────────────────────────────────────────────────────
+
+    // Tarjetas guardadas hardcodeadas para prueba (en producción vendrían de tu backend)
+    // Reemplazá con las tarjetas reales del customer via tu backend
+    let SAVED_CARDS = [];
+
+    // ─── ESTADO ────────────────────────────────────────────────────────────────
+    let selectedCard = null;
+    let securityCodeBrick = null;
+    const mp = new MercadoPago(PUBLIC_KEY);
+
+    function getAuthHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${AUTH_BEARER_TOKEN.trim()}`
+        };
+    }
+
+    async function loadSavedCards() {
+        if (!AUTH_BEARER_TOKEN.trim()) {
+            throw new Error('Falta AUTH_BEARER_TOKEN para cargar tarjetas.');
+        }
+
+        const res = await fetch(PAYMENT_METHODS_URL, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!res.ok) {
+            throw new Error(`No se pudieron cargar tarjetas (${res.status}).`);
+        }
+
+        const methods = await res.json();
+        SAVED_CARDS = (Array.isArray(methods) ? methods : [])
+            .map((method) => ({
+                saved_payment_method_id: method.id,
+                id: String(method.mp_card_id || ''),
+                last_four: method.last4 || '0000',
+                expiration_month: method.exp_month,
+                expiration_year: method.exp_year,
+                payment_method_id: method.brand || 'visa',
+                cardholder_name: 'Titular'
+            }))
+            .filter((card) => card.saved_payment_method_id && card.id);
+    }
+
+    // ─── LOG ───────────────────────────────────────────────────────────────────
+    function log(msg, type = '') {
+        const box = document.getElementById('log-box');
+        const line = document.createElement('div');
+        line.className = type;
+        line.textContent = '› ' + msg;
+        box.appendChild(line);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // ─── TOAST ─────────────────────────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = (type === 'success' ? '✓ ' : '✗ ') + msg;
+        t.className = `toast ${type} show`;
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ─── PASO 1: Renderizar tarjetas ───────────────────────────────────────────
+    function getBrandLabel(pm_id) {
+        const map = { visa: 'VISA', master: 'MC', amex: 'AMEX', debvisa: 'VISA DB', debmaster: 'MC DB' };
+        return map[pm_id] || pm_id?.toUpperCase() || '??';
+    }
+    function getBrandClass(pm_id) {
+        if (pm_id?.includes('visa')) return 'visa';
+        if (pm_id?.includes('master')) return 'master';
+        if (pm_id?.includes('amex')) return 'amex';
+        return 'default';
+    }
+
+    function renderCards() {
+        const list = document.getElementById('card-list');
+        if (!SAVED_CARDS.length) {
+            list.innerHTML = `<div class="empty-state"><div class="icon">💳</div>No tenés tarjetas guardadas.</div>`;
+            return;
+        }
+        list.innerHTML = '';
+        SAVED_CARDS.forEach(card => {
+            const el = document.createElement('div');
+            el.className = 'card-option';
+            el.dataset.id = card.id;
+            el.innerHTML = `
+                <div class="card-icon ${getBrandClass(card.payment_method_id)}">${getBrandLabel(card.payment_method_id)}</div>
+                <div class="card-info">
+                    <div class="card-number">•••• •••• •••• ${card.last_four}</div>
+                    <div class="card-meta">${card.cardholder_name} · Vence ${String(card.expiration_month).padStart(2,'0')}/${card.expiration_year}</div>
+                </div>
+            `;
+            el.addEventListener('click', () => selectCard(card, el));
+            list.appendChild(el);
+        });
+        log(`${SAVED_CARDS.length} tarjeta(s) cargada(s).`);
+    }
+
+    function selectCard(card, el) {
+        document.querySelectorAll('.card-option').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedCard = card;
+        document.getElementById('btn-next').disabled = false;
+        log(`Tarjeta seleccionada: •••• ${card.last_four}`);
+    }
+
+    // ─── PASO 2: Montar iframe CVV ─────────────────────────────────────────────
+    async function goToStep2() {
+        document.getElementById('step-1').classList.remove('active');
+        document.getElementById('step-2').classList.add('active');
+
+        // Preview de tarjeta seleccionada
+        document.getElementById('preview-icon').className = `card-icon ${getBrandClass(selectedCard.payment_method_id)}`;
+        document.getElementById('preview-icon').textContent = getBrandLabel(selectedCard.payment_method_id);
+        document.getElementById('preview-number').textContent = `•••• •••• •••• ${selectedCard.last_four}`;
+        document.getElementById('preview-brand').textContent = `${selectedCard.cardholder_name} · Vence ${String(selectedCard.expiration_month).padStart(2,'0')}/${selectedCard.expiration_year}`;
+
+        log('Montando campo CVV seguro...', 'info');
+
+        // Montar el campo de security code de MP como iframe seguro
+        try {
+            const fields = mp.fields.create('securityCode', {
+                placeholder: '•••',
+                style: {
+                    color: '#f0f0f8',
+                    fontSize: '16px',
+                    fontFamily: "'DM Mono', monospace"
+                }
+            });
+            fields.mount('mp-securityCode-container');
+            securityCodeBrick = fields;
+
+            fields.on('ready', () => {
+                log('✅ Campo CVV listo.', 'info');
+                document.getElementById('btn-pay').disabled = false;
+            });
+            fields.on('validityChange', ({ errorMessages }) => {
+                if (errorMessages.length) {
+                    log('CVV inválido: ' + errorMessages[0], 'err');
+                    document.getElementById('btn-pay').disabled = true;
+                } else {
+                    document.getElementById('btn-pay').disabled = false;
+                }
+            });
+        } catch(e) {
+            log('Error montando CVV: ' + e.message, 'err');
+        }
+    }
+
+    // ─── PAGO ──────────────────────────────────────────────────────────────────
+    async function procesarPago() {
+        const btn = document.getElementById('btn-pay');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Procesando...';
+        log('Generando token con CVV...', 'info');
+
+
+        try {
+            const tokenResult = await mp.fields.createCardToken({
+                cardId: selectedCard.id
+            });
+
+            if (!tokenResult || !tokenResult.id) {
+                throw new Error('No se pudo generar el token.');
+            }
+
+            log('✅ Token generado: ' + tokenResult.id.substring(0, 12) + '...');
+
+            const installments = parseInt(document.getElementById('select-installments').value);
+
+            const payload = {
+                cart_id: CART_ID,
+                amount: Math.round(parseFloat(AMOUNT) * 100),
+                currency: "PEN",
+                saved_payment_method_id: selectedCard.saved_payment_method_id,
+                card_token: tokenResult.id,
+                installments: installments,
+                payment_method_id: selectedCard.payment_method_id
+            };
+
+            log('Enviando pago al backend...');
+
+            const res = await fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            log('Respuesta: ' + JSON.stringify(data));
+
+            if (data.status === 'approved') {
+                showToast('¡Pago aprobado!', 'success');
+                log('🎉 PAGO APROBADO', 'info');
+            } else {
+                showToast('Estado: ' + (data.status || 'desconocido'), 'error');
+                log('Estado del pago: ' + data.status, 'err');
+            }
+
+        } catch (err) {
+            const msg = Array.isArray(err)
+                ? err.map(e => e.code + ': ' + e.message).join(' | ')
+                : (err.message || JSON.stringify(err));
+            log('❌ ERROR: ' + msg, 'err');
+            showToast(msg, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Pagar S/ 100.00';
+        }
+    }
+
+    // ─── EVENTOS ───────────────────────────────────────────────────────────────
+    document.getElementById('btn-next').addEventListener('click', goToStep2);
+    document.getElementById('btn-change').addEventListener('click', () => {
+        document.getElementById('step-2').classList.remove('active');
+        document.getElementById('step-1').classList.add('active');
+        if (securityCodeBrick) { securityCodeBrick.unmount(); securityCodeBrick = null; }
+        log('Cambiando tarjeta...');
+    });
+    document.getElementById('btn-pay').addEventListener('click', procesarPago);
+
+    // ─── INIT ──────────────────────────────────────────────────────────────────
+    (async function initCheckout() {
+        try {
+            log('Cargando tarjetas desde backend...', 'info');
+            await loadSavedCards();
+        } catch (err) {
+            log('Error cargando tarjetas: ' + err.message, 'err');
+        }
+        renderCards();
+    })();
+</script>
+
+</body>
+</html>
+
+
+
+

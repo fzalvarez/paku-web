@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { CheckCircle2, ChevronRight, ShoppingCart, CalendarDays, PawPrint, MapPin, ClipboardList } from "lucide-react";
+import { CheckCircle2, ChevronRight, ShoppingCart, CalendarDays, PawPrint, MapPin, ClipboardList, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Pasos del wizard
@@ -11,6 +11,7 @@ export type BookingStep =
   | "select-date"      // Paso 3+4: Fecha/hora + disponibilidad
   | "select-address"   // Paso 3: Dirección de entrega
   | "review-cart"      // Paso 5+6: Revisar carrito
+  | "payment"          // Paso 7: Pago con Mercado Pago
   | "order-confirmed"; // Paso 9+10: Orden creada
 
 const STEPS: { id: BookingStep; label: string; icon: React.ReactNode }[] = [
@@ -18,7 +19,8 @@ const STEPS: { id: BookingStep; label: string; icon: React.ReactNode }[] = [
   { id: "select-service", label: "Servicio", icon: <ClipboardList className="size-4" /> },
   { id: "select-date", label: "Fecha", icon: <CalendarDays className="size-4" /> },
   { id: "select-address", label: "Dirección", icon: <MapPin className="size-4" /> },
-  { id: "review-cart", label: "Confirmar", icon: <ShoppingCart className="size-4" /> },
+  { id: "review-cart", label: "Revisar", icon: <ShoppingCart className="size-4" /> },
+  { id: "payment", label: "Pago", icon: <CreditCard className="size-4" /> },
 ];
 
 const STEP_ORDER: BookingStep[] = [
@@ -27,6 +29,7 @@ const STEP_ORDER: BookingStep[] = [
   "select-date",
   "select-address",
   "review-cart",
+  "payment",
   "order-confirmed",
 ];
 
@@ -60,7 +63,7 @@ export function WizardProgress({ currentStep }: WizardProgressProps) {
                 </div>
                 <span
                   className={cn(
-                    "hidden text-[10px] font-semibold sm:block",
+                    "hidden text-[11px] font-semibold sm:block",
                     isActive ? "text-primary" : isCompleted ? "text-primary/70" : "text-muted-foreground"
                   )}
                 >
