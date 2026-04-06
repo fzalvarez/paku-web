@@ -10,6 +10,7 @@ import { petsService } from "@/lib/api/pets";
 import { calcPetAge, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
 import type { Pet, CreatePetRequest, PetSpecies, PetSex } from "@/types/pets";
 import { Button } from "@/components/ui/button";
+import { AuthDialog } from "@/components/common/AuthDialog";
 
 // ── Modal para agregar mascota ─────────────────────────────────────────────────
 const EMPTY_FORM: CreatePetRequest = {
@@ -216,14 +217,14 @@ function PetCard({ pet }: { pet: Pet }) {
   );
 }
 
-function MyPetsCard({ onAdd }: { onAdd: () => void }) {
+function MyPetsCard({ onAdd, onRequireAuth }: { onAdd: () => void; onRequireAuth: () => void }) {
   const { isAuthenticated } = useAuthContext();
   const { pets, loading, error } = usePets();
 
   if (!isAuthenticated) {
     return (
       <button
-        onClick={onAdd}
+        onClick={onRequireAuth}
         className="group relative flex min-h-80 w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/40 p-8 transition-all hover:border-primary hover:bg-muted/60"
       >
         <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
@@ -314,30 +315,28 @@ function PersonalizationCard() {
 function PakuSpaCard() {
   return (
     <div className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl bg-primary p-8 shadow-xl transition-all active:scale-[0.98]">
+      <Image
+        src="/assets/pakuspa.png"
+        alt="Mascota feliz en Paku Spa"
+        fill
+        className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+        sizes="(max-width: 768px) 100vw, 33vw"
+      />
+      <div className="absolute inset-0 bg-primary/10 transition-colors group-hover:bg-primary/20" />
       <div className="absolute -right-12 -top-12 size-48 rounded-full bg-white/10 blur-3xl transition-all group-hover:bg-white/20" />
-      <div>
+      <div className="relative z-10">
         <div className="mb-6 flex items-start justify-between">
-          <Sparkles className="size-12 text-primary-foreground" strokeWidth={1.5} />
+          <Sparkles className="size-9 text-primary-foreground" strokeWidth={1.5} />
           <ArrowUpRight className="size-6 text-primary-foreground/50 transition-opacity group-hover:opacity-100" />
         </div>
-        <h3 className="mb-2 text-3xl font-extrabold tracking-tight text-primary-foreground">Paku Spa</h3>
+        <h3 className="mb-0 text-3xl font-extrabold tracking-tight text-primary-foreground">Paku Spa</h3>
         <p className="font-medium text-primary-foreground/80">
-          Accede a servicios premium de relajacion y cuidado estetico para tu mascota.
+          {/* Accede a servicios premium de relajacion y cuidado estetico para tu mascota. */}
+          Grooming inteligente
         </p>
       </div>
 
-      {/* Imagen de la mascota */}
-      <div className="relative mx-auto mt-6 h-40 w-full transition-transform duration-500 group-hover:scale-105">
-        <Image
-          src="/assets/pakuspa.png"
-          alt="Mascota feliz en Paku Spa"
-          fill
-          className="object-contain object-bottom drop-shadow-xl"
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
-      </div>
-
-      <div className="mt-4 flex items-center justify-center rounded-full bg-white/20 px-6 py-4 font-bold text-lg text-primary-foreground backdrop-blur-md">
+      <div className="relative z-10 mt-4 flex items-center justify-center rounded-full bg-white/20 px-6 py-4 font-bold text-lg text-primary-foreground backdrop-blur-md">
         Solicitar Servicio
       </div>
     </div>
@@ -346,6 +345,7 @@ function PakuSpaCard() {
 
 export function PetManagementSection() {
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const { reload } = usePets();
 
   return (
@@ -356,6 +356,7 @@ export function PetManagementSection() {
           onSuccess={reload}
         />
       )}
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} defaultTab="register" />
       <header className="mb-12">
         <h2 className="mb-4 text-4xl font-extrabold tracking-tight md:text-5xl">Pet Management</h2>
         <p className="max-w-2xl text-lg text-muted-foreground">
@@ -363,7 +364,7 @@ export function PetManagementSection() {
         </p>
       </header>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <MyPetsCard onAdd={() => setAddModalOpen(true)} />
+        <MyPetsCard onAdd={() => setAddModalOpen(true)} onRequireAuth={() => setAuthOpen(true)} />
         <PersonalizationCard />
         <PakuSpaCard />
       </div>

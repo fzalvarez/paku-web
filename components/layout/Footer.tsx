@@ -54,7 +54,7 @@ export function Footer() {
             {/* Logo */}
             <Link href={ROUTES.HOME} className="mb-5 inline-block">
               <Image
-                src="/assets/logo-color.png"
+                src="/assets/logo-paku.png"
                 alt="Paku"
                 width={96}
                 height={32}

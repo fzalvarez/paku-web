@@ -2,7 +2,11 @@ import type { RequestOptions } from "@/types/api";
 import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from "@/lib/session";
 import { ENDPOINTS } from "./endpoints";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:8000"
+).replace(/\/$/, "");
 
 // ── Error tipado ──────────────────────────────────────────────────────────────
 

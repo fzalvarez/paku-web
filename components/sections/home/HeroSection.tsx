@@ -38,7 +38,7 @@ export function HeroSection() {
       {/* ── Texto central ── */}
       <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
         {/* Badge */}
-        <span className="mb-6 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary">
+        <span className="hidden mb-6 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary">
           Próxima Generación
         </span>
 

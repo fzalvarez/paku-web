@@ -25,7 +25,7 @@ export interface ServiceAddon {
   species: "dog" | "cat";
   allowed_breeds: string[] | null;
   is_active: boolean;
-  /** Precio en céntimos (ej. 1500 = S/ 15.00) */
+  /** Precio decimal (ej. 15.00) */
   price: number;
   currency: string;
 }
@@ -40,7 +40,7 @@ export interface ServiceOut {
   species: "dog" | "cat";
   allowed_breeds: string[] | null;
   is_active: boolean;
-  /** Precio en céntimos (ej. 6500 = S/ 65.00) */
+  /** Precio decimal (ej. 65.00) */
   price: number;
   currency: string;
   /** Solo presente en GET /store/products/{id} */
@@ -49,8 +49,8 @@ export interface ServiceOut {
 
 // ── Helper ─────────────────────────────────────────────────────────────────────
 
-/** Convierte céntimos a string formateado: 6500 → "S/ 65.00" */
-export function formatPrice(cents: number, currency = "PEN"): string {
+/** Convierte monto decimal a string formateado: 65 → "S/ 65.00" */
+export function formatPrice(amount: number, currency = "PEN"): string {
   const symbol = currency === "PEN" ? "S/" : currency;
-  return `${symbol} ${(cents / 100).toFixed(2)}`;
+  return `${symbol} ${Number(amount).toFixed(2)}`;
 }
