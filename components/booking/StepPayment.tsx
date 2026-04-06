@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import {
   CreditCard, Plus, CheckCircle2, Loader2, AlertCircle,
   RefreshCw, ChevronRight, ArrowLeft, Lock, X,
@@ -73,6 +74,13 @@ export function StepPayment({
   const [selectedCard, setSelectedCard] = useState<SavedCard | null>(null);
   const [installments, setInstallments] = useState(1);
   const [localError, setLocalError]     = useState<string | null>(null);
+
+  // Si terminó de cargar y no hay tarjetas guardadas, ir directo al formulario de nueva tarjeta
+  useEffect(() => {
+    if (!cardsLoading && !cardsError && savedCards.length === 0 && payStep === "select-card") {
+      setPayStep("add-new-card");
+    }
+  }, [cardsLoading, cardsError, savedCards.length, payStep]);
 
   // ── SDK de Mercado Pago ───────────────────────────────────────────────────
   const mpRef       = useRef<unknown>(null);
@@ -195,7 +203,13 @@ export function StepPayment({
   useEffect(() => {
     if (payStep === "confirm-cvv" && selectedCard) {
       const t = setTimeout(mountCvv, 200);
-      return () => clearTimeout(t);
+      return () => {
+        clearTimeout(t);
+        // Desmontar CVV field al salir del paso
+        try { (cvvFieldRef.current as unknown as { unmount?: () => void })?.unmount?.(); } catch { /* noop */ }
+        cvvFieldRef.current = null;
+        setCvvReady(false);
+      };
     }
   }, [payStep, selectedCard, mountCvv]);
 
@@ -205,11 +219,17 @@ export function StepPayment({
     startPolling(orderId, (finalStatus: PaymentStatus) => {
       if (finalStatus === "PAID") {
         onPaymentSuccess(orderId);
+      } else if (finalStatus === "PENDING" || finalStatus === "PROCESSING") {
+        // Timeout de polling — el pago puede seguir procesándose
+        setPayStep("failed");
+        setLocalError(
+          "El pago está tardando más de lo esperado. Revisa el estado en tu historial de pedidos."
+        );
       } else {
         setPayStep("failed");
         setLocalError(
           finalStatus === "FAILED"
-            ? "El pago fue rechazado. Intenta con otra tarjeta."
+            ? "El pago fue rechazado. Verifica los datos de tu tarjeta e intenta de nuevo."
             : "El pago fue cancelado."
         );
       }
@@ -224,7 +244,11 @@ export function StepPayment({
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mp = mpRef.current as any;
-      const tokenResult = await mp.fields.createCardToken({ cardId: selectedCard.id });
+      // mp_card_id es el ID de la tarjeta en Mercado Pago, requerido por createCardToken
+      // para re-tokenizar solo el CVV de una tarjeta ya guardada (igual que en index2.html).
+      // El campo `id` del backend es el saved_payment_method_id para el payload de pago.
+      const cardIdArg = selectedCard.mp_card_id ? { cardId: selectedCard.mp_card_id } : {};
+      const tokenResult = await mp.fields.createCardToken(cardIdArg);
       if (!tokenResult?.id) throw new Error("No se pudo generar el token de seguridad.");
       const orderId = await pay({
         cart_id: cartId,
@@ -304,6 +328,7 @@ export function StepPayment({
 
   // ── Estado: fallido ───────────────────────────────────────────────────────
   if (payStep === "failed") {
+    const isTimeout = pollError !== null;
     return (
       <div className="flex flex-col items-center gap-6 py-16 text-center">
         <div className="flex size-20 items-center justify-center rounded-full bg-destructive/10">
@@ -319,6 +344,14 @@ export function StepPayment({
         >
           <RefreshCw className="size-4" /> Intentar de nuevo
         </button>
+        {isTimeout && (
+          <Link
+            href="/account/orders"
+            className="text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+          >
+            Ver mis pedidos
+          </Link>
+        )}
       </div>
     );
   }
@@ -540,7 +573,16 @@ export function StepPayment({
           {/* Nav */}
           <div className="flex items-center justify-between gap-3">
             <button
-              onClick={() => { setPayStep("select-card"); setLocalError(null); setSaveNewCard(false); }}
+              onClick={() => {
+                setLocalError(null);
+                setSaveNewCard(false);
+                // Si hay tarjetas guardadas, volver a la lista; si no, volver al wizard
+                if (savedCards.length > 0) {
+                  setPayStep("select-card");
+                } else {
+                  onBack();
+                }
+              }}
               className="flex items-center gap-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"
             >
               <ArrowLeft className="size-4" /> Atrás

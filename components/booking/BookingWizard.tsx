@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { WizardProgress, useWizardNavigation } from "./WizardLayout";
 import { StepSelectPet } from "./StepSelectPet";
@@ -15,24 +15,87 @@ import type { Pet } from "@/types/pets";
 import type { ServiceOut, ServiceAddon } from "@/types/services";
 import type { AddressOut } from "@/types/api";
 import type { OrderOut } from "@/types/orders";
+import type { BookingStep } from "./WizardLayout";
+
+// ── Clave y helpers de sessionStorage ────────────────────────────────────────
+
+const SESSION_KEY = "paku:booking_wizard";
+
+interface WizardSnapshot {
+  step: BookingStep;
+  selectedPetId: string | null;
+  selectedPet: Pet | null;
+  selectedService: ServiceOut | null;
+  selectedAddonIds: string[];
+  selectedDate: string | null;
+  selectedTime: string | null;
+  selectedAddress: AddressOut | null;
+  cartId: string | null;
+  amountCents: number;
+}
+
+function saveSnapshot(snap: WizardSnapshot) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(snap));
+  } catch { /* noop */ }
+}
+
+function loadSnapshot(): WizardSnapshot | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? (JSON.parse(raw) as WizardSnapshot) : null;
+  } catch { return null; }
+}
+
+function clearSnapshot() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch { /* noop */ }
+}
+
+// ── Componente ────────────────────────────────────────────────────────────────
 
 export function BookingWizard() {
   const { isAuthenticated } = useAuthContext();
-  const { currentStep, goTo, goNext, goBack } = useWizardNavigation("select-pet");
 
-  // Estado del wizard
-  const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-  const [selectedService, setSelectedService] = useState<ServiceOut | null>(null);
-  const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedAddress, setSelectedAddress] = useState<AddressOut | null>(null);
-  const [confirmedOrder, setConfirmedOrder] = useState<OrderOut | null>(null);
+  // useState con lazy initializer — se ejecuta solo en cliente, evita mismatch SSR
+  const [savedOnce] = useState<WizardSnapshot | null>(() => loadSnapshot());
 
-  // Estado del pago
-  const [cartId, setCartId] = useState<string | null>(null);
-  const [amountCents, setAmountCents] = useState<number>(0);
+  const { currentStep, goTo, goNext, goBack } = useWizardNavigation(
+    savedOnce?.step ?? "select-pet"
+  );
+
+  const [selectedPetId, setSelectedPetId]       = useState<string | null>(savedOnce?.selectedPetId ?? null);
+  const [selectedPet, setSelectedPet]           = useState<Pet | null>(savedOnce?.selectedPet ?? null);
+  const [selectedService, setSelectedService]   = useState<ServiceOut | null>(savedOnce?.selectedService ?? null);
+  const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>(savedOnce?.selectedAddonIds ?? []);
+  const [selectedDate, setSelectedDate]         = useState<string | null>(savedOnce?.selectedDate ?? null);
+  const [selectedTime, setSelectedTime]         = useState<string | null>(savedOnce?.selectedTime ?? null);
+  const [selectedAddress, setSelectedAddress]   = useState<AddressOut | null>(savedOnce?.selectedAddress ?? null);
+  const [confirmedOrder, setConfirmedOrder]     = useState<OrderOut | null>(null);
+  const [cartId, setCartId]                     = useState<string | null>(savedOnce?.cartId ?? null);
+  const [amountCents, setAmountCents]           = useState<number>(savedOnce?.amountCents ?? 0);
+
+  // Persistir en sessionStorage cada vez que cambie cualquier dato relevante
+  useEffect(() => {
+    // No guardar pasos finales — al completar/cancelar se limpia el snapshot
+    if (currentStep === "order-confirmed") return;
+    saveSnapshot({
+      step: currentStep,
+      selectedPetId,
+      selectedPet,
+      selectedService,
+      selectedAddonIds,
+      selectedDate,
+      selectedTime,
+      selectedAddress,
+      cartId,
+      amountCents,
+    });
+  }, [
+    currentStep, selectedPetId, selectedPet, selectedService,
+    selectedAddonIds, selectedDate, selectedTime, selectedAddress,
+    cartId, amountCents,
+  ]);
 
   const handleSelectPet = useCallback((petId: string, pet: Pet) => {
     setSelectedPetId(petId);
@@ -54,17 +117,16 @@ export function BookingWizard() {
     setSelectedAddress(address);
   }, []);
 
-  // Desde StepReviewCart: cart listo para pagar
   const handleProceedToPayment = useCallback((cId: string, cents: number) => {
     setCartId(cId);
     setAmountCents(cents);
     goTo("payment");
   }, [goTo]);
 
-  // Desde StepPayment: pago exitoso → crear orden y mostrar confirmación
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handlePaymentSuccess = useCallback(async (_paymentOrderId: string) => {
     if (!cartId || !selectedAddress) return;
+    clearSnapshot(); // Limpiar al completar el flujo
     try {
       const order = await ordersService.create({
         cart_id: cartId,
@@ -73,13 +135,12 @@ export function BookingWizard() {
       setConfirmedOrder(order);
       goTo("order-confirmed");
     } catch {
-      // Pago exitoso pero error al crear la orden en nuestro sistema.
-      // Aún así, avanzamos y mostramos confirmación básica.
       goTo("order-confirmed");
     }
   }, [cartId, selectedAddress, goTo]);
 
   const handleNewOrder = useCallback(() => {
+    clearSnapshot(); // Limpiar al iniciar nuevo pedido
     setSelectedPetId(null);
     setSelectedPet(null);
     setSelectedService(null);

@@ -311,7 +311,7 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
                   onOpenChange(false);
                   onCheckout?.();
                 }}
-                disabled={mutating}
+                disabled={mutating || !onCheckout}
               >
                 {mutating ? (
                   <Loader2 className="size-4 animate-spin" />

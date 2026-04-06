@@ -185,7 +185,10 @@ export function StepReviewCart({
       setCheckingOut(false);
 
       // Pasar al paso de pago con el cartId y el total en céntimos
-      const totalCents = Math.round((validResult.total ?? total) * 100);
+      // Prioridad: validResult.total (del backend) > total calculado localmente
+      const backendTotal = validResult.total ?? 0;
+      const localTotal = cart.items.reduce((acc, item) => acc + item.qty * item.unit_price, 0);
+      const totalCents = Math.round((backendTotal > 0 ? backendTotal : localTotal) * 100);
       onProceedToPayment(cart.cart.id, totalCents);
     } catch (err) {
       setCheckingOut(false);

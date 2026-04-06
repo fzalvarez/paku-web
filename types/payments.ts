@@ -6,7 +6,8 @@
 // ── Métodos de pago guardados ─────────────────────────────────────────────────
 
 export interface SavedCard {
-  id: string;          // UUID interno del backend
+  id: string;          // UUID interno del backend (saved_payment_method_id para el payload de pago)
+  mp_card_id?: string; // ID de la tarjeta en Mercado Pago — se pasa como cardId a createCardToken()
   brand: string;       // "visa" | "master" | "amex" | ...
   last4: string;       // últimos 4 dígitos
   exp_month: number;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, CheckCircle2, Plus, Minus, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useServices } from "@/hooks/useServices";
@@ -37,6 +37,30 @@ export function StepSelectService({
   const [loadedForId, setLoadedForId] = useState<string | null>(null);
 
   const selectedService = services.find((s) => s.id === selectedServiceId);
+
+  // Si hay un servicio ya seleccionado (p.ej. al volver desde un paso posterior),
+  // recargar sus addons si aún no los tenemos
+  useEffect(() => {
+    if (!selectedServiceId || loadedForId === selectedServiceId || loading) return;
+    async function prefetchAddons() {
+      if (!selectedServiceId) return;
+      setAddonsLoading(true);
+      try {
+        const detail = await servicesService.getProduct(
+          selectedServiceId,
+          petId ? { pet_id: petId } : undefined
+        );
+        setLoadedAddons((detail.available_addons ?? []).filter((a) => a.is_active));
+        setLoadedForId(selectedServiceId);
+      } catch {
+        setLoadedAddons([]);
+      } finally {
+        setAddonsLoading(false);
+      }
+    }
+    prefetchAddons();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedServiceId, loading]);
 
   async function handleSelectService(service: ServiceOut) {
     onSelectService(service);

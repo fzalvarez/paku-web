@@ -13,6 +13,7 @@ export const ROUTES = {
     PROFILE: "/account/profile",
     PETS: "/account/pets",
     ADDRESSES: "/account/addresses",
+    PAYMENTS: "/account/payments",
     ORDERS: "/account/orders",
   },
   POLITICAS: {

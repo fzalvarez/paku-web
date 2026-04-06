@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Menu, X, Settings, CreditCard, HelpCircle, LogOut, ChevronDown, ShoppingCart as ShoppingCartIcon, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -196,6 +197,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
 }
 
 export function Header() {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "register">("register");
@@ -250,9 +252,7 @@ export function Header() {
                 <CartButton
                   open={cartOpen}
                   onOpenChange={setCartOpen}
-                  onCheckout={() => {
-                    // TODO: navegar a /checkout cuando la página exista
-                  }}
+                  onCheckout={() => router.push(ROUTES.BOOKING)}
                 />
                 <UserMenu onLogout={logout} />
               </>

@@ -19,7 +19,9 @@ export function usePayments() {
     setCardsError(null);
     try {
       const data = await paymentsService.listSavedCards();
-      setSavedCards(Array.isArray(data) ? data : []);
+      // Filtramos tarjetas que no tengan id válido (datos incompletos del backend)
+      const valid = Array.isArray(data) ? data.filter((c) => !!c.id) : [];
+      setSavedCards(valid);
     } catch (err) {
       setCardsError(err instanceof Error ? err.message : "No se pudieron cargar las tarjetas.");
     } finally {
@@ -89,8 +91,10 @@ export function usePayments() {
             onDone(status);
           } else if (pollAttemptsRef.current >= POLL_MAX_ATTEMPTS) {
             stopPolling();
-            setPollError("El pago está tardando más de lo esperado. Consulta tu historial.");
-            onDone(status);
+            // Tiempo agotado: emitimos "PENDING" para que el caller pueda
+            // distinguirlo de un FAILED/CANCELLED real y mostrar un mensaje apropiado
+            setPollError("El pago está tardando más de lo esperado. Consulta tu historial de pedidos.");
+            onDone("PENDING");
           }
         } catch (err) {
           stopPolling();

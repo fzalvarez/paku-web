@@ -1,6 +1,10 @@
 /**
  * Cliente API para el servicio de pagos (Mercado Pago)
  * Base URL independiente: https://stream.dev-qa.site/payment
+ *
+ * IMPORTANTE: este microservicio tiene su propio sistema de autenticación JWT,
+ * independiente del backend principal de Paku. No usa el token de sesión del
+ * usuario — usa un token de servicio configurado en NEXT_PUBLIC_PAYMENT_SERVICE_TOKEN.
  */
 import type {
   SavedCard,
@@ -8,28 +12,31 @@ import type {
   PaymentAttemptOut,
   PaymentStatusOut,
 } from "@/types/payments";
-import { getAccessToken } from "@/lib/session";
 
 const PAYMENT_BASE =
   process.env.NEXT_PUBLIC_PAYMENT_API_URL ??
   "https://stream.dev-qa.site/payment";
 
+/**
+ * Token del microservicio de pagos — JWT propio, independiente del token de sesión de Paku.
+ * Configurar en .env.local como NEXT_PUBLIC_PAYMENT_SERVICE_TOKEN.
+ * Fallback: token de QA (solo para desarrollo).
+ */
+const PAYMENT_SERVICE_TOKEN =
+  process.env.NEXT_PUBLIC_PAYMENT_SERVICE_TOKEN ??
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAxIiwiZW1haWwiOiJxYUBsb2NhbC50ZXN0In0._oJS2BJJknCrOBnD_DsBwMjEJCyatbLVOr_yYB3Dgdw";
+
 // ── Helper interno ────────────────────────────────────────────────────────────
 
 async function paymentFetch<T>(
   path: string,
-  options: RequestInit = {},
-  requiresAuth = true
+  options: RequestInit = {}
 ): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "Authorization": `Bearer ${PAYMENT_SERVICE_TOKEN}`,
     ...(options.headers as Record<string, string>),
   };
-
-  if (requiresAuth) {
-    const token = getAccessToken();
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-  }
 
   const res = await fetch(`${PAYMENT_BASE}${path}`, {
     ...options,
@@ -38,7 +45,6 @@ async function paymentFetch<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    // Intentar extraer mensaje del backend
     const detail = body?.detail;
     let message = `Error ${res.status}`;
     if (detail) {
@@ -87,13 +93,9 @@ export const paymentsService = {
 
   /**
    * GET /api/payments/{order_id}/status
-   * Consulta el estado de una orden de pago (no requiere auth).
+   * Consulta el estado de una orden de pago.
    */
   getStatus(orderId: string): Promise<PaymentStatusOut> {
-    return paymentFetch<PaymentStatusOut>(
-      `/api/payments/${orderId}/status`,
-      {},
-      false // no requiere Bearer
-    );
+    return paymentFetch<PaymentStatusOut>(`/api/payments/${orderId}/status`);
   },
 };
