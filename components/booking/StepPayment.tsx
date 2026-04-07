@@ -4,11 +4,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   CreditCard, Plus, CheckCircle2, Loader2, AlertCircle,
-  RefreshCw, ChevronRight, ArrowLeft, Lock, X,
+  RefreshCw, ChevronRight, ArrowLeft, Lock, X, FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePayments } from "@/hooks/usePayments";
 import type { SavedCard, PaymentStatus } from "@/types/payments";
+
+// ── Método de pago elegido ─────────────────────────────────────────────────────
+
+type PaymentMethod = "card" | "simulated";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -31,13 +35,14 @@ function getBrandColor(b: string) {
 
 /**
  * Pasos del sub-flujo de pago:
- *  select-card   → lista de tarjetas guardadas + botón nueva tarjeta
- *  add-new-card  → formulario de nueva tarjeta (Secure Fields de MP)
- *  confirm-cvv   → CVV de tarjeta guardada seleccionada
- *  processing    → spinner mientras se procesa / polling
- *  failed        → error de pago
+ *  method-select  → elegir método de pago (tarjeta vs simulado)
+ *  select-card    → lista de tarjetas guardadas + botón nueva tarjeta
+ *  add-new-card   → formulario de nueva tarjeta (Secure Fields de MP)
+ *  confirm-cvv    → CVV de tarjeta guardada seleccionada
+ *  processing     → spinner mientras se procesa / polling
+ *  failed         → error de pago
  */
-type PayStep = "select-card" | "add-new-card" | "confirm-cvv" | "processing" | "failed";
+type PayStep = "method-select" | "select-card" | "add-new-card" | "confirm-cvv" | "processing" | "failed";
 
 interface StepPaymentProps {
   cartId: string;
@@ -70,14 +75,18 @@ export function StepPayment({
     savingCard, saveCardError, saveCard,
   } = usePayments();
 
-  const [payStep, setPayStep]           = useState<PayStep>("select-card");
-  const [selectedCard, setSelectedCard] = useState<SavedCard | null>(null);
-  const [installments, setInstallments] = useState(1);
-  const [localError, setLocalError]     = useState<string | null>(null);
+  const [payMethod, setPayMethod]               = useState<PaymentMethod>("card");
+  const [payStep, setPayStep]                   = useState<PayStep>("method-select");
+  const [selectedCard, setSelectedCard]         = useState<SavedCard | null>(null);
+  const [installments, setInstallments]         = useState(1);
+  const [localError, setLocalError]             = useState<string | null>(null);
+  const [simulatingPay, setSimulatingPay]       = useState(false);
 
+  // Al confirmar método "tarjeta", avanzar al sub-flujo de tarjetas
   // Si terminó de cargar y no hay tarjetas guardadas, ir directo al formulario de nueva tarjeta
   useEffect(() => {
-    if (!cardsLoading && !cardsError && savedCards.length === 0 && payStep === "select-card") {
+    if (payStep !== "select-card") return;
+    if (!cardsLoading && !cardsError && savedCards.length === 0) {
       setPayStep("add-new-card");
     }
   }, [cardsLoading, cardsError, savedCards.length, payStep]);
@@ -236,6 +245,24 @@ export function StepPayment({
     });
   }
 
+  // ── Pago simulado (demo) ─────────────────────────────────────────────────
+  async function handleSimulatedPay() {
+    setSimulatingPay(true);
+    setPayStep("processing");
+    try {
+      // Simula un breve retardo de "procesamiento" (750 ms) y luego confirma
+      await new Promise((r) => setTimeout(r, 750));
+      // Generar un order_id ficticio para el callback — el wizard crea la orden real
+      const fakeOrderId = `sim_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      onPaymentSuccess(fakeOrderId);
+    } catch {
+      setPayStep("failed");
+      setLocalError("Error en el pago simulado. Intenta de nuevo.");
+    } finally {
+      setSimulatingPay(false);
+    }
+  }
+
   // ── Pagar con tarjeta guardada ────────────────────────────────────────────
   async function handlePayWithSaved() {
     if (!selectedCard) return;
@@ -316,9 +343,13 @@ export function StepPayment({
           <Loader2 className="size-10 animate-spin text-primary" />
         </div>
         <div>
-          <p className="text-xl font-extrabold">Procesando pago…</p>
+          <p className="text-xl font-extrabold">
+            {payMethod === "simulated" ? "Confirmando pedido…" : "Procesando pago…"}
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {polling ? "Confirmando con Mercado Pago…" : "Enviando solicitud de pago…"}
+            {payMethod === "simulated"
+              ? "Modo demo — creando tu orden…"
+              : polling ? "Confirmando con Mercado Pago…" : "Enviando solicitud de pago…"}
           </p>
         </div>
         <p className="text-xs text-muted-foreground">No cierres esta ventana.</p>
@@ -367,7 +398,9 @@ export function StepPayment({
         <p className="mt-1 text-sm text-muted-foreground">
           {payStep === "add-new-card"
             ? "Ingresa los datos de tu tarjeta de forma segura."
-            : "Elige cómo quieres pagar tu servicio."}
+            : payStep === "method-select"
+              ? "Elige cómo quieres pagar tu servicio."
+              : "Completa el proceso de pago."}
         </p>
       </div>
 
@@ -376,6 +409,94 @@ export function StepPayment({
         <span className="text-sm font-semibold text-muted-foreground">Total a pagar</span>
         <span className="text-2xl font-extrabold text-primary">{displayAmount}</span>
       </div>
+
+      {/* ── PASO: seleccionar método de pago ──────────────────────────────── */}
+      {payStep === "method-select" && (
+        <div>
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Medio de pago
+          </p>
+
+          {/* Opción: Tarjeta */}
+          <button
+            onClick={() => {
+              setPayMethod("card");
+              setPayStep("select-card");
+            }}
+            className={cn(
+              "flex w-full items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all",
+              "border-border hover:border-primary/40 hover:bg-primary/5"
+            )}
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <CreditCard className="size-5 text-primary" />
+            </span>
+            <div className="flex-1">
+              <p className="font-semibold text-sm">Tarjeta débito / crédito</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Mercado Pago · SSL cifrado</p>
+            </div>
+            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+          </button>
+
+          {/* Opción: Pago simulado */}
+          <button
+            onClick={() => {
+              setPayMethod("simulated");
+              // No hay sub-pasos — confirmar directamente
+            }}
+            className={cn(
+              "mt-3 flex w-full items-center gap-4 rounded-2xl border-2 border-dashed p-4 text-left transition-all",
+              payMethod === "simulated"
+                ? "border-amber-400 bg-amber-50 dark:bg-amber-950/40"
+                : "border-border hover:border-amber-400/60 hover:bg-amber-50/50 dark:hover:bg-amber-950/20"
+            )}
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/40">
+              <FlaskConical className="size-5 text-amber-600 dark:text-amber-400" />
+            </span>
+            <div className="flex-1">
+              <p className="font-semibold text-sm text-amber-800 dark:text-amber-200">
+                Pago simulado
+                <span className="ml-2 rounded-full bg-amber-200 dark:bg-amber-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
+                  Demo
+                </span>
+              </p>
+              <p className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-0.5">
+                Completa el pedido sin pasar por Mercado Pago
+              </p>
+            </div>
+            {payMethod === "simulated" && (
+              <CheckCircle2 className="size-5 shrink-0 text-amber-500" />
+            )}
+          </button>
+
+          {/* Nav */}
+          <div className="mt-8 flex items-center justify-between gap-3">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"
+            >
+              ← Atrás
+            </button>
+            {payMethod === "simulated" && (
+              <button
+                disabled={simulatingPay}
+                onClick={handleSimulatedPay}
+                className={cn(
+                  "flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-2.5 text-sm font-bold text-white transition-all",
+                  "hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                )}
+              >
+                {simulatingPay ? (
+                  <><Loader2 className="size-4 animate-spin" /> Procesando…</>
+                ) : (
+                  <><FlaskConical className="size-4" /> Confirmar pedido (demo)</>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── PASO: seleccionar tarjeta ──────────────────────────────────────── */}
       {payStep === "select-card" && (
@@ -453,7 +574,7 @@ export function StepPayment({
           {/* Nav */}
           <div className="mt-8 flex items-center justify-between gap-3">
             <button
-              onClick={onBack}
+              onClick={() => setPayStep("method-select")}
               className="flex items-center gap-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"
             >
               ← Atrás
@@ -576,11 +697,11 @@ export function StepPayment({
               onClick={() => {
                 setLocalError(null);
                 setSaveNewCard(false);
-                // Si hay tarjetas guardadas, volver a la lista; si no, volver al wizard
+                // Si hay tarjetas guardadas, volver a la lista; si no, volver al selector de método
                 if (savedCards.length > 0) {
                   setPayStep("select-card");
                 } else {
-                  onBack();
+                  setPayStep("method-select");
                 }
               }}
               className="flex items-center gap-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"
