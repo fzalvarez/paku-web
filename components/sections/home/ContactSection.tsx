@@ -1,6 +1,6 @@
 import { MessageCircle, Mail, Clock, ArrowUpRight } from "lucide-react";
 
-const WHATSAPP_NUMBER = "999999999";
+const WHATSAPP_NUMBER = "993 019 869";
 const EMAIL = "admin@paku.com.pe";
 
 // ── Tarjeta: WhatsApp (destacada, estilo bg-primary) ─────────────────────────

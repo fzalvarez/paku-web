@@ -11,21 +11,22 @@ import { useState } from "react";
 const HERO_IMAGES = [
   {
     id: 1,
-    src: "https://images.unsplash.com/photo-1611003229107-4e7f8e0e5cb0?w=800&q=80",
-    alt: "Interfaz moderna de la app Paku en un smartphone",
-    containerClass: "col-span-12 md:col-span-4 h-80 -rotate-3 hover:rotate-0",
+    src: "/assets/home-1.png",
+    alt: "Imagen home 1 - Paku",
+    // Contenedores más altos para imágenes verticales y responsivas
+    containerClass: "col-span-12 md:col-span-4 h-[420px] md:h-[420px] -rotate-3 hover:rotate-0",
   },
   {
     id: 2,
-    src: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=900&q=80",
-    alt: "Golden retriever siendo mimado en una van de grooming móvil",
-    containerClass: "col-span-12 md:col-span-5 h-[500px] z-10 shadow-2xl",
+    src: "/assets/home-2.png",
+    alt: "Imagen home 2 - Paku",
+    containerClass: "col-span-12 md:col-span-4 h-[420px] md:h-[420px] z-10 shadow-2xl",
   },
   {
     id: 3,
-    src: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&q=80",
-    alt: "Van de grooming profesional en una calle suburbana",
-    containerClass: "col-span-12 md:col-span-3 h-96 rotate-6 hover:rotate-0",
+    src: "/assets/home-3.png",
+    alt: "Imagen home 3 - Paku",
+    containerClass: "col-span-12 md:col-span-4 h-[420px] md:h-[420px] rotate-6 hover:rotate-0",
   },
 ] as const;
 
@@ -88,7 +89,8 @@ export function HeroSection() {
           <div
             key={img.id}
             className={cn(
-              "relative overflow-hidden rounded-xl shadow-xl transition-transform duration-500",
+              // Añadir fondo uniforme al contenedor para que las imágenes verticales no muestren espacios distintos
+              "relative overflow-hidden rounded-xl shadow-xl transition-transform duration-500 bg-muted",
               img.containerClass
             )}
           >
@@ -96,8 +98,9 @@ export function HeroSection() {
               src={img.src}
               alt={img.alt}
               fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 33vw"
+              // Usar object-contain para mostrar la imagen completa (vertical) sin recortes
+              className="object-contain object-center bg-muted"
+              /* sizes="(max-width: 768px) 100vw, 33vw" */
               priority={img.id === 2}
             />
           </div>
