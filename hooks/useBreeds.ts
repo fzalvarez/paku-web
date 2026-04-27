@@ -5,12 +5,11 @@ import { catalogService } from "@/lib/api/catalog";
 import type { Breed, PetSpecies } from "@/types/pets";
 
 type State = { breeds: Breed[]; loading: boolean };
-type Action =
-  | { type: "fetched"; breeds: Breed[] }
-  | { type: "failed" };
+type Action = { type: "fetched"; breeds: Breed[] } | { type: "failed" };
 
 function reducer(_: State, action: Action): State {
-  if (action.type === "fetched") return { breeds: action.breeds, loading: false };
+  if (action.type === "fetched")
+    return { breeds: action.breeds, loading: false };
   return { breeds: [], loading: false };
 }
 
@@ -27,9 +26,17 @@ export function useBreeds(species: PetSpecies) {
     catalogService
       .listBreeds(species)
       .then((data) => {
-        if (!cancelled) dispatch({ type: "fetched", breeds: data });
+        // Log de la data que llega
+        console.log("Datos de razas recibidos:", data);
+
+        const data_temp = data[0];
+        const breeds = data_temp.breeds;
+
+        if (!cancelled)
+          dispatch({ type: "fetched", breeds: breeds as Breed[] });
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Error al cargar las razas:", error);
         if (!cancelled) dispatch({ type: "failed" });
       });
 
@@ -40,4 +47,3 @@ export function useBreeds(species: PetSpecies) {
 
   return state;
 }
-

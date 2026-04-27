@@ -8,3 +8,4 @@ export * from "./cart";
 export * from "./booking";
 export * from "./orders";
 export * from "./services";
+export * from "./geo.types";

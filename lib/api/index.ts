@@ -14,3 +14,4 @@ export { cartService } from "./cart";
 export { bookingService } from "./booking";
 export { ordersService } from "./orders";
 export { petsService } from "./pets";
+export { geoService } from "./geo";

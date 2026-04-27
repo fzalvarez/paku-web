@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Loader2, MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ApiCallError } from "@/lib/api/client";
+import { useDistricts } from "@/hooks/useDistricts";
+import { LocationPickerMap } from "@/components/common/LocationPickerMap";
 import type { AddressOut, AddressCreateIn } from "@/types/api";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
@@ -39,11 +48,18 @@ const EMPTY_FORM: AddressCreateIn = {
 
 // ── Componente ────────────────────────────────────────────────────────────────
 
-export function AddressFormDialog({ open, onOpenChange, address, onSubmit }: AddressFormProps) {
+export function AddressFormDialog({
+  open,
+  onOpenChange,
+  address,
+  onSubmit,
+}: AddressFormProps) {
   const isEdit = !!address;
   const [form, setForm] = useState<AddressCreateIn>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { districts, loading: loadingDistricts } = useDistricts();
 
   // Rellenar form cuando se abre en modo edición
   useEffect(() => {
@@ -66,25 +82,44 @@ export function AddressFormDialog({ open, onOpenChange, address, onSubmit }: Add
     setError(null);
   }, [address, open]);
 
-  function set<K extends keyof AddressCreateIn>(key: K) {
+  function setField<K extends keyof AddressCreateIn>(
+    key: K,
+    value: AddressCreateIn[K],
+  ) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleInputChange<K extends keyof AddressCreateIn>(key: K) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = key === "lat" || key === "lng"
-        ? parseFloat(e.target.value) || 0
-        : key === "is_default"
-        ? e.target.checked
-        : e.target.value;
-      setForm((prev) => ({ ...prev, [key]: value }));
+      const value =
+        key === "is_default"
+          ? (e.target.checked as AddressCreateIn[K])
+          : (e.target.value as AddressCreateIn[K]);
+      setField(key, value);
     };
   }
+
+  // Callback estable para el mapa
+  const handleMapChange = useCallback((lat: number, lng: number) => {
+    setForm((prev) => ({ ...prev, lat, lng }));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    // Validación básica en cliente
-    if (!form.district_id.trim()) { setError("El ID de distrito es obligatorio."); return; }
-    if (!form.address_line.trim()) { setError("La dirección es obligatoria."); return; }
-    if (!form.lat || !form.lng) { setError("Las coordenadas (lat/lng) son obligatorias."); return; }
+    if (!form.district_id) {
+      setError("Selecciona un distrito.");
+      return;
+    }
+    if (!form.address_line.trim()) {
+      setError("La dirección es obligatoria.");
+      return;
+    }
+    if (!form.lat || !form.lng) {
+      setError("Marca tu ubicación en el mapa.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -92,8 +127,10 @@ export function AddressFormDialog({ open, onOpenChange, address, onSubmit }: Add
       onOpenChange(false);
     } catch (err) {
       if (err instanceof ApiCallError) {
-        if (err.status === 422) setError("Distrito inválido o datos incorrectos. Verifica el ID de distrito y las coordenadas.");
-        else if (err.status === 401) setError("Tu sesión ha expirado. Vuelve a iniciar sesión.");
+        if (err.status === 422)
+          setError("Datos incorrectos. Verifica los campos.");
+        else if (err.status === 401)
+          setError("Tu sesión ha expirado. Vuelve a iniciar sesión.");
         else setError(err.message ?? "Error inesperado.");
       } else {
         setError("Error inesperado. Intenta de nuevo.");
@@ -103,11 +140,15 @@ export function AddressFormDialog({ open, onOpenChange, address, onSubmit }: Add
     }
   }
 
+  const hasPin = !!form.lat && !!form.lng;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar dirección" : "Nueva dirección"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Editar dirección" : "Nueva dirección"}
+          </DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Modifica los campos que desees actualizar."
@@ -115,102 +156,130 @@ export function AddressFormDialog({ open, onOpenChange, address, onSubmit }: Add
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 pt-1">
-
-          {/* Dirección + Distrito */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-1">
+          {/* ── Distrito + Etiqueta ── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">ID de distrito *</label>
-              <Input
-                placeholder="Ej: LIMA-LIMA-MIRAFLORES"
+              <label className="text-xs font-medium text-muted-foreground">
+                Distrito *
+              </label>
+              <Select
                 value={form.district_id}
-                onChange={set("district_id")}
+                onValueChange={(value) => setField("district_id", value)}
+                disabled={loadingDistricts}
                 required
-              />
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={
+                      loadingDistricts ? "Cargando…" : "Selecciona un distrito"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {districts.map((district) => (
+                    <SelectItem key={district.id} value={district.id}>
+                      {district.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">Etiqueta</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                Etiqueta
+              </label>
               <Input
                 placeholder="Casa, Trabajo…"
                 value={form.label}
-                onChange={set("label")}
+                onChange={handleInputChange("label")}
               />
             </div>
           </div>
 
-          {/* Línea de dirección */}
+          {/* ── Mapa ── */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Ubicación en el mapa *
+            </label>
+            <div className="relative h-56 w-full overflow-hidden rounded-md border border-input bg-muted">
+              {open && (
+                <LocationPickerMap
+                  lat={form.lat}
+                  lng={form.lng}
+                  onChange={handleMapChange}
+                  className="h-full"
+                />
+              )}
+            </div>
+            {/* Coordenadas seleccionadas (solo lectura, informativas) */}
+            {hasPin ? (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <MapPin className="size-3 text-primary" />
+                {form.lat.toFixed(6)}, {form.lng.toFixed(6)}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Toca el mapa para marcar tu ubicación
+              </p>
+            )}
+          </div>
+
+          {/* ── Línea de dirección ── */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">Dirección *</label>
+            <label className="text-xs font-medium text-muted-foreground">
+              Dirección *
+            </label>
             <Input
               placeholder="Av. Principal 123"
               value={form.address_line}
-              onChange={set("address_line")}
+              onChange={handleInputChange("address_line")}
               required
             />
           </div>
 
-          {/* Coordenadas */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">Latitud *</label>
-              <Input
-                type="number"
-                step="any"
-                placeholder="-12.052"
-                value={form.lat || ""}
-                onChange={set("lat")}
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">Longitud *</label>
-              <Input
-                type="number"
-                step="any"
-                placeholder="-76.987"
-                value={form.lng || ""}
-                onChange={set("lng")}
-                required
-              />
-            </div>
-          </div>
-
-          {/* Referencia */}
+          {/* ── Referencia ── */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">Referencia</label>
+            <label className="text-xs font-medium text-muted-foreground">
+              Referencia
+            </label>
             <Input
               placeholder="Frente al parque, edificio azul…"
               value={form.reference}
-              onChange={set("reference")}
+              onChange={handleInputChange("reference")}
             />
           </div>
 
-          {/* Edificio + Dpto */}
+          {/* ── Edificio + Dpto ── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">N° edificio</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                N° edificio
+              </label>
               <Input
                 placeholder="Torre A"
                 value={form.building_number}
-                onChange={set("building_number")}
+                onChange={handleInputChange("building_number")}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">N° departamento</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                N° departamento
+              </label>
               <Input
                 placeholder="Piso 3, Dpto 302"
                 value={form.apartment_number}
-                onChange={set("apartment_number")}
+                onChange={handleInputChange("apartment_number")}
               />
             </div>
           </div>
 
-          {/* Is default */}
+          {/* ── Is default ── */}
           <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
             <input
               type="checkbox"
               checked={form.is_default}
-              onChange={set("is_default")}
+              onChange={handleInputChange("is_default")}
               className="h-4 w-4 rounded border-input accent-primary"
             />
             Marcar como dirección predeterminada
@@ -231,7 +300,7 @@ export function AddressFormDialog({ open, onOpenChange, address, onSubmit }: Add
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || loadingDistricts}>
               {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
               {isEdit ? "Guardar cambios" : "Agregar dirección"}
             </Button>
