@@ -47,9 +47,6 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
   const { breeds, loading: breedsLoading } = useBreeds(form.species);
 
   const handleSubmit = async () => {
-    console.log(form);
-    return;
-
     setError(null);
     if (!form.name.trim()) {
       setError("El nombre es requerido");
