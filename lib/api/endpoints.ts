@@ -55,4 +55,8 @@ export const ENDPOINTS = {
     HOLD_CONFIRM: (id: string) => `/holds/${id}/confirm`,
     HOLD_CANCEL: (id: string) => `/holds/${id}/cancel`,
   },
+  MEDIA: {
+    SIGNED_UPLOAD: "/media/signed-upload",
+    CONFIRM_PHOTO: "/media/confirm-profile-photo",
+  },
 } as const;

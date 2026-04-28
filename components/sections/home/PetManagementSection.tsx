@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import {
   Plus,
@@ -16,6 +16,8 @@ import { usePets } from "@/hooks/usePets";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useBreeds } from "@/hooks/useBreeds";
 import { petsService } from "@/lib/api/pets";
+import { useUploadPhoto } from "@/hooks/useUploadPhoto";
+import { AvatarUploader } from "@/components/common/AvatarUploader";
 import { calcPetAge, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
 import type { Pet, CreatePetRequest, PetSpecies, PetSex } from "@/types/pets";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,8 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
   const [form, setForm] = useState<CreatePetRequest>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const { uploadPhoto, isUploading } = useUploadPhoto();
 
   // Cargar razas según la especie seleccionada
   const { breeds, loading: breedsLoading } = useBreeds(form.species);
@@ -54,7 +58,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
     }
     setSubmitting(true);
     try {
-      await petsService.create({
+      const newPet = await petsService.create({
         name: form.name.trim(),
         species: form.species,
         breed: form.breed || null,
@@ -64,6 +68,13 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
         photo_url: form.photo_url || null,
         weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
       });
+      if (photoFile && newPet?.id) {
+        try {
+          await uploadPhoto("pet", newPet.id, photoFile);
+        } catch {
+          /* no bloquea */
+        }
+      }
       onSuccess();
       onClose();
     } catch {
@@ -95,6 +106,15 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
           </button>
         </div>
 
+        <div className="mb-3 flex justify-center">
+          <AvatarUploader
+            previewFile={photoFile}
+            onFileSelect={setPhotoFile}
+            isUploading={isUploading}
+            disabled={submitting}
+            size={80}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <label className="mb-1 block text-sm font-semibold">Nombre *</label>
@@ -148,7 +168,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
               >
                 <option value="">Sin especificar</option>
                 {breeds.map((b) => (
-                  <option key={b.id} value={b.id}>
+                  <option key={b.id} value={b.name}>
                     {b.name}
                   </option>
                 ))}
@@ -222,9 +242,13 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
           <Button
             className="flex-1"
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || isUploading}
           >
-            {submitting ? "Guardando..." : "Registrar mascota"}
+            {submitting || isUploading ? (
+              <Loader2 className="mx-auto size-4 animate-spin" />
+            ) : (
+              "Registrar mascota"
+            )}
           </Button>
         </div>
       </div>

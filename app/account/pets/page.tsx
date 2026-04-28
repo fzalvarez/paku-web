@@ -2,17 +2,40 @@
 
 import React, { useState } from "react";
 import {
-  Loader2, Plus, PawPrint, Pencil, Trash2, Weight,
-  Dog, Cat, Mars, Venus, Calendar, AlertCircle, CheckCircle2,
+  Loader2,
+  Plus,
+  PawPrint,
+  Pencil,
+  Trash2,
+  Weight,
+  Dog,
+  Cat,
+  Mars,
+  Venus,
+  Calendar,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { usePets } from "@/hooks/usePets";
+import { useBreeds } from "@/hooks/useBreeds";
+import { useUploadPhoto } from "@/hooks/useUploadPhoto";
+import { AvatarUploader } from "@/components/common/AvatarUploader";
 import { petsService } from "@/lib/api/pets";
-import type { Pet, CreatePetRequest, UpdatePetRequest, RecordWeightRequest } from "@/types/pets";
+import type {
+  Pet,
+  CreatePetRequest,
+  UpdatePetRequest,
+  RecordWeightRequest,
+} from "@/types/pets";
 import { cn } from "@/lib/utils";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -26,10 +49,18 @@ function calcAge(birthDate?: string | null): string {
   return `${months} ${months === 1 ? "mes" : "meses"}`;
 }
 
-function SpeciesIcon({ species, className }: { species: string; className?: string }) {
-  return species === "cat"
-    ? <Cat className={className} />
-    : <Dog className={className} />;
+function SpeciesIcon({
+  species,
+  className,
+}: {
+  species: string;
+  className?: string;
+}) {
+  return species === "cat" ? (
+    <Cat className={className} />
+  ) : (
+    <Dog className={className} />
+  );
 }
 
 function SexIcon({ sex }: { sex?: string | null }) {
@@ -51,7 +82,13 @@ interface PetFormValues {
 }
 
 const EMPTY_FORM: PetFormValues = {
-  name: "", species: "dog", breed: "", sex: "", birth_date: "", weight_kg: "", notes: "",
+  name: "",
+  species: "dog",
+  breed: "",
+  sex: "",
+  birth_date: "",
+  weight_kg: "",
+  notes: "",
 };
 
 function petToForm(pet: Pet): PetFormValues {
@@ -70,30 +107,51 @@ interface PetFormDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   pet?: Pet | null;
-  onSubmit: (data: CreatePetRequest | UpdatePetRequest) => Promise<void>;
+  /** Called after successful save with the pet id, so we can upload the photo */
+  onSubmit: (data: CreatePetRequest | UpdatePetRequest) => Promise<Pet>;
   mutating: boolean;
 }
 
-function PetFormDialog({ open, onOpenChange, pet, onSubmit, mutating }: PetFormDialogProps) {
+function PetFormDialog({
+  open,
+  onOpenChange,
+  pet,
+  onSubmit,
+  mutating,
+}: PetFormDialogProps) {
   const isEdit = !!pet;
-  const [form, setForm] = useState<PetFormValues>(pet ? petToForm(pet) : EMPTY_FORM);
+  const [form, setForm] = useState<PetFormValues>(
+    pet ? petToForm(pet) : EMPTY_FORM,
+  );
   const [error, setError] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const { breeds, loading: breedsLoading } = useBreeds(form.species);
+  const { uploadPhoto, isUploading } = useUploadPhoto();
 
   // Reset form cuando cambia la mascota o se abre
   React.useEffect(() => {
     if (open) {
       setForm(pet ? petToForm(pet) : EMPTY_FORM);
+      setPhotoFile(null);
       setError(null);
     }
   }, [open, pet]);
 
-  const set = (key: keyof PetFormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+  const set =
+    (key: keyof PetFormValues) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >,
+    ) =>
       setForm((p) => ({ ...p, [key]: e.target.value }));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim()) { setError("El nombre es obligatorio."); return; }
+    if (!form.name.trim()) {
+      setError("El nombre es obligatorio.");
+      return;
+    }
     setError(null);
     const payload: CreatePetRequest = {
       name: form.name.trim(),
@@ -105,14 +163,27 @@ function PetFormDialog({ open, onOpenChange, pet, onSubmit, mutating }: PetFormD
       notes: form.notes || null,
     };
     try {
-      await onSubmit(payload);
+      const savedPet = await onSubmit(payload);
+      // Subir foto si el usuario seleccionó una
+      if (photoFile && savedPet?.id) {
+        try {
+          await uploadPhoto("pet", savedPet.id, photoFile);
+        } catch {
+          // La mascota ya se guardó; el fallo de foto no bloquea
+          setError(
+            "Mascota guardada, pero no se pudo subir la foto. Intenta de nuevo.",
+          );
+          return;
+        }
+      }
       onOpenChange(false);
     } catch {
       setError("No se pudo guardar la mascota. Intenta de nuevo.");
     }
   }
 
-  const selectClass = "h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
+  const selectClass =
+    "h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -122,20 +193,53 @@ function PetFormDialog({ open, onOpenChange, pet, onSubmit, mutating }: PetFormD
             {isEdit ? "Editar mascota" : "Agregar mascota"}
           </DialogTitle>
           <DialogDescription>
-            {isEdit ? "Actualiza la información de tu mascota." : "Ingresa los datos de tu nueva mascota."}
+            {isEdit
+              ? "Actualiza la información de tu mascota."
+              : "Ingresa los datos de tu nueva mascota."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-4">
+          {/* Foto */}
+          <div className="flex justify-center">
+            <AvatarUploader
+              currentUrl={pet?.photo_url ?? null}
+              previewFile={photoFile}
+              onFileSelect={setPhotoFile}
+              isUploading={isUploading}
+              disabled={mutating}
+              size={88}
+            />
+          </div>
+
           {/* Nombre + Especie */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nombre *</label>
-              <Input placeholder="Ej. Max" value={form.name} onChange={set("name")} required />
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Nombre *
+              </label>
+              <Input
+                placeholder="Ej. Max"
+                value={form.name}
+                onChange={set("name")}
+                required
+              />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Especie *</label>
-              <select value={form.species} onChange={set("species")} className={selectClass}>
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Especie *
+              </label>
+              <select
+                value={form.species}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    species: e.target.value as "dog" | "cat",
+                    breed: "",
+                  }))
+                }
+                className={selectClass}
+              >
                 <option value="dog">Perro 🐶</option>
                 <option value="cat">Gato 🐱</option>
               </select>
@@ -145,12 +249,45 @@ function PetFormDialog({ open, onOpenChange, pet, onSubmit, mutating }: PetFormD
           {/* Raza + Sexo */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Raza</label>
-              <Input placeholder="Ej. Labrador" value={form.breed} onChange={set("breed")} />
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Raza
+                {breedsLoading && (
+                  <Loader2 className="ml-1 inline size-3 animate-spin" />
+                )}
+              </label>
+              {breeds.length > 0 ? (
+                <select
+                  className={selectClass}
+                  value={form.breed}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, breed: e.target.value }))
+                  }
+                >
+                  <option value="">Sin especificar</option>
+                  {breeds.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <Input
+                  placeholder="Ej. Labrador"
+                  value={form.breed}
+                  onChange={set("breed")}
+                  disabled={breedsLoading}
+                />
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sexo</label>
-              <select value={form.sex} onChange={set("sex")} className={selectClass}>
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Sexo
+              </label>
+              <select
+                value={form.sex}
+                onChange={set("sex")}
+                className={selectClass}
+              >
                 <option value="">Sin especificar</option>
                 <option value="male">Macho</option>
                 <option value="female">Hembra</option>
@@ -161,18 +298,36 @@ function PetFormDialog({ open, onOpenChange, pet, onSubmit, mutating }: PetFormD
           {/* Fecha nacimiento + Peso */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fecha de nacimiento</label>
-              <Input type="date" value={form.birth_date} onChange={set("birth_date")} max={new Date().toISOString().split("T")[0]} />
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Fecha de nacimiento
+              </label>
+              <Input
+                type="date"
+                value={form.birth_date}
+                onChange={set("birth_date")}
+                max={new Date().toISOString().split("T")[0]}
+              />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Peso (kg)</label>
-              <Input type="number" step="0.1" min="0" placeholder="Ej. 8.5" value={form.weight_kg} onChange={set("weight_kg")} />
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Peso (kg)
+              </label>
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="Ej. 8.5"
+                value={form.weight_kg}
+                onChange={set("weight_kg")}
+              />
             </div>
           </div>
 
           {/* Notas */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notas</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Notas
+            </label>
             <textarea
               placeholder="Alergias, condiciones especiales…"
               value={form.notes}
@@ -190,11 +345,22 @@ function PetFormDialog({ open, onOpenChange, pet, onSubmit, mutating }: PetFormD
           )}
 
           <div className="flex justify-end gap-3 pt-1">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={mutating}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={mutating}
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={mutating} className="gap-2">
-              {mutating && <Loader2 className="size-4 animate-spin" />}
+            <Button
+              type="submit"
+              disabled={mutating || isUploading}
+              className="gap-2"
+            >
+              {(mutating || isUploading) && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
               {isEdit ? "Guardar cambios" : "Agregar mascota"}
             </Button>
           </div>
@@ -213,26 +379,47 @@ interface WeightDialogProps {
   onSuccess: () => void;
 }
 
-function WeightDialog({ open, onOpenChange, pet, onSuccess }: WeightDialogProps) {
+function WeightDialog({
+  open,
+  onOpenChange,
+  pet,
+  onSuccess,
+}: WeightDialogProps) {
   const [weight, setWeight] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    msg: string;
+  } | null>(null);
 
   React.useEffect(() => {
-    if (open) { setWeight(""); setDate(new Date().toISOString().split("T")[0]); setFeedback(null); }
+    if (open) {
+      setWeight("");
+      setDate(new Date().toISOString().split("T")[0]);
+      setFeedback(null);
+    }
   }, [open]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!weight || parseFloat(weight) <= 0) { setFeedback({ type: "error", msg: "Ingresa un peso válido." }); return; }
+    if (!weight || parseFloat(weight) <= 0) {
+      setFeedback({ type: "error", msg: "Ingresa un peso válido." });
+      return;
+    }
     setLoading(true);
     setFeedback(null);
     try {
-      const payload: RecordWeightRequest = { weight_kg: parseFloat(weight), recorded_at: date };
+      const payload: RecordWeightRequest = {
+        weight_kg: parseFloat(weight),
+        recorded_at: date,
+      };
       await petsService.recordWeight(pet.id, payload);
       setFeedback({ type: "success", msg: "Peso registrado correctamente." });
-      setTimeout(() => { onOpenChange(false); onSuccess(); }, 1200);
+      setTimeout(() => {
+        onOpenChange(false);
+        onSuccess();
+      }, 1200);
     } catch {
       setFeedback({ type: "error", msg: "No se pudo registrar el peso." });
     } finally {
@@ -244,28 +431,67 @@ function WeightDialog({ open, onOpenChange, pet, onSuccess }: WeightDialogProps)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-xl font-extrabold">Registrar peso</DialogTitle>
-          <DialogDescription>Registra el peso actual de <strong>{pet.name}</strong>.</DialogDescription>
+          <DialogTitle className="text-xl font-extrabold">
+            Registrar peso
+          </DialogTitle>
+          <DialogDescription>
+            Registra el peso actual de <strong>{pet.name}</strong>.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Peso (kg) *</label>
-              <Input type="number" step="0.1" min="0" placeholder="8.5" value={weight} onChange={(e) => setWeight(e.target.value)} required />
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Peso (kg) *
+              </label>
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="8.5"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                required
+              />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fecha</label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={new Date().toISOString().split("T")[0]} />
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Fecha
+              </label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+              />
             </div>
           </div>
           {feedback && (
-            <div className={cn("flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium border", feedback.type === "success" ? "bg-green-50 text-green-700 border-green-200" : "bg-destructive/10 text-destructive border-destructive/20")}>
-              {feedback.type === "success" ? <CheckCircle2 className="size-4" /> : <AlertCircle className="size-4" />}
+            <div
+              className={cn(
+                "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium border",
+                feedback.type === "success"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : "bg-destructive/10 text-destructive border-destructive/20",
+              )}
+            >
+              {feedback.type === "success" ? (
+                <CheckCircle2 className="size-4" />
+              ) : (
+                <AlertCircle className="size-4" />
+              )}
               {feedback.msg}
             </div>
           )}
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
             <Button type="submit" disabled={loading} className="gap-2">
               {loading && <Loader2 className="size-4 animate-spin" />}
               Registrar
@@ -294,29 +520,44 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm transition-shadow hover:shadow-md">
       {/* Franja de color superior */}
-      <div className={cn("h-1.5 w-full", isDog ? "bg-linear-to-r from-primary to-secondary" : "bg-linear-to-r from-secondary to-tertiary")} />
+      <div
+        className={cn(
+          "h-1.5 w-full",
+          isDog
+            ? "bg-linear-to-r from-primary to-secondary"
+            : "bg-linear-to-r from-secondary to-tertiary",
+        )}
+      />
 
       <div className="p-4">
         {/* Avatar + info básica */}
         <div className="flex items-start gap-4">
           {/* Avatar */}
-          <div className={cn(
-            "flex size-14 shrink-0 items-center justify-center rounded-2xl shadow-sm",
-            isDog ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"
-          )}>
+          <div
+            className={cn(
+              "flex size-14 shrink-0 items-center justify-center rounded-2xl shadow-sm",
+              isDog
+                ? "bg-primary/10 text-primary"
+                : "bg-secondary/10 text-secondary",
+            )}
+          >
             <SpeciesIcon species={pet.species} className="size-7" />
           </div>
 
           {/* Info */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="truncate text-base font-extrabold tracking-tight text-foreground">{pet.name}</h3>
+              <h3 className="truncate text-base font-extrabold tracking-tight text-foreground">
+                {pet.name}
+              </h3>
               <SexIcon sex={pet.sex} />
             </div>
 
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
               {pet.breed && (
-                <span className="text-xs text-muted-foreground">{pet.breed}</span>
+                <span className="text-xs text-muted-foreground">
+                  {pet.breed}
+                </span>
               )}
               {age && (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -334,10 +575,14 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
 
             {/* Badges de info */}
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className={cn(
-                "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest",
-                isDog ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"
-              )}>
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest",
+                  isDog
+                    ? "bg-primary/10 text-primary"
+                    : "bg-secondary/10 text-secondary",
+                )}
+              >
                 {isDog ? "Perro" : "Gato"}
               </span>
               {pet.sterilized && (
@@ -353,7 +598,9 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
             </div>
 
             {pet.notes && (
-              <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{pet.notes}</p>
+              <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
+                {pet.notes}
+              </p>
             )}
           </div>
         </div>
@@ -399,20 +646,38 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
 // ── Dialog de confirmación de eliminación ──────────────────────────────────────
 
 function ConfirmDeleteDialog({
-  pet, onConfirm, onCancel, loading,
-}: { pet: Pet | null; onConfirm: () => void; onCancel: () => void; loading: boolean }) {
+  pet,
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  pet: Pet | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
   return (
     <Dialog open={!!pet} onOpenChange={(v) => !v && onCancel()}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-xl font-extrabold">¿Eliminar a {pet?.name}?</DialogTitle>
+          <DialogTitle className="text-xl font-extrabold">
+            ¿Eliminar a {pet?.name}?
+          </DialogTitle>
           <DialogDescription>
-            Esta acción no se puede deshacer. Se eliminarán todos los datos de <strong>{pet?.name}</strong>.
+            Esta acción no se puede deshacer. Se eliminarán todos los datos de{" "}
+            <strong>{pet?.name}</strong>.
           </DialogDescription>
         </DialogHeader>
         <div className="mt-2 flex justify-end gap-3">
-          <Button variant="outline" onClick={onCancel} disabled={loading}>Cancelar</Button>
-          <Button variant="destructive" onClick={onConfirm} disabled={loading} className="gap-2">
+          <Button variant="outline" onClick={onCancel} disabled={loading}>
+            Cancelar
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={onConfirm}
+            disabled={loading}
+            className="gap-2"
+          >
             {loading && <Loader2 className="size-4 animate-spin" />}
             Sí, eliminar
           </Button>
@@ -431,7 +696,9 @@ function EmptyPets({ onAdd }: { onAdd: () => void }) {
         <PawPrint className="size-10 text-primary/50" />
       </div>
       <div>
-        <p className="text-lg font-extrabold tracking-tight text-foreground">Aún no tienes mascotas</p>
+        <p className="text-lg font-extrabold tracking-tight text-foreground">
+          Aún no tienes mascotas
+        </p>
         <p className="mt-1 text-sm text-muted-foreground">
           Agrega a tus compañeros para gestionar sus servicios fácilmente.
         </p>
@@ -447,7 +714,16 @@ function EmptyPets({ onAdd }: { onAdd: () => void }) {
 // ── Página principal ──────────────────────────────────────────────────────────
 
 export default function PetsPage() {
-  const { pets, loading, mutating, error, reload, createPet, updatePet, deletePet } = usePets();
+  const {
+    pets,
+    loading,
+    mutating,
+    error,
+    reload,
+    createPet,
+    updatePet,
+    deletePet,
+  } = usePets();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
@@ -465,11 +741,13 @@ export default function PetsPage() {
     setFormOpen(true);
   }
 
-  async function handleFormSubmit(data: CreatePetRequest | UpdatePetRequest) {
+  async function handleFormSubmit(
+    data: CreatePetRequest | UpdatePetRequest,
+  ): Promise<Pet> {
     if (editingPet) {
-      await updatePet(editingPet.id, data as UpdatePetRequest);
+      return await updatePet(editingPet.id, data as UpdatePetRequest);
     } else {
-      await createPet(data as CreatePetRequest);
+      return await createPet(data as CreatePetRequest);
     }
   }
 
@@ -489,7 +767,9 @@ export default function PetsPage() {
       {/* Encabezado */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Mis mascotas</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+            Mis mascotas
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Gestiona la información de tus compañeros peludos.
           </p>
@@ -514,7 +794,10 @@ export default function PetsPage() {
       {loading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {[1, 2].map((n) => (
-            <div key={n} className="rounded-2xl border border-border/60 bg-background p-4">
+            <div
+              key={n}
+              className="rounded-2xl border border-border/60 bg-background p-4"
+            >
               <div className="flex gap-4">
                 <div className="size-14 animate-pulse rounded-2xl bg-muted" />
                 <div className="flex-1 space-y-2 pt-1">
@@ -546,14 +829,18 @@ export default function PetsPage() {
       {/* Badge de conteo */}
       {!loading && pets.length > 0 && (
         <p className="text-center text-xs text-muted-foreground">
-          {pets.length} {pets.length === 1 ? "mascota registrada" : "mascotas registradas"}
+          {pets.length}{" "}
+          {pets.length === 1 ? "mascota registrada" : "mascotas registradas"}
         </p>
       )}
 
       {/* Dialogs */}
       <PetFormDialog
         open={formOpen}
-        onOpenChange={(v) => { setFormOpen(v); if (!v) setEditingPet(null); }}
+        onOpenChange={(v) => {
+          setFormOpen(v);
+          if (!v) setEditingPet(null);
+        }}
         pet={editingPet}
         onSubmit={handleFormSubmit}
         mutating={mutating}
@@ -569,7 +856,9 @@ export default function PetsPage() {
       {weightPet && (
         <WeightDialog
           open={!!weightPet}
-          onOpenChange={(v) => { if (!v) setWeightPet(null); }}
+          onOpenChange={(v) => {
+            if (!v) setWeightPet(null);
+          }}
           pet={weightPet}
           onSuccess={reload}
         />

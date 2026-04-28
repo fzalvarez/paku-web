@@ -8,3 +8,4 @@ export { AuthDialog } from "./AuthDialog";
 export { CartButton } from "./CartButton";
 export { AddressFormDialog } from "./AddressFormDialog";
 export { LocationPickerMap } from "./LocationPickerMap";
+export { AvatarUploader } from "./AvatarUploader";

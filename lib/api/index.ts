@@ -15,3 +15,5 @@ export { bookingService } from "./booking";
 export { ordersService } from "./orders";
 export { petsService } from "./pets";
 export { geoService } from "./geo";
+export { mediaService } from "./media";
+export type { MediaEntityType, MediaContentType } from "./media";

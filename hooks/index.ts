@@ -10,3 +10,4 @@ export { useBooking } from "./useBooking";
 export { useOrders } from "./useOrders";
 export { useServices } from "./useServices";
 export { useDistricts } from "./useDistricts";
+export { useUploadPhoto } from "./useUploadPhoto";
