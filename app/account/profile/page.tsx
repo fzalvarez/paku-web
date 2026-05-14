@@ -9,15 +9,21 @@ import { usersService } from "@/lib/api/users";
 import type { UpdateMeRequest, SetPasswordRequest } from "@/lib/api/users";
 import { cn } from "@/lib/utils";
 
+const FIELD_LABEL_CLASS =
+  "text-[15px] font-bold text-primary tracking-tight";
+
+const FIELD_INPUT_CLASS =
+  "h-14 rounded-xl border-[#d7ddff] bg-white px-4 text-[17px] text-primary placeholder:text-[#c7cdf6] shadow-none focus-visible:border-primary/50 focus-visible:ring-primary/20";
+
 // ── Helper: banner de feedback ─────────────────────────────────────────────────
 function Feedback({ type, msg }: { type: "success" | "error"; msg: string }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium",
+        "flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium",
         type === "success"
-          ? "bg-green-50 text-green-700 border border-green-200"
-          : "bg-destructive/10 text-destructive border border-destructive/20"
+          ? "border border-green-200 bg-green-50 text-green-700"
+          : "border border-destructive/20 bg-destructive/10 text-destructive"
       )}
     >
       {type === "success" ? (
@@ -47,18 +53,18 @@ function SectionCard({
   iconBg?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
+    <div className="rounded-[2rem] bg-white px-0 py-0">
       {/* Cabecera */}
-      <div className="flex items-center gap-3 border-b border-border/60 px-5 py-4">
-        <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", iconBg, iconColor)}>
+      <div className="flex items-start gap-3 px-0 py-0">
+        <span className={cn("mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full", iconBg, iconColor)}>
           <Icon className="size-4" />
         </span>
         <div>
-          <p className="text-sm font-extrabold tracking-tight text-foreground">{title}</p>
-          {description && <p className="text-xs text-muted-foreground">{description}</p>}
+          <p className="text-[1.65rem] font-extrabold tracking-tight text-primary">{title}</p>
+          {description && <p className="text-lg leading-snug text-[#4b4f83]">{description}</p>}
         </div>
       </div>
-      <div className="px-5 py-5">{children}</div>
+      <div className="px-0 py-5">{children}</div>
     </div>
   );
 }
@@ -100,49 +106,49 @@ function PersonalDataForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {/* Email (solo lectura) */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        <label className={FIELD_LABEL_CLASS}>
           Correo electrónico
         </label>
-        <Input value={user?.email ?? ""} disabled className="bg-muted/50 text-muted-foreground" />
-        <p className="text-xs text-muted-foreground">El correo no se puede modificar.</p>
+        <Input value={user?.email ?? ""} disabled className={cn(FIELD_INPUT_CLASS, "bg-white text-[#c7cdf6] opacity-100 disabled:opacity-100")} />
+        <p className="text-sm text-primary/70">El correo no se puede modificar.</p>
       </div>
 
       {/* Nombre + Apellido */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nombre</label>
-          <Input placeholder="Nombre" value={form.first_name} onChange={set("first_name")} required />
+          <label className={FIELD_LABEL_CLASS}>Nombre</label>
+          <Input className={FIELD_INPUT_CLASS} placeholder="Nombre" value={form.first_name} onChange={set("first_name")} required />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Apellido</label>
-          <Input placeholder="Apellido" value={form.last_name} onChange={set("last_name")} />
+          <label className={FIELD_LABEL_CLASS}>Apellido</label>
+          <Input className={FIELD_INPUT_CLASS} placeholder="Apellido" value={form.last_name} onChange={set("last_name")} />
         </div>
       </div>
 
       {/* Teléfono + DNI */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Teléfono</label>
-          <Input type="tel" placeholder="Teléfono" value={form.phone} onChange={set("phone")} />
+          <label className={FIELD_LABEL_CLASS}>Teléfono</label>
+          <Input className={FIELD_INPUT_CLASS} type="tel" placeholder="123 456 789" value={form.phone} onChange={set("phone")} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">DNI</label>
-          <Input placeholder="DNI" value={form.dni} onChange={set("dni")} />
+          <label className={FIELD_LABEL_CLASS}>DNI</label>
+          <Input className={FIELD_INPUT_CLASS} placeholder="12345678" value={form.dni} onChange={set("dni")} />
         </div>
       </div>
 
       {/* Fecha nacimiento + Sexo */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fecha de nacimiento</label>
-          <Input type="date" value={form.birth_date} onChange={set("birth_date")} />
+          <label className={FIELD_LABEL_CLASS}>Fecha de nacimiento</label>
+          <Input className={FIELD_INPUT_CLASS} type="date" value={form.birth_date} onChange={set("birth_date")} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Sexo</label>
+          <label className={FIELD_LABEL_CLASS}>Género</label>
           <select
             value={form.sex}
             onChange={set("sex")}
-            className="h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="h-14 w-full rounded-xl border border-[#d7ddff] bg-white px-4 text-[17px] text-primary shadow-none outline-none focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20"
           >
             <option value="male">Masculino</option>
             <option value="female">Femenino</option>
@@ -153,7 +159,7 @@ function PersonalDataForm() {
       {feedback && <Feedback type={feedback.type} msg={feedback.msg} />}
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={loading} className="gap-2">
+        <Button type="submit" disabled={loading} className="h-12 rounded-xl bg-primary px-7 text-base font-bold shadow-[0_8px_18px_rgba(37,51,214,0.22)] hover:bg-primary/95 gap-2">
           {loading && <Loader2 className="size-4 animate-spin" />}
           Guardar cambios
         </Button>
@@ -208,14 +214,14 @@ function PasswordForm() {
   }) {
     return (
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</label>
+        <label className={FIELD_LABEL_CLASS}>{label}</label>
         <div className="relative">
           <Input
             type={show ? "text" : "password"}
             placeholder={placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="pr-10"
+            className={cn(FIELD_INPUT_CLASS, "pr-10")}
             required
           />
           <button
@@ -261,7 +267,7 @@ function PasswordForm() {
       {feedback && <Feedback type={feedback.type} msg={feedback.msg} />}
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={loading} variant="outline" className="gap-2">
+        <Button type="submit" disabled={loading} className="h-12 rounded-xl bg-[#cdd8ff] px-7 text-base font-bold text-white shadow-none hover:bg-[#cdd8ff] gap-2 disabled:opacity-100">
           {loading && <Loader2 className="size-4 animate-spin" />}
           Cambiar contraseña
         </Button>
@@ -276,11 +282,11 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       {/* Encabezado de página */}
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Mi perfil</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-5xl font-extrabold tracking-tight text-primary">Mi perfil</h1>
+        <p className="mt-2 text-xl text-[#4b4f83]">
           Administra tu información personal y seguridad de la cuenta.
         </p>
       </div>
@@ -291,7 +297,7 @@ export default function ProfilePage() {
         title="Datos personales"
         description="Esta información es visible para los proveedores de servicios."
         iconColor="text-primary"
-        iconBg="bg-primary/10"
+        iconBg="bg-[#dbe2ff]"
       >
         <PersonalDataForm />
       </SectionCard>
@@ -301,8 +307,8 @@ export default function ProfilePage() {
         icon={Lock}
         title="Seguridad"
         description="Cambia tu contraseña periódicamente para mantener tu cuenta segura."
-        iconColor="text-secondary"
-        iconBg="bg-secondary/10"
+        iconColor="text-primary"
+        iconBg="bg-[#dbe2ff]"
       >
         <PasswordForm />
       </SectionCard>

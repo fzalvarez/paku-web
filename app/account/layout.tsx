@@ -51,22 +51,22 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     : user?.email ?? "Usuario";
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        <nav className="mb-6 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Link href="/" className="hover:text-foreground transition-colors">Inicio</Link>
+        <nav className="mb-5 flex items-center gap-1.5 text-sm text-[#c6c9f5]">
+          <Link href="/" className="transition-colors hover:text-primary">Home</Link>
           <ChevronRight className="size-3" />
-          <span className="font-medium text-foreground">
+          <span className="font-semibold text-primary">
             {NAV_LINKS.find((l) => l.href === pathname)?.label ?? "Mi cuenta"}
           </span>
         </nav>
 
-        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
           {/* ── Sidebar ── */}
-          <aside className="w-full shrink-0 lg:w-64">
+          <aside className="w-full shrink-0 lg:w-64 lg:pt-8">
             {/* Tarjeta de usuario */}
-            <div className="relative mb-4 overflow-hidden rounded-2xl bg-linear-to-br from-primary/10 via-secondary/5 to-tertiary/10 p-5 shadow-sm">
+            <div className="relative mb-4 hidden overflow-hidden rounded-2xl border border-primary/10 bg-white p-5 shadow-[0_10px_24px_rgba(37,51,214,0.05)] lg:block">
               <div className="absolute -right-8 -top-8 size-28 rounded-full bg-primary/10 blur-3xl" />
               <div className="absolute -bottom-6 left-0 size-20 rounded-full bg-secondary/10 blur-2xl" />
               <div className="relative flex items-center gap-4">
@@ -96,7 +96,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             </div>
 
             {/* Nav links */}
-            <nav className="flex flex-col gap-1 rounded-2xl border border-border/60 bg-background p-2 shadow-sm">
+            <nav className="flex flex-col gap-2 rounded-[1.75rem] bg-transparent p-0">
               {NAV_LINKS.map(({ href, label, icon: Icon, color, bg }) => {
                 const active = pathname === href;
                 return (
@@ -104,22 +104,22 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                     key={href}
                     href={href}
                     className={cn(
-                      "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                      "group flex items-center gap-3 rounded-xl px-4 py-3 text-lg font-semibold transition-all",
                       active
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        ? "bg-primary text-white shadow-[0_10px_22px_rgba(37,51,214,0.22)]"
+                        : "bg-white text-primary hover:bg-primary/5"
                     )}
                   >
                     <span
                       className={cn(
-                        "flex size-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-                        active ? "bg-white/20 text-white" : `${bg} ${color}`
+                        "flex size-7 shrink-0 items-center justify-center rounded-full transition-colors",
+                        active ? "bg-white/15 text-white" : `${bg} ${color}`
                       )}
                     >
                       <Icon className="size-3.5" />
                     </span>
                     <span className="flex-1">{label}</span>
-                    {active && <ChevronRight className="size-3.5 opacity-60" />}
+                    {active && <ChevronRight className="size-4 opacity-70" />}
                   </Link>
                 );
               })}
@@ -127,7 +127,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
           </aside>
 
           {/* ── Contenido ── */}
-          <main className="min-w-0 flex-1">{children}</main>
+          <main className="min-w-0 flex-1 lg:pt-6">{children}</main>
         </div>
       </div>
     </div>

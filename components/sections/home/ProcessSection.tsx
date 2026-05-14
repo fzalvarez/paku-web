@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const STEPS = [
@@ -33,22 +34,22 @@ const STORE_BUTTONS = [
 
 export function ProcessSection() {
   return (
-    <section className="py-16 md:py-28 bg-background overflow-hidden">
+    <section className="py-16 md:py-24 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-16 md:mb-24">
+        <h2 className="max-w-4xl mx-auto text-4xl md:text-5xl font-extrabold text-primary text-center mb-14 md:mb-16 leading-[1.05] tracking-tight">
           Una nueva forma de cuidar a tu mascota empieza hoy
         </h2>
 
-        <div className="flex flex-col md:flex-row items-center gap-16">
+        <div className="flex flex-col md:flex-row items-center gap-10 md:gap-6">
           {/* Lista de pasos + botones */}
-          <div className="w-full md:w-1/2 flex flex-col gap-8">
-            <ul className="flex flex-col gap-6">
+          <div className="w-full md:w-[45%] flex flex-col gap-8 md:pl-12 lg:pl-16">
+            <ul className="flex flex-col gap-4 md:gap-3">
               {STEPS.map((step) => (
                 <li key={step.num} className="flex gap-4 items-start">
                   <span className="text-xl font-extrabold text-primary leading-snug min-w-[2.5rem]">
                     {step.num}.
                   </span>
-                  <span className="text-xl font-bold text-foreground leading-snug">
+                  <span className="text-[2rem] md:text-[2.15rem] font-extrabold text-[#1f2165] leading-none tracking-tight">
                     {step.label}
                   </span>
                 </li>
@@ -56,12 +57,12 @@ export function ProcessSection() {
             </ul>
 
             {/* Botones de descarga */}
-            <div className="flex flex-wrap gap-4 mt-2">
+            <div className="flex flex-col items-start gap-4 mt-3">
               {STORE_BUTTONS.map((btn) => (
                 <Link
                   key={btn.id}
                   href="#"
-                  className="bg-foreground text-background px-4 py-2.5 rounded-xl flex items-center gap-3 hover:opacity-80 transition-opacity"
+                  className="bg-black text-white px-4 py-2.5 rounded-xl flex items-center gap-3 hover:opacity-90 transition-opacity min-w-[198px]"
                 >
                   {btn.icon}
                   <div className="flex flex-col">
@@ -77,17 +78,18 @@ export function ProcessSection() {
             </div>
           </div>
 
-          {/* Imagen circular */}
-          <div className="w-full md:w-1/2 flex justify-center relative">
-            {/* Glow teal decorativo */}
-            <div className="absolute inset-0 bg-teal-500 rounded-full scale-90 translate-x-10 translate-y-10 opacity-20 blur-3xl pointer-events-none" />
+          {/* Imagen perro + óvalo */}
+          <div className="w-full md:w-[55%] flex justify-center relative min-h-[360px] md:min-h-[420px]">
+            <div className="absolute w-[280px] h-[190px] md:w-[360px] md:h-[230px] bg-[#0f928f] rounded-[50%] bottom-8 md:bottom-6 right-4 md:right-8" />
 
-            <div className="relative w-72 h-72 md:w-80 md:h-80 bg-teal-600 rounded-full overflow-hidden border-[12px] border-background shadow-2xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWSI27sXUhh2sMGkBAba-XY1-xshPRSxDAtXUzahnROPe2h-HqOd53o0hfpY-4TaQ2YQnF_p0fD3onlmgcDUg4Ng-pR6ekSpVZ8yyvsXkYiQvYyPBJMDcdTwX1NeREUVOu0ZdW19C54PWm5A27xWuE0yv6qpfhoM9xDh44aKiv_eSvRBzqekf9EtCd641mi-C9GPxdrDgH7oSsOoXBRAYQ47U9lMvOAWeYzdDceICCbKnKZYSNmJRPj51r_yvbJkNr-RFBDEXdjCxg"
+            <div className="relative w-[280px] h-[330px] md:w-[360px] md:h-[420px] z-10 translate-x-2 md:translate-x-0">
+              <Image
+                src="/assets/pakuspa.png"
                 alt="Mascota Paku"
-                className="w-full h-full object-cover"
+                fill
+                className="object-contain object-center"
+                sizes="(max-width: 768px) 280px, 360px"
+                priority={false}
               />
             </div>
           </div>
