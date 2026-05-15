@@ -1,36 +1,36 @@
 "use client";
 
-import React from "react";
-import { ShoppingBag, Clock } from "lucide-react";
+import { CircleUserRound, Plus } from "lucide-react";
 
 export default function OrdersPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Encabezado */}
-      <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+      <div className="">
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
           Mis órdenes
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Revisa el historial y estado de tus servicios contratados.
+        <p className="mt-1 text-sm md:text-md lg:text-lg text-foreground">
+          Consulta el historial y el estado de tus servicios y pedidos.
         </p>
       </div>
 
       {/* Estado vacío */}
-      <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
-        <div className="flex size-20 items-center justify-center rounded-3xl bg-linear-to-br from-primary/10 via-secondary/5 to-tertiary/10">
-          <ShoppingBag className="size-10 text-primary/50" />
+      <div className="flex flex-col items-center gap-4 rounded-2xl bg-muted/30 px-6 py-16 text-center shadow-[0px_4px_12px_5px_rgba(0,_0,_0,_0.1)]">
+        <div className="flex size-16 items-center justify-center rounded-full bg-primary/25">
+          <CircleUserRound className="size-7.5 text-white" strokeWidth={1.5} />
         </div>
         <div>
-          <p className="text-lg font-extrabold tracking-tight text-foreground">
-            Aún no tienes órdenes
+          <p className="text-md lg:text-lg font-extrabold tracking-tight text-primary">
+            Aún no tienes órdenes registradas
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Cuando contrates un servicio, lo verás reflejado aquí.
+          <p className="text-sm lg:text-lg text-primary">
+            Aquí podrás consultar tus servicios agendados, pedidos y su
+            seguimiento.
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background px-4 py-2.5 text-xs text-muted-foreground shadow-sm">
-          <Clock className="size-3.5" />
+        <div className="flex flex-row items-center gap-2 rounded-lg border-2 border-primary/20 px-6 py-2 text-sm md:text-md text-primary/50">
+          <Plus className="size-3.5 shrink-0 hidden md:inline" />
           El historial de órdenes estará disponible próximamente
         </div>
       </div>

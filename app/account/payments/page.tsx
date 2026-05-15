@@ -2,8 +2,16 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  CreditCard, Plus, Lock, AlertCircle, Loader2,
-  CheckCircle2, X, RefreshCw, Trash2,
+  CreditCard,
+  Plus,
+  Lock,
+  AlertCircle,
+  Loader2,
+  CheckCircle2,
+  X,
+  RefreshCw,
+  Trash2,
+  CircleUserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePayments } from "@/hooks/usePayments";
@@ -20,17 +28,21 @@ declare global {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const BRAND_LABELS: Record<string, string> = {
-  visa: "VISA", master: "MC", mastercard: "MC",
-  amex: "AMEX", debvisa: "VISA DB", debmaster: "MC DB",
+  visa: "VISA",
+  master: "MC",
+  mastercard: "MC",
+  amex: "AMEX",
+  debvisa: "VISA DB",
+  debmaster: "MC DB",
 };
 function getBrandLabel(b: string) {
   return BRAND_LABELS[b?.toLowerCase()] ?? b?.toUpperCase() ?? "??";
 }
 function getBrandColor(b: string) {
   const bl = b?.toLowerCase();
-  if (bl?.includes("visa"))   return "bg-blue-800 text-white";
+  if (bl?.includes("visa")) return "bg-blue-800 text-white";
   if (bl?.includes("master")) return "bg-red-600 text-white";
-  if (bl?.includes("amex"))   return "bg-blue-500 text-white";
+  if (bl?.includes("amex")) return "bg-blue-500 text-white";
   return "bg-slate-600 text-white";
 }
 function formatExpiry(month: number, year: number) {
@@ -49,7 +61,15 @@ interface SavedCardItemProps {
   deleting: boolean;
 }
 
-function SavedCardItem({ id, brand, last4, exp_month, exp_year, onDelete, deleting }: SavedCardItemProps) {
+function SavedCardItem({
+  id,
+  brand,
+  last4,
+  exp_month,
+  exp_year,
+  onDelete,
+  deleting,
+}: SavedCardItemProps) {
   const [confirm, setConfirm] = useState(false);
   const isExpired = (() => {
     const now = new Date();
@@ -60,29 +80,39 @@ function SavedCardItem({ id, brand, last4, exp_month, exp_year, onDelete, deleti
   })();
 
   return (
-    <div className={cn(
-      "relative overflow-hidden rounded-2xl border bg-background shadow-sm transition-shadow hover:shadow-md",
-      isExpired ? "border-orange-200" : "border-border/60"
-    )}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border bg-background shadow-sm transition-shadow hover:shadow-md",
+        isExpired ? "border-orange-200" : "border-border/60",
+      )}
+    >
       {/* Franja de color por marca */}
       <div className={cn("h-1 w-full", getBrandColor(brand))} />
 
       <div className="flex items-center gap-4 p-4">
         {/* Badge marca */}
-        <span className={cn(
-          "flex h-10 w-14 shrink-0 items-center justify-center rounded-xl text-xs font-extrabold shadow-sm",
-          getBrandColor(brand)
-        )}>
+        <span
+          className={cn(
+            "flex h-10 w-14 shrink-0 items-center justify-center rounded-xl text-xs font-extrabold shadow-sm",
+            getBrandColor(brand),
+          )}
+        >
           {getBrandLabel(brand)}
         </span>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <p className="font-mono text-sm font-semibold">•••• •••• •••• {last4}</p>
-          <p className={cn(
-            "mt-0.5 text-xs",
-            isExpired ? "font-semibold text-orange-600" : "text-muted-foreground"
-          )}>
+          <p className="font-mono text-sm font-semibold">
+            •••• •••• •••• {last4}
+          </p>
+          <p
+            className={cn(
+              "mt-0.5 text-xs",
+              isExpired
+                ? "font-semibold text-orange-600"
+                : "text-muted-foreground",
+            )}
+          >
             {isExpired ? "⚠ Expirada — " : "Vence "}
             {formatExpiry(exp_month, exp_year)}
           </p>
@@ -130,36 +160,44 @@ interface AddCardFormProps {
 
 function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
   const { savingCard, saveCardError, saveCard } = usePayments();
-  const mpRef        = useRef<unknown>(null);
-  const sdkReadyRef  = useRef(false);
-  const unmountRef   = useRef<(() => void) | null>(null);
+  const mpRef = useRef<unknown>(null);
+  const sdkReadyRef = useRef(false);
+  const unmountRef = useRef<(() => void) | null>(null);
   const [fieldReady, setFieldReady] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [saved, setSaved]           = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const MP_PUBLIC_KEY = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY ?? "";
 
   // Cargar SDK
   const ensureSdk = useCallback((): Promise<void> => {
     return new Promise((resolve) => {
-      if (sdkReadyRef.current) { resolve(); return; }
+      if (sdkReadyRef.current) {
+        resolve();
+        return;
+      }
       if (document.getElementById("mp-sdk")) {
         const wait = setInterval(() => {
           if (window.MercadoPago) {
             clearInterval(wait);
-            if (!mpRef.current) mpRef.current = new window.MercadoPago(MP_PUBLIC_KEY, { locale: "es-PE" });
+            if (!mpRef.current)
+              mpRef.current = new window.MercadoPago(MP_PUBLIC_KEY, {
+                locale: "es-PE",
+              });
             sdkReadyRef.current = true;
             resolve();
           }
         }, 100);
         return;
       }
-      const s   = document.createElement("script");
-      s.id      = "mp-sdk";
-      s.src     = "https://sdk.mercadopago.com/js/v2";
-      s.async   = true;
-      s.onload  = () => {
-        mpRef.current     = new window.MercadoPago(MP_PUBLIC_KEY, { locale: "es-PE" });
+      const s = document.createElement("script");
+      s.id = "mp-sdk";
+      s.src = "https://sdk.mercadopago.com/js/v2";
+      s.async = true;
+      s.onload = () => {
+        mpRef.current = new window.MercadoPago(MP_PUBLIC_KEY, {
+          locale: "es-PE",
+        });
         sdkReadyRef.current = true;
         resolve();
       };
@@ -181,24 +219,44 @@ function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
       try {
         unmountRef.current?.();
         const common = {
-          color: "inherit", fontSize: "14px", fontFamily: "inherit",
+          color: "inherit",
+          fontSize: "14px",
+          fontFamily: "inherit",
           "::placeholder": { color: "#94a3b8" },
         };
-        const fNum = mp.fields.create("cardNumber",     { placeholder: "1234 5678 9012 3456", style: common });
-        const fExp = mp.fields.create("expirationDate", { placeholder: "MM/AA",               style: common });
-        const fCvv = mp.fields.create("securityCode",   { placeholder: "•••",                 style: common });
+        const fNum = mp.fields.create("cardNumber", {
+          placeholder: "1234 5678 9012 3456",
+          style: common,
+        });
+        const fExp = mp.fields.create("expirationDate", {
+          placeholder: "MM/AA",
+          style: common,
+        });
+        const fCvv = mp.fields.create("securityCode", {
+          placeholder: "•••",
+          style: common,
+        });
 
         fNum.mount("acp-card-number");
         fExp.mount("acp-card-exp");
         fCvv.mount("acp-card-cvv");
 
-        fNum.on("ready", () => { if (!cancelled) setFieldReady(true); });
+        fNum.on("ready", () => {
+          if (!cancelled) setFieldReady(true);
+        });
 
         unmountRef.current = () => {
-          try { fNum.unmount?.(); fExp.unmount?.(); fCvv.unmount?.(); } catch { /* noop */ }
+          try {
+            fNum.unmount?.();
+            fExp.unmount?.();
+            fCvv.unmount?.();
+          } catch {
+            /* noop */
+          }
         };
       } catch {
-        if (!cancelled) setLocalError("No se pudo cargar el formulario. Recarga la página.");
+        if (!cancelled)
+          setLocalError("No se pudo cargar el formulario. Recarga la página.");
       }
     })();
 
@@ -207,7 +265,7 @@ function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
       unmountRef.current?.();
       unmountRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleSave() {
@@ -221,7 +279,9 @@ function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
       setSaved(true);
       setTimeout(onSuccess, 1200);
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Error al guardar la tarjeta.");
+      setLocalError(
+        err instanceof Error ? err.message : "Error al guardar la tarjeta.",
+      );
     }
   }
 
@@ -234,7 +294,9 @@ function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
           <CheckCircle2 className="size-7 text-green-600" />
         </div>
         <p className="font-bold text-foreground">¡Tarjeta guardada!</p>
-        <p className="text-sm text-muted-foreground">Tu tarjeta ha sido agregada correctamente.</p>
+        <p className="text-sm text-muted-foreground">
+          Tu tarjeta ha sido agregada correctamente.
+        </p>
       </div>
     );
   }
@@ -262,7 +324,11 @@ function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
         {!MP_PUBLIC_KEY && (
           <div className="mb-4 flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700">
             <AlertCircle className="size-4 shrink-0" />
-            Falta <code className="mx-1 font-mono text-xs">NEXT_PUBLIC_MP_PUBLIC_KEY</code> en .env.local
+            Falta{" "}
+            <code className="mx-1 font-mono text-xs">
+              NEXT_PUBLIC_MP_PUBLIC_KEY
+            </code>{" "}
+            en .env.local
           </div>
         )}
 
@@ -282,7 +348,7 @@ function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
             className={cn(
               "flex h-12 items-center rounded-xl border border-border bg-muted/30 px-4 text-sm",
               "focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20",
-              !fieldReady && "animate-pulse"
+              !fieldReady && "animate-pulse",
             )}
           />
         </div>
@@ -333,13 +399,17 @@ function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
             onClick={handleSave}
             className={cn(
               "flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all",
-              "disabled:cursor-not-allowed disabled:opacity-50 hover:bg-primary/90"
+              "disabled:cursor-not-allowed disabled:opacity-50 hover:bg-primary/90",
             )}
           >
             {savingCard ? (
-              <><Loader2 className="size-4 animate-spin" /> Guardando…</>
+              <>
+                <Loader2 className="size-4 animate-spin" /> Guardando…
+              </>
             ) : (
-              <><Lock className="size-4" /> Guardar tarjeta</>
+              <>
+                <Lock className="size-4" /> Guardar tarjeta
+              </>
             )}
           </button>
         </div>
@@ -351,7 +421,8 @@ function AddCardForm({ onSuccess, onCancel }: AddCardFormProps) {
 // ── Página principal ──────────────────────────────────────────────────────────
 
 export default function PaymentsPage() {
-  const { savedCards, cardsLoading, cardsError, loadSavedCards } = usePayments();
+  const { savedCards, cardsLoading, cardsError, loadSavedCards } =
+    usePayments();
   const [showForm, setShowForm] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -373,12 +444,12 @@ export default function PaymentsPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Encabezado */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col md:flex-row items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
             Métodos de pago
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm md:text-md lg:text-lg text-foreground">
             Administra tus tarjetas guardadas para pagos más rápidos.
           </p>
         </div>
@@ -395,14 +466,15 @@ export default function PaymentsPage() {
 
       {/* Info de seguridad */}
       <div className="flex items-start gap-3 rounded-2xl border border-border/60 bg-background p-4 shadow-sm">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-600">
-          <Lock className="size-4" />
-        </span>
+        <div className="shrink-0 flex size-16 items-center justify-center rounded-full bg-primary/25">
+          <CircleUserRound className="size-7.5 text-white" strokeWidth={1.5} />
+        </div>
         <div>
-          <p className="text-sm font-bold text-foreground">Pagos 100% seguros</p>
-          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-            Tus datos de pago están cifrados y protegidos. Nunca almacenamos los números
-            completos de tus tarjetas. Utilizamos Mercado Pago, certificado PCI-DSS.
+          <p className="text-md lg:text-lg font-extrabold tracking-tight text-primary">
+            Pagos 100% seguros
+          </p>
+          <p className="mt-1 text-sm lg:text-lg text-primary">
+            Trabajamos con Mercado Pago y certificación PCI-DSS.
           </p>
         </div>
       </div>
@@ -419,7 +491,9 @@ export default function PaymentsPage() {
       {cardsLoading && (
         <div className="flex items-center justify-center gap-2 rounded-2xl border border-border/60 bg-background py-12 shadow-sm">
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Cargando tarjetas…</span>
+          <span className="text-sm text-muted-foreground">
+            Cargando tarjetas…
+          </span>
         </div>
       )}
 
@@ -448,7 +522,8 @@ export default function PaymentsPage() {
               Aún no tienes tarjetas guardadas
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Agrega una tarjeta para agilizar el proceso de pago en tus próximas compras.
+              Agrega una tarjeta para agilizar el proceso de pago en tus
+              próximas compras.
             </p>
           </div>
           <button
@@ -465,7 +540,8 @@ export default function PaymentsPage() {
       {!cardsLoading && savedCards.length > 0 && (
         <div className="flex flex-col gap-3">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            {savedCards.length} tarjeta{savedCards.length !== 1 ? "s" : ""} guardada{savedCards.length !== 1 ? "s" : ""}
+            {savedCards.length} tarjeta{savedCards.length !== 1 ? "s" : ""}{" "}
+            guardada{savedCards.length !== 1 ? "s" : ""}
           </p>
           {savedCards.map((card) => (
             <SavedCardItem

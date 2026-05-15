@@ -610,7 +610,7 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
           <Button
             size="sm"
             variant="outline"
-            className="h-7 gap-1.5 text-xs"
+            className="h-7 gap-1.5"
             onClick={() => onWeight(pet)}
             disabled={mutating}
           >
@@ -619,22 +619,22 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
           </Button>
           <Button
             size="sm"
-            variant="ghost"
-            className="h-7 gap-1.5 text-xs"
+            variant="edit"
+            className="h-7 gap-1.5"
             onClick={() => onEdit(pet)}
             disabled={mutating}
           >
-            <Pencil className="size-3" />
+            <Pencil className="size-3 shrink-0" />
             Editar
           </Button>
           <Button
             size="sm"
-            variant="ghost"
-            className="ml-auto h-7 gap-1.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+            variant="delete"
+            className="ml-auto gap-1.5"
             onClick={() => onDelete(pet)}
             disabled={mutating}
           >
-            <Trash2 className="size-3" />
+            <Trash2 className="size-3 shrink-0" />
             Eliminar
           </Button>
         </div>

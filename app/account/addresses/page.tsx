@@ -18,7 +18,13 @@ interface AddressCardProps {
   actionLoading: string | null; // id de la address con acción en curso
 }
 
-function AddressCard({ address, onEdit, onDelete, onSetDefault, actionLoading }: AddressCardProps) {
+function AddressCard({
+  address,
+  onEdit,
+  onDelete,
+  onSetDefault,
+  actionLoading,
+}: AddressCardProps) {
   const busy = actionLoading === address.id;
 
   return (
@@ -28,7 +34,9 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault, actionLoading }:
       }`}
     >
       {/* Franja top de marca */}
-      <div className={`h-1 w-full ${address.is_default ? "bg-linear-to-r from-primary to-secondary" : "bg-border/40"}`} />
+      <div
+        className={`h-1 w-full ${address.is_default ? "bg-linear-to-r from-primary to-secondary" : "bg-border/40"}`}
+      />
 
       <div className="p-4">
         {/* Badge predeterminada */}
@@ -41,7 +49,9 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault, actionLoading }:
 
         {/* Icono + datos */}
         <div className="flex items-start gap-3">
-          <div className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ${address.is_default ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+          <div
+            className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ${address.is_default ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
+          >
             <MapPin className="size-4" />
           </div>
           <div className="flex-1 min-w-0">
@@ -50,13 +60,19 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault, actionLoading }:
                 {address.label}
               </p>
             )}
-            <p className="font-semibold leading-snug text-foreground">{address.address_line}</p>
+            <p className="font-semibold leading-snug text-foreground">
+              {address.address_line}
+            </p>
             {address.reference && (
-              <p className="mt-0.5 text-sm text-muted-foreground">{address.reference}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {address.reference}
+              </p>
             )}
             {(address.building_number || address.apartment_number) && (
               <p className="mt-0.5 text-sm text-muted-foreground">
-                {[address.building_number, address.apartment_number].filter(Boolean).join(" — ")}
+                {[address.building_number, address.apartment_number]
+                  .filter(Boolean)
+                  .join(" — ")}
               </p>
             )}
             <p className="mt-1 text-xs text-muted-foreground">
@@ -75,7 +91,11 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault, actionLoading }:
               onClick={() => onSetDefault(address.id)}
               disabled={busy}
             >
-              {busy ? <Loader2 className="size-3 animate-spin" /> : <Star className="size-3" />}
+              {busy ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <Star className="size-3" />
+              )}
               Predeterminada
             </Button>
           )}
@@ -96,7 +116,11 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault, actionLoading }:
             onClick={() => onDelete(address.id)}
             disabled={busy}
           >
-            {busy ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
+            {busy ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              <Trash2 className="size-3" />
+            )}
             Eliminar
           </Button>
         </div>
@@ -108,7 +132,8 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault, actionLoading }:
 // ── Página ────────────────────────────────────────────────────────────────────
 
 export default function AddressesPage() {
-  const { addresses, loading, error, create, update, remove, setDefault } = useAddresses();
+  const { addresses, loading, error, create, update, remove, setDefault } =
+    useAddresses();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AddressOut | null>(null);
@@ -185,9 +210,11 @@ export default function AddressesPage() {
       {/* Cabecera */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Direcciones</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gestiona tus direcciones de entrega y servicio.
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
+            Direcciones
+          </h1>
+          <p className="mt-1 text-sm md:text-md lg:text-lg text-foreground">
+            Registra los lugares donde realizaremos el servicio.
           </p>
         </div>
         {addresses.length > 0 && (
@@ -210,7 +237,10 @@ export default function AddressesPage() {
       {loading && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {[1, 2].map((n) => (
-            <div key={n} className="rounded-2xl border border-border/60 bg-background p-4">
+            <div
+              key={n}
+              className="rounded-2xl border border-border/60 bg-background p-4"
+            >
               <div className="flex gap-3">
                 <div className="size-10 animate-pulse rounded-lg bg-muted" />
                 <div className="flex-1 space-y-2 pt-1">
@@ -232,15 +262,15 @@ export default function AddressesPage() {
 
       {/* Lista vacía */}
       {!loading && !error && addresses.length === 0 && (
-        <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
-          <div className="flex size-20 items-center justify-center rounded-3xl bg-linear-to-br from-tertiary/10 via-secondary/5 to-primary/10">
-            <MapPin className="size-10 text-tertiary/50" />
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
+          <div className="flex size-16 items-center justify-center rounded-full bg-primary/25">
+            <MapPin className="size-7.5 text-white" strokeWidth={1.5} />
           </div>
           <div>
-            <p className="text-lg font-extrabold tracking-tight text-foreground">
+            <p className="text-md lg:text-lg font-extrabold tracking-tight text-primary">
               No tienes direcciones registradas
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-sm lg:text-lg text-primary">
               Agrega una dirección para facilitar la reserva de servicios.
             </p>
           </div>
