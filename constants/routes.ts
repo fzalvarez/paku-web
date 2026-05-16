@@ -9,6 +9,9 @@ export const ROUTES = {
   PAKU_SPA: "/paku-spa",
   MIS_PEDIDOS: "/mis-pedidos",
   MIS_PEDIDOS_DETALLE: (id: string) => `/mis-pedidos/${id}`,
+  CONTACTO: "/contacto",
+  SOPORTE: "/soporte",
+  ELIMINAR_CUENTA: "/eliminar-cuenta",
   ACCOUNT: {
     PROFILE: "/account/profile",
     PETS: "/account/pets",
@@ -17,8 +20,10 @@ export const ROUTES = {
     ORDERS: "/account/orders",
   },
   POLITICAS: {
+    INDEX: "/politicas",
     TERMINOS: "/politicas/terminos-y-condiciones",
     PRIVACIDAD: "/politicas/privacidad",
+    COOKIES: "/politicas/cookies",
   },
 } as const;
 
