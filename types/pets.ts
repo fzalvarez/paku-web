@@ -5,6 +5,11 @@
 
 export type PetSpecies = "dog" | "cat";
 export type PetSex = "male" | "female";
+export type PetSize = "small" | "medium" | "large";
+export type PetCoatType = "short" | "medium" | "long";
+export type PetActivityLevel = "low" | "medium" | "high";
+export type PetBathBehavior = "calm" | "fearful" | "anxious";
+export type PetAntiparasiticInterval = "monthly" | "trimestral";
 
 export interface Pet {
   id: string;
@@ -19,11 +24,21 @@ export interface Pet {
   weight_kg?: number | null;
   created_at?: string;
   updated_at?: string;
-  // campos opcionales de grooming
-  size?: "small" | "medium" | "large" | null;
-  coat_type?: "short" | "medium" | "long" | null;
+  // campos opcionales de perfil de grooming
+  size?: PetSize | null;
+  coat_type?: PetCoatType | null;
   sterilized?: boolean | null;
   vaccines_up_to_date?: boolean | null;
+  activity_level?: PetActivityLevel | null;
+  skin_sensitivity?: boolean | null;
+  bath_behavior?: PetBathBehavior | null;
+  tolerates_drying?: boolean | null;
+  tolerates_nail_clipping?: boolean | null;
+  grooming_frequency?: string | null;
+  receive_reminders?: boolean | null;
+  antiparasitic?: boolean | null;
+  antiparasitic_interval?: PetAntiparasiticInterval | null;
+  special_shampoo?: boolean | null;
 }
 
 export interface CreatePetRequest {
@@ -46,23 +61,39 @@ export interface Breed {
   breeds?: Breed[];
 }
 
+/**
+ * PUT /pets/{id} — actualiza los campos básicos editables.
+ * No incluye: species (inmutable), weight_kg (va por /weight o /optional),
+ * photo_url (gestionada exclusivamente por el módulo media).
+ */
 export interface UpdatePetRequest {
   name: string;
-  species: PetSpecies;
   breed?: string | null;
   sex?: PetSex | null;
   birth_date?: string | null;
   notes?: string | null;
-  photo_url?: string | null;
-  weight_kg?: number | null;
 }
 
+/**
+ * PATCH /pets/{id}/optional — actualiza el perfil avanzado de grooming.
+ * Todos los campos son opcionales; solo se envían los que cambian.
+ */
 export interface PatchPetOptionalRequest {
-  size?: "small" | "medium" | "large" | null;
-  coat_type?: "short" | "medium" | "long" | null;
+  weight_kg?: number | null;
+  size?: PetSize | null;
+  coat_type?: PetCoatType | null;
   sterilized?: boolean | null;
   vaccines_up_to_date?: boolean | null;
-  notes?: string | null;
+  activity_level?: PetActivityLevel | null;
+  skin_sensitivity?: boolean | null;
+  bath_behavior?: PetBathBehavior | null;
+  tolerates_drying?: boolean | null;
+  tolerates_nail_clipping?: boolean | null;
+  grooming_frequency?: string | null;
+  receive_reminders?: boolean | null;
+  antiparasitic?: boolean | null;
+  antiparasitic_interval?: PetAntiparasiticInterval | null;
+  special_shampoo?: boolean | null;
 }
 
 export interface WeightRecord {
