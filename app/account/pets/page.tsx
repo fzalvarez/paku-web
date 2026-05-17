@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   Loader2,
   Plus,
@@ -15,6 +16,7 @@ import {
   Calendar,
   AlertCircle,
   CheckCircle2,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -627,15 +629,21 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
             <Pencil className="size-3 shrink-0" />
             Editar
           </Button>
+          <Link
+            href={`/account/pets/${pet.id}`}
+            className="ml-auto flex h-7 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+          >
+            Ver perfil
+            <ChevronRight className="size-3" />
+          </Link>
           <Button
             size="sm"
             variant="delete"
-            className="ml-auto gap-1.5"
+            className="gap-1.5"
             onClick={() => onDelete(pet)}
             disabled={mutating}
           >
             <Trash2 className="size-3 shrink-0" />
-            Eliminar
           </Button>
         </div>
       </div>
