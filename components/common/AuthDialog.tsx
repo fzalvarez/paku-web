@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Eye, EyeOff, Loader2, Check, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -64,35 +64,63 @@ function Divider({ label }: { label: string }) {
   );
 }
 
+// ── Reglas de contraseña (deben coincidir con backend RegisterIn) ─────────────
+const PASSWORD_RULES = [
+  { id: "length",    label: "Mínimo 8 caracteres",     test: (v: string) => v.length >= 8 },
+  { id: "uppercase", label: "Al menos una mayúscula",   test: (v: string) => /[A-Z]/.test(v) },
+  { id: "digit",     label: "Al menos un número",       test: (v: string) => /\d/.test(v) },
+] as const;
+
 // ── Sub-componente: Campo de contraseña ───────────────────────────────────────
 function PasswordInput({
   value,
   onChange,
   placeholder = "Contraseña",
+  showRules = false,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  showRules?: boolean;
 }) {
   const [show, setShow] = useState(false);
+  const ruleResults = useMemo(
+    () => PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(value) })),
+    [value]
+  );
+
   return (
-    <div className="relative">
-      <Input
-        type={show ? "text" : "password"}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="pr-10"
-        required
-      />
-      <button
-        type="button"
-        onClick={() => setShow((p) => !p)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-        tabIndex={-1}
-      >
-        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-      </button>
+    <div className="flex flex-col gap-1.5">
+      <div className="relative">
+        <Input
+          type={show ? "text" : "password"}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="pr-10"
+          required
+        />
+        <button
+          type="button"
+          onClick={() => setShow((p) => !p)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          tabIndex={-1}
+        >
+          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+      </div>
+      {showRules && value.length > 0 && (
+        <ul className="flex flex-col gap-0.5 pl-0.5">
+          {ruleResults.map((r) => (
+            <li key={r.id} className={cn("flex items-center gap-1.5 text-xs", r.passed ? "text-green-600" : "text-muted-foreground")}>
+              {r.passed
+                ? <Check className="size-3 shrink-0" />
+                : <X className="size-3 shrink-0" />}
+              {r.label}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -155,7 +183,6 @@ const INITIAL_REGISTER: RegisterRequest = {
   last_name: "",
   sex: "male",
   birth_date: "",
-  role: "user",
   dni: "",
 };
 
@@ -165,23 +192,41 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const passwordValid = useMemo(
+    () => PASSWORD_RULES.every((r) => r.test(form.password)),
+    [form.password]
+  );
+
   const set = (key: keyof RegisterRequest) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
+  function parseServerError(err: unknown): string {
+    if (err && typeof err === "object" && "message" in err) {
+      const msg = (err as { message: string }).message;
+      if (msg.includes("Email already registered") || msg.includes("already registered"))
+        return "Este correo ya tiene una cuenta registrada.";
+    }
+    return "No se pudo completar el registro. Intenta de nuevo.";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!passwordValid) return;
     setError(null);
     setLoading(true);
     try {
-      await register(form);
-      // register in context performs login automatically in AuthProvider.login flow,
-      // but some backends don't return tokens on register — ensure we login with credentials
+      // Limpiar dni vacío para no enviarlo al backend si no se proporcionó
+      const payload: RegisterRequest = {
+        ...form,
+        dni: form.dni?.trim() || undefined,
+      };
+      await register(payload);
       await login({ email: form.email, password: form.password });
       onSuccess();
     } catch (err) {
       console.error(err);
-      setError("No se pudo completar el registro. Intenta de nuevo.");
+      setError(parseServerError(err));
     } finally {
       setLoading(false);
     }
@@ -217,13 +262,14 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
         autoComplete="email"
       />
 
-      {/* Contraseña */}
+      {/* Contraseña con indicadores */}
       <PasswordInput
         value={form.password}
         onChange={(v) => setForm((p) => ({ ...p, password: v }))}
+        showRules
       />
 
-      {/* Teléfono + DNI */}
+      {/* Teléfono + DNI (opcional) */}
       <div className="grid grid-cols-2 gap-3">
         <Input
           type="tel"
@@ -233,12 +279,14 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
           required
           autoComplete="tel"
         />
-        <Input
-          placeholder="DNI"
-          value={form.dni}
-          onChange={set("dni")}
-          required
-        />
+        <div className="relative">
+          <Input
+            placeholder="DNI (opcional)"
+            value={form.dni}
+            onChange={set("dni")}
+            autoComplete="off"
+          />
+        </div>
       </div>
 
       {/* Fecha de nacimiento + Sexo */}
@@ -267,7 +315,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
         </p>
       )}
 
-      <Button type="submit" className="mt-1 w-full" disabled={loading}>
+      <Button type="submit" className="mt-1 w-full" disabled={loading || !passwordValid}>
         {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
         Crear cuenta
       </Button>

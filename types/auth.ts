@@ -20,8 +20,7 @@ export interface RegisterRequest {
   last_name: string;
   sex: UserSex;
   birth_date: string; // ISO: "YYYY-MM-DD"
-  role: UserRole;
-  dni: string;
+  dni?: string; // opcional según backend
 }
 
 export interface SocialLoginRequest {
