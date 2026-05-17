@@ -2,10 +2,10 @@ const VALUES = ["Empatía", "Confianza", "Innovación", "Profesionalismo"] as co
 
 export function AboutSection() {
   return (
-    <section className="py-16 md:py-24 bg-muted/30">
+    <section id="quienes-somos" aria-labelledby="about-heading" className="py-16 md:py-24 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-card rounded-[3rem] p-8 md:p-12 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)]">
-          <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">
+          <h2 id="about-heading" className="text-3xl md:text-4xl font-black text-primary mb-4">
             ¿Quiénes somos?
           </h2>
           <p className="max-w-4xl mb-12 text-base font-medium leading-relaxed text-muted-foreground md:text-lg md:font-semibold xl:text-xl">

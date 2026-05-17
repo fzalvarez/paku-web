@@ -18,13 +18,16 @@ const APP_STORE_BUTTONS = [
 
 export function HeroSectionV2() {
   return (
-    <section className="relative min-h-150 md:min-h-200 flex items-center overflow-hidden">
+    <section aria-label="Inicio — El futuro del grooming es móvil" className="relative min-h-150 md:min-h-200 flex items-center overflow-hidden">
       {/* Imagen de fondo */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/home-perro-paku.png"
-          alt="Paku hero background"
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          fetchPriority="high"
           className="w-full h-full object-cover object-center"
         />
         {/* Overlay: degradado vertical solo en la mitad inferior */}

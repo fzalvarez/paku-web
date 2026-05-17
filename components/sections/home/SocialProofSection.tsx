@@ -2,7 +2,7 @@ const BULLETS = [
   {
     id: "realtime",
     icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="size-5 text-white">
+      <svg viewBox="0 0 24 24" fill="currentColor" className="size-5 text-white" aria-hidden="true">
         <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5ZM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5Zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3Z" />
       </svg>
     ),
@@ -11,7 +11,7 @@ const BULLETS = [
   {
     id: "mobile",
     icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="size-5 text-white">
+      <svg viewBox="0 0 24 24" fill="currentColor" className="size-5 text-white" aria-hidden="true">
         <path d="M17 1.01 7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99ZM17 19H7V5h10v14Z" />
       </svg>
     ),
@@ -21,11 +21,11 @@ const BULLETS = [
 
 export function SocialProofSection() {
   return (
-    <section className="py-16 md:py-24 bg-muted/40">
+    <section aria-labelledby="socialproof-heading" className="py-16 md:py-24 bg-muted/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-card rounded-[2.5rem] p-6 md:p-12 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] flex flex-col gap-10">
           {/* Título */}
-          <h2 className="max-w-2xl text-3xl font-black text-primary md:text-4xl">
+          <h2 id="socialproof-heading" className="max-w-2xl text-3xl font-black text-primary md:text-4xl">
             No es solo grooming, es control y confianza
           </h2>
 

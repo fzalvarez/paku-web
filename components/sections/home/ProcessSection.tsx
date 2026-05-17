@@ -25,9 +25,9 @@ const STORE_BUTTONS = [
 
 export function ProcessSection() {
   return (
-    <section className="py-16 md:py-24 bg-background overflow-hidden">
+    <section aria-labelledby="process-heading" className="py-16 md:py-24 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="max-w-4xl mx-auto text-4xl md:text-5xl font-black text-primary text-center mb-14 md:mb-16 leading-[1.05] tracking-tight">
+        <h2 id="process-heading" className="max-w-4xl mx-auto text-4xl md:text-5xl font-black text-primary text-center mb-14 md:mb-16 leading-[1.05] tracking-tight">
           Una nueva forma de cuidar a tu mascota empieza hoy
         </h2>
 
@@ -67,7 +67,7 @@ export function ProcessSection() {
           <div className="w-full md:w-[55%] flex justify-center">
             <Image
               src="/assets/perro-dlmt.png"
-              alt="Mascota Paku"
+              alt="Perro feliz listo para su servicio de grooming móvil con Paku"
               width={520}
               height={520}
               className="w-full max-w-90 md:max-w-115 h-auto object-contain"

@@ -213,7 +213,7 @@ export function Header() {
           <Link href={ROUTES.HOME} className="flex items-center">
             <Image
               src="/assets/imagotipo.png"
-              alt="Paku"
+              alt="Paku — Grooming móvil para mascotas"
               width={120}
               height={52}
               className="h-12 w-auto object-contain"
@@ -222,7 +222,7 @@ export function Header() {
           </Link>
 
           {/* Nav desktop */}
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav aria-label="Navegación principal" className="hidden items-center gap-6 md:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -288,7 +288,7 @@ export function Header() {
             mobileOpen ? "max-h-96" : "max-h-0",
           )}
         >
-          <nav className="flex flex-col gap-1 px-4 py-4">
+          <nav aria-label="Navegación móvil" className="flex flex-col gap-1 px-4 py-4">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}

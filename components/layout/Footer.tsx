@@ -114,7 +114,7 @@ export function Footer() {
             <Link href={ROUTES.HOME} className="mb-5 inline-block">
               <Image
                 src="/assets/logo-paku.png"
-                alt="Paku"
+                alt="Paku — Grooming móvil para mascotas en Perú"
                 width={96}
                 height={32}
                 className="h-8 w-auto object-contain"
@@ -177,18 +177,20 @@ export function Footer() {
               <p className="mb-4 text-xs font-bold uppercase tracking-widest text-white">
                 {col.title}
               </p>
-              <ul className="flex flex-col gap-2.5">
-                {col.links.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-white/70 transition-colors hover:text-white"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <nav aria-label={col.title}>
+                <ul className="flex flex-col gap-2.5">
+                  {col.links.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="text-sm text-white/70 transition-colors hover:text-white"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
 
               {/* Si es la columna Legal, mostrar el Libro de Reclamaciones al final */}
               {col.title === "Legal" && (
