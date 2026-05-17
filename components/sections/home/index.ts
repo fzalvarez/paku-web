@@ -1,7 +1,7 @@
-// ── Componentes antiguos (ocultos, mantenidos para referencia) ──
-// export { HeroSection } from "./HeroSection";
-// export { PetManagementSection } from "./PetManagementSection";
-// export { BookingSection } from "./BookingSection";
+// ── Componentes legacy (usados en dashboard, no en home principal) ──
+// export { HeroSection } from "./HeroSection"; // no se usa en ninguna página activa
+export { PetManagementSection } from "./PetManagementSection";
+export { BookingSection } from "./BookingSection";
 
 // ── Componentes actuales (usado en home principal) ──
 export { HeroSectionV2 } from "./HeroSectionV2";
