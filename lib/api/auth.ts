@@ -7,6 +7,8 @@ import type {
   SocialLoginRequest,
   SocialLoginResponse,
   LoginResponse,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
 } from "@/types/auth";
 
 /**
@@ -39,5 +41,21 @@ export const authService = {
   socialLogin: async (data: SocialLoginRequest) => {
     const res = await publicApiClient.post<SocialLoginResponse | { data: SocialLoginResponse }>(ENDPOINTS.AUTH.SOCIAL, data);
     return (res as any).data ?? res;
+  },
+
+  /**
+   * Solicita un email de recuperación de contraseña.
+   * POST /auth/forgot-password → 200 (siempre, no revela si el email existe)
+   */
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {
+    await publicApiClient.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, data);
+  },
+
+  /**
+   * Restablece la contraseña usando el token recibido por email.
+   * POST /auth/reset-password → 204
+   */
+  resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
+    await publicApiClient.post(ENDPOINTS.AUTH.RESET_PASSWORD, data);
   },
 };

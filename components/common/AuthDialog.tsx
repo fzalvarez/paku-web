@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Eye, EyeOff, Loader2, Check, X } from "lucide-react";
+import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -159,6 +160,16 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
         autoComplete="email"
       />
       <PasswordInput value={password} onChange={setPassword} />
+
+      {/* Link recuperación */}
+      <div className="text-right">
+        <Link
+          href="/forgot-password"
+          className="text-xs font-semibold text-primary hover:underline"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </div>
 
       {error && (
         <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
