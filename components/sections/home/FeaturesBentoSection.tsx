@@ -40,7 +40,7 @@ export function FeaturesBentoSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Encabezado */}
         <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">
+          <h2 className="text-3xl md:text-4xl font-black text-primary">
             Cuidado inteligente para tu mascota
           </h2>
         </div>
@@ -53,16 +53,16 @@ export function FeaturesBentoSection() {
               className="bg-card rounded-[2rem] p-8 flex flex-col gap-6 border-b-4 border-primary shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-lg transition-shadow"
             >
               {/* Ícono */}
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shrink-0">
                 {feat.icon}
               </div>
 
               {/* Texto */}
               <div>
-                <h3 className="text-xl font-bold text-primary mb-2">
+                <h3 className="mb-2 text-xl font-extrabold text-primary md:text-2xl">
                   {feat.title}
                 </h3>
-                <p className="text-base text-muted-foreground leading-relaxed">
+                <p className="text-base font-medium leading-relaxed text-muted-foreground md:font-semibold md:text-lg">
                   {feat.description}
                 </p>
               </div>

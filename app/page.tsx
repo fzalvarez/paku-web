@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import {
-  HeroSection,
-  PetManagementSection,
-  BookingSection,
+  HeroSectionV2,
+  FeaturesBentoSection,
+  SocialProofSection,
+  ProcessSection,
+  BannerStripe,
   ArticlesSection,
-  ContactSection,
+  AboutSection,
 } from "@/components/sections/home";
 
 export const metadata: Metadata = {
@@ -15,11 +17,13 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      <HeroSection />
-      <PetManagementSection />
-      <BookingSection />
+      <HeroSectionV2 />
+      <FeaturesBentoSection />
+      <SocialProofSection />
+      <BannerStripe />
+      <ProcessSection />
       <ArticlesSection />
-      <ContactSection />
+      <AboutSection />
     </>
   );
 }

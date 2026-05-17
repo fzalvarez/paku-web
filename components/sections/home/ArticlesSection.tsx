@@ -27,13 +27,13 @@ function ArticleCard({ article }: { article: Article }) {
       {/* Contenido */}
       <h3
         className={cn(
-          "mb-3 text-xl font-bold leading-snug",
-          "text-foreground transition-colors group-hover:text-primary"
+          "mb-3 text-xl font-extrabold leading-snug md:text-2xl",
+          "text-primary transition-colors group-hover:text-primary/80"
         )}
       >
         {article.title}
       </h3>
-      <p className="mb-4 flex-1 text-sm leading-relaxed text-muted-foreground">
+      <p className="mb-4 flex-1 text-sm font-medium leading-relaxed text-muted-foreground md:text-base md:font-semibold">
         {article.excerpt}
       </p>
 
@@ -54,10 +54,10 @@ export function ArticlesSection() {
         {/* Encabezado */}
         <div className="mb-16 flex flex-col items-end justify-between gap-4 md:flex-row">
           <div>
-            <h2 className="mb-3 text-3xl font-bold tracking-tight md:text-4xl">
+            <h2 className="mb-3 text-3xl font-black tracking-tight text-primary md:text-4xl">
               Consejos de Santuario
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-base font-medium leading-relaxed text-muted-foreground md:text-lg md:font-semibold">
               Aprende a cuidar el bienestar de tu mascota con nuestros expertos.
             </p>
           </div>

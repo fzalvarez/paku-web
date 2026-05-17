@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Menu, X, Settings, CreditCard, HelpCircle, LogOut, ChevronDown, ShoppingCart as ShoppingCartIcon, Package } from "lucide-react";
+import { Menu, X, Settings, CreditCard, HelpCircle, LogOut, ShoppingCart as ShoppingCartIcon, Package, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,8 +22,9 @@ import { CartButton } from "@/components/common/CartButton";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 const NAV_LINKS = [
-  { label: "Inicio", href: ROUTES.HOME },
-  { label: "Reservar", href: ROUTES.BOOKING },
+  { label: "Servicios", href: ROUTES.PAKU_SPA },
+  { label: "Como funciona", href: ROUTES.BOOKING },
+  { label: "¿Quiénes somos?", href: "/#quienes-somos" },
 ] as const;
 
 // ── Helper: iniciales del usuario ─────────────────────────────────────────────
@@ -45,27 +46,22 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
 
   return (
     <DropdownMenu>
-      {/* ── Trigger: pill con avatar + nombre + chevron ── */}
+      {/* ── Trigger: icono de usuario ── */}
       <DropdownMenuTrigger asChild>
-        <button className="group flex items-center gap-2.5 rounded-full border border-border bg-background px-2 py-1.5 shadow-sm transition-all hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
-          {/* Avatar con borde gradiente */}
-          <span className="relative shrink-0">
-            <span className="absolute inset-0 rounded-full bg-linear-to-br from-primary via-secondary to-tertiary p-[1.5px]" />
-            <Avatar size="sm" className="relative ring-0">
-              {user?.profile_photo_url && (
-                <AvatarImage src={user.profile_photo_url} alt={displayName} />
-              )}
+        <button
+          className="relative flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          aria-label="Mi cuenta"
+        >
+          {user?.profile_photo_url ? (
+            <Avatar size="sm" className="ring-0">
+              <AvatarImage src={user.profile_photo_url} alt={displayName} />
               <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">
                 {initials}
               </AvatarFallback>
             </Avatar>
-          </span>
-
-          <span className="hidden max-w-28 truncate text-sm font-semibold text-foreground sm:block">
-            {user?.first_name ?? displayName}
-          </span>
-
-          <ChevronDown className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+          ) : (
+            <UserCircle2 className="size-6 text-foreground" />
+          )}
         </button>
       </DropdownMenuTrigger>
 
@@ -209,11 +205,6 @@ export function Header() {
     setAuthOpen(true);
   }
 
-  function openRegister() {
-    setAuthTab("register");
-    setAuthOpen(true);
-  }
-
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -241,38 +232,39 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+            <Button
+              asChild
+              size="sm"
+              className="rounded-full px-5 py-5"
+            >
+              <Link href={ROUTES.BOOKING}>Agenda tu servicio</Link>
+            </Button>
           </nav>
 
-          {/* CTA desktop */}
-          <div className="hidden items-center gap-3 md:flex">
+          {/* Acciones desktop: carrito (solo autenticado) + icono usuario (siempre) */}
+          <div className="hidden items-center gap-1 md:flex">
             {loading ? (
-              <div className="h-8 w-36 animate-pulse rounded-full bg-muted" />
-            ) : user ? (
-              <>
-                <CartButton
-                  open={cartOpen}
-                  onOpenChange={setCartOpen}
-                  onCheckout={() => router.push(ROUTES.BOOKING)}
-                />
-                <UserMenu onLogout={logout} />
-              </>
+              <div className="h-9 w-20 animate-pulse rounded-full bg-muted" />
             ) : (
               <>
-                <Button
-                  className="rounded-full px-6 py-5 "
-                  variant="ghost"
-                  size="sm"
-                  onClick={openLogin}
-                >
-                  Iniciar sesión
-                </Button>
-                <Button
-                  className="rounded-full px-6 py-5 "
-                  size="sm"
-                  onClick={openRegister}
-                >
-                  Registrarse
-                </Button>
+                {user && (
+                  <CartButton
+                    open={cartOpen}
+                    onOpenChange={setCartOpen}
+                    onCheckout={() => router.push(ROUTES.BOOKING)}
+                  />
+                )}
+                {user ? (
+                  <UserMenu onLogout={logout} />
+                ) : (
+                  <button
+                    onClick={openLogin}
+                    className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                    aria-label="Iniciar sesión"
+                  >
+                    <UserCircle2 className="size-6" />
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -307,6 +299,15 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+
+            {/* Botón CTA mobile */}
+            <Link
+              href={ROUTES.BOOKING}
+              onClick={() => setMobileOpen(false)}
+              className="mt-1 flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Agenda tu servicio
+            </Link>
 
             <div className="mt-3 flex flex-col gap-1 border-t border-border pt-3">
               {loading ? (
@@ -406,29 +407,18 @@ export function Header() {
                   </button>
                 </>
               ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start"
-                    onClick={() => {
-                      setMobileOpen(false);
-                      openLogin();
-                    }}
-                  >
-                    Iniciar sesión
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="justify-start"
-                    onClick={() => {
-                      setMobileOpen(false);
-                      openRegister();
-                    }}
-                  >
-                    Registrarse
-                  </Button>
-                </>
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    openLogin();
+                  }}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+                >
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <UserCircle2 className="size-4" />
+                  </span>
+                  Iniciar sesión
+                </button>
               )}
             </div>
           </nav>

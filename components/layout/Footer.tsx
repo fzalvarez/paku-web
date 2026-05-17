@@ -46,7 +46,7 @@ const SOCIAL_LINKS = [
     label: "TikTok de Paku",
     href: "https://www.tiktok.com/@pakuperu",
     Icon: TikTokIcon,
-    hoverColor: "hover:text-foreground",
+    hoverColor: "hover:text-white",
   },
 ] as const;
 
@@ -104,7 +104,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full border-t border-border bg-background">
+    <footer className="w-full bg-[#171954]">
       {/* Cuerpo principal */}
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-5">
@@ -121,7 +121,7 @@ export function Footer() {
               />
             </Link>
 
-            <p className="mb-6 max-w-xs text-sm leading-relaxed text-muted-foreground">
+            <p className="mb-6 max-w-xs text-sm leading-relaxed text-white/80">
               El grooming móvil más moderno del Perú. Agendamos en segundos y
               cuidamos a tu mascota en la puerta de tu hogar.
             </p>
@@ -131,8 +131,8 @@ export function Footer() {
               {CONTACT_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const inner = (
-                  <span className="flex items-center gap-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
-                    <Icon className="size-4 shrink-0 text-primary" />
+                  <span className="flex items-center gap-2.5 text-sm text-white/75 transition-colors hover:text-white">
+                    <Icon className="size-4 shrink-0 text-white" />
                     {item.label}
                   </span>
                 );
@@ -163,7 +163,7 @@ export function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className={`flex size-9 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground transition-colors ${hoverColor} hover:border-transparent hover:bg-primary/10`}
+                  className={`flex size-9 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white transition-colors ${hoverColor} hover:border-white/50 hover:bg-white/10`}
                 >
                   <Icon className="size-4" />
                 </a>
@@ -174,7 +174,7 @@ export function Footer() {
           {/* ── Columnas de navegación (3 columnas en lg) ── */}
           {NAV_COLUMNS.map((col) => (
             <div key={col.title}>
-              <p className="mb-4 text-xs font-bold uppercase tracking-widest text-foreground">
+              <p className="mb-4 text-xs font-bold uppercase tracking-widest text-white">
                 {col.title}
               </p>
               <ul className="flex flex-col gap-2.5">
@@ -182,7 +182,7 @@ export function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="text-sm text-white/70 transition-colors hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -207,7 +207,7 @@ export function Footer() {
                       height={180}
                       className="h-24 w-auto object-contain"
                     />
-                    <span className="text-sm text-muted-foreground hidden">
+                    <span className="text-sm text-white/70 hidden">
                       Libro de Reclamaciones
                     </span>
                   </a>
@@ -219,12 +219,12 @@ export function Footer() {
       </div>
 
       {/* Barra inferior */}
-      <div className="border-t border-border">
+      <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 sm:flex-row sm:px-6 lg:px-8">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-white/60">
             &copy; {currentYear} Paku. Todos los derechos reservados.
           </p>
-          <p className="text-xs text-muted-foreground">Hecho con ❤️ en Perú</p>
+          <p className="text-xs text-white/60">Hecho con ❤️ en Perú</p>
         </div>
       </div>
     </footer>

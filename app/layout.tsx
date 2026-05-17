@@ -24,9 +24,9 @@ export const metadata: Metadata = {
   },
   description: "El futuro del grooming móvil para tu mascota.",
   icons: {
-    icon: "/assets/isotipo.png",
-    shortcut: "/assets/isotipo.png",
-    apple: "/assets/isotipo.png",
+    icon: "/assets/favicon.png",
+    shortcut: "/assets/favicon.png",
+    apple: "/assets/favicon.png",
   },
 };
 
