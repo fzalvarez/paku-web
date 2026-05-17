@@ -127,7 +127,7 @@ function PasswordInput({
 }
 
 // ── Formulario: Login ─────────────────────────────────────────────────────────
-function LoginForm({ onSuccess }: { onSuccess: () => void }) {
+function LoginForm({ onSuccess, onClose }: { onSuccess: () => void; onClose: () => void }) {
   const { login } = useAuthContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -166,6 +166,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
         <Link
           href="/forgot-password"
           className="text-xs font-semibold text-primary hover:underline"
+          onClick={onClose}
         >
           ¿Olvidaste tu contraseña?
         </Link>
@@ -383,7 +384,7 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "register" }: Auth
 
         {/* Formularios email/password */}
         {tab === "login" ? (
-          <LoginForm onSuccess={handleSuccess} />
+          <LoginForm onSuccess={handleSuccess} onClose={() => onOpenChange(false)} />
         ) : (
           <RegisterForm onSuccess={handleSuccess} />
         )}
