@@ -4,7 +4,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { trackingService } from "@/lib/api/tracking";
 import type { TrackingCurrent, TrackingRoute } from "@/types/tracking";
 
-const POLL_INTERVAL_MS = 5000;
+/** Posición del ally — bajo costo, actualizar frecuente */
+const CURRENT_POLL_MS = 10_000;
+/** Ruta + ETA — costo por llamada a Google Routes, actualizar menos frecuente */
+const ROUTE_POLL_MS = 30_000;
+
 const ACTIVE_STATUSES = ["on_the_way", "in_service"];
 
 export interface UseTrackingReturn {
@@ -27,7 +31,8 @@ export function useTracking(
   const [route, setRoute] = useState<TrackingRoute | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const currentIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const routeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchCurrent = useCallback(async () => {
     if (!orderId) return;
@@ -59,16 +64,22 @@ export function useTracking(
   useEffect(() => {
     if (!isActive || !orderId) return;
 
+    // Carga inicial — ambos en paralelo
     fetchAll();
-    intervalRef.current = setInterval(() => {
-      fetchCurrent();
-      fetchRoute();
-    }, POLL_INTERVAL_MS);
+
+    // /current cada 10s
+    currentIntervalRef.current = setInterval(fetchCurrent, CURRENT_POLL_MS);
+    // /route cada 30s
+    routeIntervalRef.current = setInterval(fetchRoute, ROUTE_POLL_MS);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      if (currentIntervalRef.current) {
+        clearInterval(currentIntervalRef.current);
+        currentIntervalRef.current = null;
+      }
+      if (routeIntervalRef.current) {
+        clearInterval(routeIntervalRef.current);
+        routeIntervalRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

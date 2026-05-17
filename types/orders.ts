@@ -8,6 +8,7 @@ import type { CartItemMeta } from "./cart";
 
 export type OrderStatus =
   | "created"
+  | "accepted"
   | "on_the_way"
   | "in_service"
   | "done"

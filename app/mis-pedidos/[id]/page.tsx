@@ -2,8 +2,15 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { ordersService } from "@/lib/api/orders";
 import { useTracking } from "@/hooks/useTracking";
+
+// Leaflet requiere window → carga dinámica solo en cliente
+const AllyMapLeaflet = dynamic(
+  () => import("@/components/tracking/AllyMapLeaflet").then((m) => m.AllyMapLeaflet),
+  { ssr: false, loading: () => <div className="flex items-center justify-center rounded-xl bg-muted/30 aspect-video text-xs text-muted-foreground">Cargando mapa…</div> }
+);
 import { useWebRTCViewer } from "@/hooks/useWebRTCViewer";
 import {
   Loader2, AlertCircle, MapPin, CalendarDays, Package,
@@ -27,6 +34,13 @@ const STATUS_CONFIG: Record<
     color: "text-yellow-600",
     bgColor: "bg-yellow-50 border-yellow-200",
     description: "Tu pedido fue creado y está esperando que le asignemos un especialista.",
+  },
+  accepted: {
+    label: "Aceptado",
+    icon: <CheckCircle2 className="size-5" />,
+    color: "text-teal-600",
+    bgColor: "bg-teal-50 border-teal-200",
+    description: "Un especialista ha aceptado tu pedido y se está preparando.",
   },
   on_the_way: {
     label: "Especialista en camino",
@@ -105,7 +119,7 @@ const TRACKING_FLOW_CONFIG: Record<TrackingFlowStatus, {
 } as const;
 
 // Flujo completo para la barra de progreso inferior
-const STATUS_FLOW: OrderStatus[] = ["created", "on_the_way", "in_service", "done"];
+const STATUS_FLOW: OrderStatus[] = ["created", "accepted", "on_the_way", "in_service", "done"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -128,19 +142,9 @@ function mapsUrl(lat: number, lng: number): string {
   return `https://www.google.com/maps?q=${lat},${lng}`;
 }
 
-function mapsEmbedUrl(allyLat: number, allyLng: number, destLat: number, destLng: number): string {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  // Si no hay API key, usamos una URL de iframe simple que no requiere key
-  if (!apiKey) {
-    return `https://maps.google.com/maps?q=${allyLat},${allyLng}&z=15&output=embed`;
-  }
-  // Con API key: mapa con origen (ally) y destino marcados
-  return `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${allyLat},${allyLng}&destination=${destLat},${destLng}&mode=driving`;
-}
+// ── Sub-componente: mapa Leaflet del ally ────────────────────────────────────
 
-// ── Sub-componente: mapa de ubicación del ally ────────────────────────────────
-
-interface AllyMapProps {
+interface AllyMapContainerProps {
   allyLat: number;
   allyLng: number;
   destLat: number;
@@ -148,27 +152,28 @@ interface AllyMapProps {
   destAddress: string;
   isStale: boolean;
   etaDisplay: string | null;
+  polyline?: string | null;
 }
 
-function AllyMap({ allyLat, allyLng, destLat, destLng, destAddress, isStale, etaDisplay }: AllyMapProps) {
-  const embedUrl = mapsEmbedUrl(allyLat, allyLng, destLat, destLng);
-
+function AllyMapContainer({
+  allyLat, allyLng, destLat, destLng,
+  destAddress, isStale, etaDisplay, polyline,
+}: AllyMapContainerProps) {
   return (
     <div className="space-y-2">
-      {/* Mapa embebido */}
-      <div className="relative overflow-hidden rounded-xl border border-border bg-muted aspect-video">
-        <iframe
-          src={embedUrl}
-          className="absolute inset-0 h-full w-full"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="Ubicación del especialista"
+      {/* Mapa Leaflet */}
+      <div className="overflow-hidden rounded-xl border border-border">
+        <AllyMapLeaflet
+          allyLat={allyLat}
+          allyLng={allyLng}
+          destLat={destLat}
+          destLng={destLng}
+          polyline={polyline}
         />
       </div>
 
-      {/* Barra inferior: estado de señal + ETA + link externo */}
+      {/* Barra inferior: señal + ETA + link externo */}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Señal */}
         <div className="flex items-center gap-1.5">
           {isStale ? (
             <>
@@ -183,7 +188,6 @@ function AllyMap({ allyLat, allyLng, destLat, destLng, destAddress, isStale, eta
           )}
         </div>
 
-        {/* ETA */}
         {etaDisplay && (
           <span className="flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
             <Clock className="size-3 shrink-0" />
@@ -191,7 +195,6 @@ function AllyMap({ allyLat, allyLng, destLat, destLng, destAddress, isStale, eta
           </span>
         )}
 
-        {/* Abrir en Google Maps */}
         <a
           href={mapsUrl(allyLat, allyLng)}
           target="_blank"
@@ -371,7 +374,7 @@ interface TrackingPanelProps {
 }
 
 function TrackingPanel({ orderId, orderStatus, destination }: TrackingPanelProps) {
-  const { current, loading, error, isActive, isStale, etaDisplay } =
+  const { current, route, loading, error, isActive, isStale, etaDisplay } =
     useTracking(orderId, orderStatus);
 
   const isInTrackingFlow = (TRACKING_FLOW as string[]).includes(orderStatus);
@@ -463,7 +466,7 @@ function TrackingPanel({ orderId, orderStatus, destination }: TrackingPanelProps
               </div>
             )}
             {!loading && current?.ally_location && destination ? (
-              <AllyMap
+              <AllyMapContainer
                 allyLat={current.ally_location.lat}
                 allyLng={current.ally_location.lng}
                 destLat={destination.lat}
@@ -471,6 +474,7 @@ function TrackingPanel({ orderId, orderStatus, destination }: TrackingPanelProps
                 destAddress={destination.address_line}
                 isStale={isStale}
                 etaDisplay={etaDisplay}
+                polyline={route?.polyline}
               />
             ) : !loading && (
               <div className="flex flex-col items-center gap-2 py-6 rounded-xl bg-muted/30 text-center">
