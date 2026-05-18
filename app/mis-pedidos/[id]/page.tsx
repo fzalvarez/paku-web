@@ -12,6 +12,7 @@ const AllyMapLeaflet = dynamic(
   { ssr: false, loading: () => <div className="flex items-center justify-center rounded-xl bg-muted/30 aspect-video text-xs text-muted-foreground">Cargando mapa…</div> }
 );
 import { useWebRTCViewer } from "@/hooks/useWebRTCViewer";
+import { ChatPanel } from "@/components/chat/ChatPanel";
 import {
   Loader2, AlertCircle, MapPin, CalendarDays, Package,
   ArrowLeft, CheckCircle2, Clock, Truck, Scissors,
@@ -586,6 +587,12 @@ function OrderDetailContent({ order }: OrderDetailContentProps) {
           } : null}
         />
       )}
+
+      {/* ── Chat con el especialista (on_the_way | in_service) ── */}
+      <ChatPanel
+        orderId={order.id}
+        active={(["on_the_way", "in_service"] as OrderStatus[]).includes(order.status)}
+      />
 
       {/* ── Progreso completo (barra de 4 estados) ── */}
       {order.status !== "cancelled" && (

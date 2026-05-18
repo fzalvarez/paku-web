@@ -51,6 +51,10 @@ export const ENDPOINTS = {
     CREATE: "/orders",
     DETAIL: (id: string) => `/orders/${id}`,
   },
+  CHAT: {
+    MESSAGES:     (orderId: string) => `/chat/orders/${orderId}/messages`,
+    UNREAD_COUNT: (orderId: string) => `/chat/orders/${orderId}/unread-count`,
+  },
   BOOKING: {
     AVAILABILITY: "/availability",
     HOLDS: "/holds",
