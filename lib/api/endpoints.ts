@@ -50,6 +50,9 @@ export const ENDPOINTS = {
     LIST: "/orders",
     CREATE: "/orders",
     DETAIL: (id: string) => `/orders/${id}`,
+    CONFIRM_PAYMENT: (id: string) => `/orders/${id}/confirm-payment`,
+    FAIL_PAYMENT: (id: string) => `/orders/${id}/fail-payment`,
+    RETRY_PAYMENT: (id: string) => `/orders/${id}/retry-payment`,
   },
   CHAT: {
     MESSAGES:     (orderId: string) => `/chat/orders/${orderId}/messages`,

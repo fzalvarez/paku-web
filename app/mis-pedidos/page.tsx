@@ -8,10 +8,17 @@ import Link from "next/link";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   created: { label: "Pendiente de asignación", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
+  accepted: { label: "Aceptado", color: "bg-teal-100 text-teal-700 border-teal-200" },
   on_the_way: { label: "Especialista en camino", color: "bg-blue-100 text-blue-700 border-blue-200" },
   in_service: { label: "Servicio en curso", color: "bg-purple-100 text-purple-700 border-purple-200" },
   done: { label: "Finalizado", color: "bg-green-100 text-green-700 border-green-200" },
   cancelled: { label: "Cancelado", color: "bg-red-100 text-red-700 border-red-200" },
+};
+
+const PAYMENT_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending: { label: "Pago pendiente", color: "bg-amber-50 text-amber-700 border-amber-200" },
+  paid: { label: "Pago confirmado", color: "bg-green-50 text-green-700 border-green-200" },
+  failed: { label: "Pago fallido", color: "bg-red-50 text-red-700 border-red-200" },
 };
 
 function formatDate(iso: string): string {
@@ -92,9 +99,21 @@ export default function MisPedidosPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       {/* Estado */}
-                      <span className={cn("inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold", status.color)}>
-                        {status.label}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={cn("inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold", status.color)}>
+                          {status.label}
+                        </span>
+                        {order.payment_status && (
+                          <span
+                            className={cn(
+                              "inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+                              PAYMENT_STATUS_LABELS[order.payment_status]?.color ?? "bg-muted text-muted-foreground border-border"
+                            )}
+                          >
+                            {PAYMENT_STATUS_LABELS[order.payment_status]?.label ?? order.payment_status}
+                          </span>
+                        )}
+                      </div>
 
                       {/* Servicio principal */}
                       {baseItem && (

@@ -122,6 +122,30 @@ const TRACKING_FLOW_CONFIG: Record<TrackingFlowStatus, {
 // Flujo completo para la barra de progreso inferior
 const STATUS_FLOW: OrderStatus[] = ["created", "accepted", "on_the_way", "in_service", "done"];
 
+const PAYMENT_STATUS_CONFIG: Record<
+  string,
+  { label: string; color: string; bgColor: string; description: string }
+> = {
+  pending: {
+    label: "Pago pendiente",
+    color: "text-amber-700",
+    bgColor: "bg-amber-50 border-amber-200",
+    description: "Estamos esperando la confirmación del pago de esta orden.",
+  },
+  paid: {
+    label: "Pago confirmado",
+    color: "text-green-700",
+    bgColor: "bg-green-50 border-green-200",
+    description: "El pago fue confirmado correctamente.",
+  },
+  failed: {
+    label: "Pago fallido",
+    color: "text-red-700",
+    bgColor: "bg-red-50 border-red-200",
+    description: "El último intento de pago falló. Puedes reintentar desde el flujo de pago.",
+  },
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string): string {
@@ -547,6 +571,8 @@ interface OrderDetailContentProps {
 
 function OrderDetailContent({ order }: OrderDetailContentProps) {
   const statusConfig = STATUS_CONFIG[order.status];
+  const paymentStatus = order.payment_status ?? "pending";
+  const paymentConfig = PAYMENT_STATUS_CONFIG[paymentStatus] ?? PAYMENT_STATUS_CONFIG.pending;
   const baseItem = order.items_snapshot.find((i) => i.kind === "service_base");
   const scheduledDate = baseItem?.meta?.scheduled_date;
   const scheduledTime = baseItem?.meta?.scheduled_time;
@@ -573,6 +599,24 @@ function OrderDetailContent({ order }: OrderDetailContentProps) {
           {statusConfig.icon}
           {statusConfig.label}
         </span>
+      </div>
+
+      <div className={cn("rounded-2xl border px-4 py-3", paymentConfig.bgColor)}>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className={cn("text-sm font-bold", paymentConfig.color)}>
+              {paymentConfig.label}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {paymentConfig.description}
+            </p>
+          </div>
+          {order.culqi_charge_id && (
+            <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-mono text-muted-foreground">
+              {order.culqi_charge_id}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ── Panel de Tracking (estados on_the_way, in_service, done) ── */}
@@ -739,7 +783,7 @@ export default function OrderDetailPage() {
   // Polling ligero del estado de la orden cuando está activa (cada 15s)
   useEffect(() => {
     if (!order) return;
-    const ACTIVE: OrderStatus[] = ["created", "on_the_way", "in_service"];
+    const ACTIVE: OrderStatus[] = ["created", "accepted", "on_the_way", "in_service"];
     if (!ACTIVE.includes(order.status)) return;
 
     const interval = setInterval(loadOrder, 15_000);

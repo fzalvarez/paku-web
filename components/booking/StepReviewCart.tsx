@@ -69,7 +69,7 @@ interface StepReviewCartProps {
   selectedAddress: AddressOut | null;
   // Callbacks
   onBack: () => void;
-  onProceedToPayment: (cartId: string, amountCents: number) => void;
+  onProceedToPayment: (cartId: string, amountCents: number) => Promise<void>;
 }
 
 export function StepReviewCart({
@@ -168,6 +168,15 @@ export function StepReviewCart({
     setProcessError(null);
 
     try {
+      // Si el carrito ya está checked_out (usuario volvió atrás desde pago)
+      // saltar validación y checkout, pasar directamente al pago
+      if (cart.cart.status === "checked_out") {
+        const localTotal = cart.items.reduce((acc, item) => acc + item.qty * item.unit_price, 0);
+        const totalCents = Math.round((validation?.total ?? localTotal) * 100);
+        await onProceedToPayment(cart.cart.id, totalCents);
+        return;
+      }
+
       // Validar carrito
       setValidating(true);
       const validResult = await validate();
@@ -184,17 +193,17 @@ export function StepReviewCart({
       await checkout();
       setCheckingOut(false);
 
-      // Pasar al paso de pago con el cartId y el total en céntimos
-      // Prioridad: validResult.total (del backend) > total calculado localmente
       const backendTotal = validResult.total ?? 0;
       const localTotal = cart.items.reduce((acc, item) => acc + item.qty * item.unit_price, 0);
       const totalCents = Math.round((backendTotal > 0 ? backendTotal : localTotal) * 100);
-      onProceedToPayment(cart.cart.id, totalCents);
+      await onProceedToPayment(cart.cart.id, totalCents);
     } catch (err) {
       setCheckingOut(false);
       setValidating(false);
       if (err instanceof ApiCallError) {
         setProcessError(`Error: ${err.message}`);
+      } else if (err instanceof Error) {
+        setProcessError(err.message);
       } else {
         setProcessError("Ocurrió un error al preparar el pago. Intenta de nuevo.");
       }
@@ -239,7 +248,7 @@ export function StepReviewCart({
                   key={item.id}
                   item={item}
                   onRemove={(id) => removeItem(id)}
-                  removing={mutating}
+                  removing={mutating || cart.cart.status === "checked_out"}
                 />
               ))}
             </div>
@@ -255,12 +264,18 @@ export function StepReviewCart({
           )}
 
           {/* Validación */}
-          {validating && (
+          {cart.cart.status === "checked_out" && (
+            <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Carrito confirmado — puedes proceder al pago.
+            </div>
+          )}
+          {cart.cart.status !== "checked_out" && validating && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="size-3.5 animate-spin" /> Validando carrito…
             </div>
           )}
-          {validation && !validating && (
+          {cart.cart.status !== "checked_out" && validation && !validating && (
             <div className={cn(
               "rounded-xl px-4 py-3 text-sm",
               validation.valid

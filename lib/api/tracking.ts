@@ -55,7 +55,7 @@ export const trackingService = {
       );
     } catch (err: unknown) {
       const status = (err as { status?: number })?.status;
-      if (status === 501 || status === 502) return null; // degradar gracefully
+      if (status === 409 || status === 501 || status === 502) return null;
       throw err;
     }
   },

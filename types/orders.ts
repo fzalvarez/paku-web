@@ -14,6 +14,8 @@ export type OrderStatus =
   | "done"
   | "cancelled";
 
+export type OrderPaymentStatus = "pending" | "paid" | "failed";
+
 // ── Snapshot de items (inmutable al crear la orden) ────────────────────────────
 
 export interface OrderItemSnapshot {
@@ -48,6 +50,8 @@ export interface OrderOut {
   ally_id: string | null;
   scheduled_at: string | null;
   hold_id: string | null;
+  payment_status?: OrderPaymentStatus;
+  culqi_charge_id?: string | null;
   created_at: string;
   updated_at: string;
 }

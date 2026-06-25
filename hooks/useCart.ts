@@ -118,15 +118,13 @@ export function useCart(): UseCartReturn {
 
   const validate = useCallback(async (): Promise<CartValidateOut> => {
     if (!cart?.cart.id) throw new Error("No hay carrito activo");
-    setMutating(true);
+    // No usa setMutating para no bloquear otros botones durante la validación
     setError(null);
     try {
       return await cartService.validate(cart.cart.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al validar el carrito");
       throw err;
-    } finally {
-      setMutating(false);
     }
   }, [cart]);
 

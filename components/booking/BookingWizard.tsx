@@ -8,7 +8,7 @@ import { StepSelectService } from "./StepSelectService";
 import { StepSelectDate } from "./StepSelectDate";
 import { StepSelectAddress } from "./StepSelectAddress";
 import { StepReviewCart } from "./StepReviewCart";
-import { StepPayment } from "./StepPayment";
+import { StepPaymentCulqi } from "./StepPaymentCulqi";
 import { StepOrderConfirmed } from "./StepOrderConfirmed";
 import { ordersService } from "@/lib/api/orders";
 import type { Pet } from "@/types/pets";
@@ -31,6 +31,7 @@ interface WizardSnapshot {
   selectedTime: string | null;
   selectedAddress: AddressOut | null;
   cartId: string | null;
+  pendingOrderId: string | null;
   amountCents: number;
 }
 
@@ -55,7 +56,7 @@ function clearSnapshot() {
 // ── Componente ────────────────────────────────────────────────────────────────
 
 export function BookingWizard() {
-  const { isAuthenticated } = useAuthContext();
+  const { user, isAuthenticated } = useAuthContext();
 
   // useState con lazy initializer — se ejecuta solo en cliente, evita mismatch SSR
   const [savedOnce] = useState<WizardSnapshot | null>(() => loadSnapshot());
@@ -73,6 +74,8 @@ export function BookingWizard() {
   const [selectedAddress, setSelectedAddress]   = useState<AddressOut | null>(savedOnce?.selectedAddress ?? null);
   const [confirmedOrder, setConfirmedOrder]     = useState<OrderOut | null>(null);
   const [cartId, setCartId]                     = useState<string | null>(savedOnce?.cartId ?? null);
+  const [pendingOrderId, setPendingOrderId]     = useState<string | null>(savedOnce?.pendingOrderId ?? null);
+  const [paymentFailed, setPaymentFailed]       = useState(false);
   const [amountCents, setAmountCents]           = useState<number>(savedOnce?.amountCents ?? 0);
 
   // Persistir en sessionStorage cada vez que cambie cualquier dato relevante
@@ -89,12 +92,13 @@ export function BookingWizard() {
       selectedTime,
       selectedAddress,
       cartId,
+      pendingOrderId,
       amountCents,
     });
   }, [
     currentStep, selectedPetId, selectedPet, selectedService,
     selectedAddonIds, selectedDate, selectedTime, selectedAddress,
-    cartId, amountCents,
+    cartId, pendingOrderId, amountCents,
   ]);
 
   const handleSelectPet = useCallback((petId: string, pet: Pet) => {
@@ -117,27 +121,65 @@ export function BookingWizard() {
     setSelectedAddress(address);
   }, []);
 
-  const handleProceedToPayment = useCallback((cId: string, cents: number) => {
+  const handleProceedToPayment = useCallback(async (cId: string, cents: number) => {
+    if (!selectedAddress) {
+      throw new Error("Selecciona una dirección antes de continuar al pago.");
+    }
+
     setCartId(cId);
     setAmountCents(cents);
-    goTo("payment");
-  }, [goTo]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handlePaymentSuccess = useCallback(async (_paymentOrderId: string) => {
-    if (!cartId || !selectedAddress) return;
-    clearSnapshot(); // Limpiar al completar el flujo
+    if (pendingOrderId) {
+      goTo("payment");
+      return;
+    }
+
     try {
       const order = await ordersService.create({
-        cart_id: cartId,
+        cart_id: cId,
         address_id: selectedAddress.id,
       });
+      setPendingOrderId(order.id);
+      setPaymentFailed(false);
+      goTo("payment");
+    } catch (err) {
+      throw new Error(
+        err instanceof Error
+          ? err.message
+          : "No se pudo preparar la orden para el pago."
+      );
+    }
+  }, [goTo, pendingOrderId, selectedAddress]);
+
+  const handlePaymentSuccess = useCallback(async (culqiChargeId: string) => {
+    if (!pendingOrderId) return;
+    try {
+      const order = await ordersService.confirmPayment(pendingOrderId, culqiChargeId);
+      clearSnapshot();
       setConfirmedOrder(order);
+      setPaymentFailed(false);
       goTo("order-confirmed");
     } catch {
       goTo("order-confirmed");
     }
-  }, [cartId, selectedAddress, goTo]);
+  }, [goTo, pendingOrderId]);
+
+  const handlePaymentFailed = useCallback(async () => {
+    if (!pendingOrderId) return;
+    try {
+      await ordersService.failPayment(pendingOrderId);
+    } catch {
+      // noop
+    } finally {
+      setPaymentFailed(true);
+    }
+  }, [pendingOrderId]);
+
+  const handleBeforePaymentAttempt = useCallback(async () => {
+    if (!pendingOrderId || !paymentFailed) return;
+    await ordersService.retryPayment(pendingOrderId);
+    setPaymentFailed(false);
+  }, [pendingOrderId, paymentFailed]);
 
   const handleNewOrder = useCallback(() => {
     clearSnapshot(); // Limpiar al iniciar nuevo pedido
@@ -150,6 +192,8 @@ export function BookingWizard() {
     setSelectedAddress(null);
     setConfirmedOrder(null);
     setCartId(null);
+    setPendingOrderId(null);
+    setPaymentFailed(false);
     setAmountCents(0);
     goTo("select-pet");
   }, [goTo]);
@@ -233,10 +277,13 @@ export function BookingWizard() {
       )}
 
       {currentStep === "payment" && cartId && (
-        <StepPayment
+        <StepPaymentCulqi
           cartId={cartId}
           amountCents={amountCents}
           currency="PEN"
+          userEmail={user?.email ?? ""}
+          onBeforePaymentAttempt={handleBeforePaymentAttempt}
+          onPaymentFailed={handlePaymentFailed}
           onPaymentSuccess={handlePaymentSuccess}
           onBack={goBack}
         />
