@@ -75,6 +75,9 @@ function formatAmount(centsAmount: number, currency: "PEN" | "USD" = "PEN"): str
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
+/** El pago simulado es solo para desarrollo — nunca debe verse en producción. */
+const SHOW_SIMULATED_PAYMENT = process.env.NODE_ENV !== "production";
+
 export function StepPaymentCulqi({
   cartId,
   amountCents,
@@ -247,25 +250,27 @@ export function StepPaymentCulqi({
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
           </button>
 
-          {/* Pago simulado */}
-          <button
-            onClick={() => setPayMethod("simulated")}
-            className={cn(
-              "flex w-full items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all",
-              payMethod === "simulated"
-                ? "border-primary bg-primary/5 ring-4 ring-primary/10"
-                : "border-border hover:border-primary/40"
-            )}
-          >
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
-              <CheckCircle2 className="size-5 text-secondary" />
-            </span>
-            <div className="flex-1">
-              <p className="font-semibold text-sm">Pago simulado (solo desarrollo)</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Para testing</p>
-            </div>
-            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-          </button>
+          {/* Pago simulado — oculto en producción */}
+          {SHOW_SIMULATED_PAYMENT && (
+            <button
+              onClick={() => setPayMethod("simulated")}
+              className={cn(
+                "flex w-full items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all",
+                payMethod === "simulated"
+                  ? "border-primary bg-primary/5 ring-4 ring-primary/10"
+                  : "border-border hover:border-primary/40"
+              )}
+            >
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
+                <CheckCircle2 className="size-5 text-secondary" />
+              </span>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Pago simulado (solo desarrollo)</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Para testing</p>
+              </div>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </button>
+          )}
 
           {/* Botones */}
           <div className="flex items-center justify-between gap-3 pt-4">
