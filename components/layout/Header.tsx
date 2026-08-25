@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Menu, X, Settings, CreditCard, HelpCircle, LogOut, ShoppingCart as ShoppingCartIcon, Package, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -205,6 +205,19 @@ export function Header() {
     setAuthOpen(true);
   }
 
+  function openRegister() {
+    setAuthTab("register");
+    setAuthOpen(true);
+  }
+
+  // Otras partes de la app (ej. BookingWizard) piden abrir el login
+  // disparando este evento cuando el usuario no está autenticado.
+  useEffect(() => {
+    const handler = () => openLogin();
+    window.addEventListener("paku:open-auth", handler);
+    return () => window.removeEventListener("paku:open-auth", handler);
+  }, []);
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -257,13 +270,22 @@ export function Header() {
                 {user ? (
                   <UserMenu onLogout={logout} />
                 ) : (
-                  <button
-                    onClick={openLogin}
-                    className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                    aria-label="Iniciar sesión"
-                  >
-                    <UserCircle2 className="size-6" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={openLogin}
+                      className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      Iniciar sesión
+                    </button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full px-5 py-5"
+                      onClick={openRegister}
+                    >
+                      Regístrate
+                    </Button>
+                  </div>
                 )}
               </>
             )}
@@ -407,18 +429,32 @@ export function Header() {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    openLogin();
-                  }}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-                >
-                  <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                    <UserCircle2 className="size-4" />
-                  </span>
-                  Iniciar sesión
-                </button>
+                <>
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      openLogin();
+                    }}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+                  >
+                    <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                      <UserCircle2 className="size-4" />
+                    </span>
+                    Iniciar sesión
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      openRegister();
+                    }}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
+                  >
+                    <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <UserCircle2 className="size-4" />
+                    </span>
+                    Regístrate
+                  </button>
+                </>
               )}
             </div>
           </nav>

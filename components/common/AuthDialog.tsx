@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Eye, EyeOff, Loader2, Check, X } from "lucide-react";
 import Link from "next/link";
 import {
@@ -341,6 +341,14 @@ export function AuthDialog({ open, onOpenChange, defaultTab = "register" }: Auth
   const [socialLoading, setSocialLoading] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
   const { loginWithGoogle } = useAuthContext();
+
+  // El dialog no se desmonta al cerrarse (solo cambia `open`), así que el
+  // tab interno debe resincronizarse con defaultTab en cada apertura —
+  // si no, el botón "Regístrate" puede abrir en "login" si esa fue la
+  // última pestaña vista.
+  useEffect(() => {
+    if (open) setTab(defaultTab);
+  }, [open, defaultTab]);
 
   function handleSuccess() {
     onOpenChange(false);
