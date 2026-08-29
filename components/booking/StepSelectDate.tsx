@@ -8,11 +8,10 @@ import { WizardNavButtons } from "./WizardLayout";
 
 const DAYS_OF_WEEK = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"] as const;
 
-// Horarios disponibles
-const TIME_SLOTS = [
-  "08:00", "09:00", "10:00", "11:00",
-  "12:00", "14:00", "15:00", "16:00",
-];
+// El servicio ya no se agenda por hora elegida por el usuario — se atiende
+// por orden de registro. Se manda un valor fijo porque el backend todavía
+// requiere `scheduled_time` en el meta del item del carrito.
+const DEFAULT_TIME = "09:00";
 
 function toISO(date: Date): string {
   return date.toISOString().split("T")[0];
@@ -38,7 +37,6 @@ interface StepSelectDateProps {
 export function StepSelectDate({
   serviceId,
   selectedDate,
-  selectedTime,
   onSelectDate,
   onSelectTime,
   onNext,
@@ -90,7 +88,7 @@ export function StepSelectDate({
       <div className="mb-6">
         <h2 className="text-2xl font-extrabold">¿Cuándo lo necesitas?</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Elige la fecha y hora para el servicio. Solo se muestran los días con disponibilidad.
+          Elige la fecha para el servicio. Te atenderemos por orden de registro.
         </p>
       </div>
 
@@ -145,7 +143,7 @@ export function StepSelectDate({
                 <div key={i} className="relative flex flex-col items-center">
                   <button
                     disabled={disabled}
-                    onClick={() => { if (!disabled) { onSelectDate(iso); } }}
+                    onClick={() => { if (!disabled) { onSelectDate(iso); onSelectTime(DEFAULT_TIME); } }}
                     className={cn(
                       "relative flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold transition-all sm:h-9 sm:w-9 sm:text-sm",
                       !isCurrentMonth && "text-muted-foreground/30 cursor-default",
@@ -174,7 +172,7 @@ export function StepSelectDate({
         </div>
       </div>
 
-      {/* Fecha seleccionada y selector de hora */}
+      {/* Fecha seleccionada */}
       {selectedDate && (
         <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
           <p className="text-sm font-bold capitalize text-primary">{formatDateLong(selectedDate)}</p>
@@ -187,27 +185,6 @@ export function StepSelectDate({
               </p>
             );
           })()}
-
-          {/* Selección de hora */}
-          <div className="mt-3">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Hora del servicio</p>
-            <div className="flex flex-wrap gap-2">
-              {TIME_SLOTS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => onSelectTime(t)}
-                  className={cn(
-                    "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
-                    selectedTime === t
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background border border-border hover:border-primary/40"
-                  )}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 
@@ -215,7 +192,7 @@ export function StepSelectDate({
         canGoBack
         onBack={onBack}
         onNext={onNext}
-        nextDisabled={!selectedDate || !selectedTime}
+        nextDisabled={!selectedDate}
         nextLabel="Continuar"
       />
     </div>
