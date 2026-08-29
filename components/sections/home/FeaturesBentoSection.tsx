@@ -50,7 +50,7 @@ export function FeaturesBentoSection() {
           {FEATURES.map((feat) => (
             <div
               key={feat.id}
-              className="bg-card rounded-[2rem] p-8 flex flex-col gap-6 border-b-4 border-primary shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-lg transition-shadow"
+              className="bg-card rounded-[1rem] md:rounded-[2rem] p-8 flex flex-col gap-6 border-b-4 border-primary shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-lg transition-shadow"
             >
               {/* Ícono */}
               <div className="w-12 h-12 md:w-16 md:h-16 bg-primary rounded-full flex items-center justify-center shrink-0">
@@ -62,7 +62,7 @@ export function FeaturesBentoSection() {
                 <h3 className="mb-2 text-xl font-extrabold text-primary md:text-2xl">
                   {feat.title}
                 </h3>
-                <p className="text-base font-medium leading-relaxed text-muted-foreground md:font-semibold md:text-lg">
+                <p className="text-sm font-medium md:leading-relaxed text-muted-foreground md:font-semibold md:text-lg">
                   {feat.description}
                 </p>
               </div>

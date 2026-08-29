@@ -28,7 +28,7 @@ export function HeroSectionV2() {
           aria-hidden="true"
           loading="eager"
           fetchPriority="high"
-          className="w-full h-full object-cover object-[30%_center] md:object-center"
+          className="w-full h-full object-cover object-[85%_center] md:object-center"
         />
         {/* Overlay: degradado vertical solo en la mitad inferior */}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/60 via-black/25 to-transparent" />
@@ -47,7 +47,7 @@ export function HeroSectionV2() {
           </p>
 
           {/* Botones de descarga */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 mt-1 sm:mt-2">
+          <div className="flex flex-col items-start sm:flex-row sm:flex-wrap gap-2 sm:gap-3 mt-1 sm:mt-2">
             {APP_STORE_BUTTONS.map((btn) => (
               <Link key={btn.id} href={btn.href} className="hover:opacity-90 hover:scale-105 transition-all">
                 <Image
