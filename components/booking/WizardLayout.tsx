@@ -67,18 +67,29 @@ export function WizardProgress({ currentStep }: WizardProgressProps) {
 
   return (
     <nav className="mb-8 w-full">
-      <ol className="flex items-center justify-between gap-0 w-full">
+      <ol className="flex items-start w-full">
         {STEPS.map((step, idx) => {
           const stepIdx = STEP_ORDER.indexOf(step.id);
           const isCompleted = stepIdx < currentIdx;
           const isActive = step.id === currentStep;
+          const isFirst = idx === 0;
+          const isLast = idx === STEPS.length - 1;
 
           return (
-            <li key={step.id} className="flex items-center relative">
-              <div className="flex flex-col items-center gap-1">
+            <li key={step.id} className="flex flex-1 flex-col items-center gap-1">
+              {/* Fila del círculo + conectores — aislada del label para que el centrado sea exacto */}
+              <div className="flex w-full items-center">
                 <div
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all",
+                    "h-0.5 flex-1 transition-all",
+                    // Refleja si el paso ANTERIOR está completo — debe coincidir
+                    // exactamente con el conector "after" de ese paso anterior.
+                    isFirst ? "invisible" : stepIdx <= currentIdx ? "bg-primary" : "bg-border",
+                  )}
+                />
+                <div
+                  className={cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-all",
                     isCompleted &&
                       "border-primary bg-primary text-primary-foreground",
                     isActive && "border-primary bg-primary/10 text-primary",
@@ -93,27 +104,26 @@ export function WizardProgress({ currentStep }: WizardProgressProps) {
                     step.icon
                   )}
                 </div>
-                <span
-                  className={cn(
-                    "hidden text-[11px] font-semibold sm:block",
-                    isActive
-                      ? "text-primary"
-                      : isCompleted
-                        ? "text-primary/70"
-                        : "text-muted-foreground",
-                  )}
-                >
-                  {step.label}
-                </span>
-              </div>
-              {idx < STEPS.length - 1 && (
                 <div
                   className={cn(
-                    "h-0.5 flex-1 mx-1 transition-all absolute top-1/2 -translate-y-1/2 left-[113%] w-20",
-                    stepIdx < currentIdx ? "bg-primary" : "bg-border",
+                    "h-0.5 flex-1 transition-all",
+                    isLast ? "invisible" : stepIdx < currentIdx ? "bg-primary" : "bg-border",
                   )}
                 />
-              )}
+              </div>
+
+              <span
+                className={cn(
+                  "hidden text-[11px] font-semibold sm:block",
+                  isActive
+                    ? "text-primary"
+                    : isCompleted
+                      ? "text-primary/70"
+                      : "text-muted-foreground",
+                )}
+              >
+                {step.label}
+              </span>
             </li>
           );
         })}
