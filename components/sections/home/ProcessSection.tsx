@@ -69,7 +69,7 @@ export function ProcessSection() {
   return (
     <section aria-labelledby="process-heading" className="py-16 md:py-24 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 id="process-heading" className="max-w-4xl mx-auto text-4xl md:text-5xl font-black text-primary text-center mb-14 md:mb-16 leading-[1.05] tracking-tight">
+        <h2 id="process-heading" className="max-w-4xl mx-auto text-2xl md:text-4xl font-black text-primary text-center mb-14 md:mb-16 leading-[1.05] tracking-tight">
           Una nueva forma de cuidar a tu mascota empieza hoy
         </h2>
 
@@ -102,8 +102,8 @@ export function ProcessSection() {
               ))}
             </ul>
 
-            {/* Botones de descarga, en fila */}
-            <div className="flex items-center gap-3">
+            {/* Botones de descarga, en fila (centrados en mobile heredando el items-center del padre) */}
+            <div className="flex items-center flex-wrap gap-2 sm:gap-3">
               {STORE_BUTTONS.map((btn) => (
                 <Link key={btn.id} href={btn.href} className="hover:opacity-90 transition-opacity">
                   <Image
@@ -111,7 +111,7 @@ export function ProcessSection() {
                     alt={btn.alt}
                     width={180}
                     height={53}
-                    className="h-11 w-auto object-contain md:h-14"
+                    className="h-11 sm:h-14 md:h-16 w-auto object-contain"
                   />
                 </Link>
               ))}

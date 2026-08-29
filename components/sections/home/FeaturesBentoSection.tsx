@@ -81,7 +81,7 @@ export function FeaturesBentoSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Encabezado */}
         <div className="text-center mb-14">
-          <h2 id="features-heading" className="text-3xl md:text-4xl font-black text-primary">
+          <h2 id="features-heading" className="text-2xl md:text-4xl font-extrabold md:font-black text-primary">
             Cuidado inteligente para tu mascota
           </h2>
         </div>
@@ -93,7 +93,7 @@ export function FeaturesBentoSection() {
             return (
               <div
                 key={feat.id}
-                className={`relative overflow-hidden bg-card rounded-[2rem] p-8 flex flex-col gap-6 border-b-4 ${accent.border} ${accent.shadow} hover:shadow-lg transition-shadow`}
+                className={`relative overflow-hidden bg-card rounded-[1rem] md:rounded-[2rem] p-8 flex flex-col gap-6 border-b-4 ${accent.border} ${accent.shadow} hover:shadow-lg transition-shadow`}
               >
                 {/* Paw print decorativo */}
                 <svg
@@ -106,7 +106,7 @@ export function FeaturesBentoSection() {
                 </svg>
 
                 {/* Ícono en blob orgánico */}
-                <div className="relative size-19 shrink-0">
+                <div className="relative size-14 md:size-19 shrink-0">
                   <div className={`absolute inset-0 ${accent.blobClass} ${accent.blobBg}`} />
                   <div className={`absolute inset-0 flex items-center justify-center ${accent.text}`}>
                     {feat.icon}
@@ -118,7 +118,7 @@ export function FeaturesBentoSection() {
                   <h3 className={`mb-2 text-xl font-extrabold ${accent.text} md:text-2xl`}>
                     {feat.title}
                   </h3>
-                  <p className="text-base font-medium leading-relaxed text-muted-foreground md:font-semibold md:text-lg">
+                  <p className="text-sm font-medium md:leading-relaxed text-muted-foreground md:font-semibold md:text-lg">
                     {feat.description}
                   </p>
                 </div>
