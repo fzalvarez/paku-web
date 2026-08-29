@@ -104,16 +104,16 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-[#171954]">
+    <footer className="w-full bg-[#171954] rounded-t-[40px]">
       {/* Cuerpo principal */}
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-5">
+      <div className="mx-auto max-w-7xl px-5 py-14 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-2 md:gap-12 lg:grid-cols-5">
           {/* ── Marca + contacto (2 columnas en lg) ── */}
-          <div className="lg:col-span-2">
+          <div className="col-span-2 md:col-span-1 lg:col-span-2">
             {/* Logo */}
             <Link href={ROUTES.HOME} className="mb-5 inline-block">
               <Image
-                src="/assets/logo-paku.png"
+                src="/assets/logo-mono-dark.png"
                 alt="Paku — Grooming móvil para mascotas en Perú"
                 width={96}
                 height={32}
@@ -126,13 +126,13 @@ export function Footer() {
               cuidamos a tu mascota en la puerta de tu hogar.
             </p>
 
-            {/* Contacto rápido */}
-            <ul className="flex flex-col gap-3">
+            {/* Contacto rápido, como pills */}
+            <ul className="flex flex-wrap gap-2">
               {CONTACT_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const inner = (
-                  <span className="flex items-center gap-2.5 text-sm text-white/75 transition-colors hover:text-white">
-                    <Icon className="size-4 shrink-0 text-white" />
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/8 px-3.5 py-2 text-xs font-semibold text-white/85 transition-colors hover:bg-white/12 hover:text-white">
+                    <Icon className="size-3.5 shrink-0 text-white" />
                     {item.label}
                   </span>
                 );
@@ -173,12 +173,18 @@ export function Footer() {
 
           {/* ── Columnas de navegación (3 columnas en lg) ── */}
           {NAV_COLUMNS.map((col) => (
-            <div key={col.title}>
+            <div key={col.title} className={col.title === "Legal" ? "col-span-2 md:col-span-1" : ""}>
               <p className="mb-4 text-xs font-bold uppercase tracking-widest text-white">
                 {col.title}
               </p>
               <nav aria-label={col.title}>
-                <ul className="flex flex-col gap-2.5">
+                <ul
+                  className={
+                    col.title === "Legal"
+                      ? "flex flex-wrap gap-x-5 gap-y-2.5"
+                      : "flex flex-col gap-2.5"
+                  }
+                >
                   {col.links.map((link) => (
                     <li key={link.href}>
                       <Link
@@ -192,24 +198,24 @@ export function Footer() {
                 </ul>
               </nav>
 
-              {/* Si es la columna Legal, mostrar el Libro de Reclamaciones al final */}
+              {/* Si es la columna Legal, mostrar el Libro de Reclamaciones al final, como badge */}
               {col.title === "Legal" && (
-                <div className="mt-4">
+                <div className="mt-5">
                   <a
                     href="https://enlinea.indecopi.gob.pe/reclamavirtual/#/"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Libro de Reclamaciones"
-                    className="inline-flex items-center gap-3 rounded transition-opacity hover:opacity-90"
+                    className="inline-flex items-center gap-2.5 rounded-2xl bg-white py-2 pl-2 pr-3.5 transition-opacity hover:opacity-90"
                   >
                     <Image
                       src="/assets/libro_reclamaciones.jpeg"
-                      alt="Libro de Reclamaciones"
-                      width={360}
-                      height={180}
-                      className="h-24 w-auto object-contain"
+                      alt=""
+                      width={90}
+                      height={45}
+                      className="h-8 w-auto rounded-lg object-contain"
                     />
-                    <span className="text-sm text-white/70 hidden">
+                    <span className="text-xs font-extrabold text-[#171954]">
                       Libro de Reclamaciones
                     </span>
                   </a>

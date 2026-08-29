@@ -291,16 +291,20 @@ export function Header() {
             )}
           </div>
 
-          {/* Botón hamburguesa mobile */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen((prev) => !prev)}
-            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
-          >
-            {mobileOpen ? <X /> : <Menu />}
-          </Button>
+          {/* Acciones mobile: CTA siempre visible + hamburguesa */}
+          <div className="flex items-center gap-2 md:hidden">
+            <Button asChild size="sm" className="rounded-full px-4">
+              <Link href={ROUTES.BOOKING}>Agenda tu servicio</Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+            >
+              {mobileOpen ? <X /> : <Menu />}
+            </Button>
+          </div>
         </div>
 
         {/* Nav mobile */}
@@ -322,16 +326,8 @@ export function Header() {
               </Link>
             ))}
 
-            {/* Botón CTA mobile */}
-            <Link
-              href={ROUTES.BOOKING}
-              onClick={() => setMobileOpen(false)}
-              className="mt-1 flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-            >
-              Agenda tu servicio
-            </Link>
-
-            <div className="mt-3 flex flex-col gap-1 border-t border-border pt-3">
+            {/* "Agenda tu servicio" ya queda visible siempre en la barra — no se repite aquí */}
+            <div className="mt-2 flex flex-col gap-1 border-t border-border pt-3">
               {loading ? (
                 <div className="h-16 animate-pulse rounded-xl bg-muted" />
               ) : user ? (
