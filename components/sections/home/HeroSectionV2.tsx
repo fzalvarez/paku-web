@@ -18,7 +18,7 @@ const APP_STORE_BUTTONS = [
 
 export function HeroSectionV2() {
   return (
-    <section aria-label="Inicio — El futuro del grooming es móvil" className="relative min-h-150 md:min-h-200 flex items-center overflow-hidden">
+    <section aria-label="Inicio — El futuro del grooming es móvil" className="relative min-h-125 sm:min-h-150 md:min-h-200 flex items-center overflow-hidden">
       {/* Imagen de fondo */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -28,7 +28,7 @@ export function HeroSectionV2() {
           aria-hidden="true"
           loading="eager"
           fetchPriority="high"
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-cover object-[30%_center] md:object-center"
         />
         {/* Overlay: degradado vertical solo en la mitad inferior */}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/60 via-black/25 to-transparent" />
@@ -36,7 +36,7 @@ export function HeroSectionV2() {
 
       {/* Contenido */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="w-full md:w-3/5 flex flex-col gap-6 text-white">
+        <div className="w-full md:w-3/5 flex flex-col gap-4 sm:gap-6 text-white">
           <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-8xl font-extrabold leading-tight xl:leading-[1.05] tracking-tight drop-shadow-lg">
             El futuro del grooming es{" "}
             <span className="italic">móvil</span>
@@ -47,7 +47,7 @@ export function HeroSectionV2() {
           </p>
 
           {/* Botones de descarga */}
-          <div className="flex flex-wrap gap-3 mt-2">
+          <div className="flex flex-wrap gap-2 sm:gap-3 mt-1 sm:mt-2">
             {APP_STORE_BUTTONS.map((btn) => (
               <Link key={btn.id} href={btn.href} className="hover:opacity-90 hover:scale-105 transition-all">
                 <Image
@@ -55,7 +55,7 @@ export function HeroSectionV2() {
                   alt={btn.alt}
                   width={180}
                   height={53}
-                  className="h-16 w-auto object-contain"
+                  className="h-11 sm:h-14 md:h-16 w-auto object-contain"
                 />
               </Link>
             ))}
