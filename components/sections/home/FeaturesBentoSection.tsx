@@ -107,7 +107,7 @@ export function FeaturesBentoSection() {
 
                 {/* Ícono en blob orgánico */}
                 <div className="relative size-14 md:size-19 shrink-0">
-                  <div className={`absolute inset-0 ${accent.blobClass} ${accent.blobBg}`} />
+                  <div className={`absolute inset-0 ${feat.blobClass} ${accent.blobBg}`} />
                   <div className={`absolute inset-0 flex items-center justify-center ${accent.text}`}>
                     {feat.icon}
                   </div>
