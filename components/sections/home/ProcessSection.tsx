@@ -2,10 +2,52 @@ import Image from "next/image";
 import Link from "next/link";
 
 const STEPS = [
-  { num: "01", label: "Registra tu mascota." },
-  { num: "02", label: "Agenda el servicio." },
-  { num: "03", label: "Sigue el proceso en tiempo real." },
-  { num: "04", label: "Recibe resultados." },
+  {
+    num: "01",
+    label: "Registra tu mascota.",
+    icon: (
+      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 10.5c1.4 0 2.5-1.6 2.5-3.5S10.4 3.5 9 3.5 6.5 5.1 6.5 7s1.1 3.5 2.5 3.5Z" />
+        <path d="M4 14.8c0-2.7 2.3-4.3 5-4.3s5 1.6 5 4.3c0 1.2-1 1.9-2.2 1.9-.7 0-1.2-.2-1.9-.2H8.1c-.7 0-1.2.2-1.9.2C5 16.7 4 16 4 14.8Z" />
+        <path d="M17.5 8v6" />
+        <path d="M14.5 11h6" />
+      </svg>
+    ),
+  },
+  {
+    num: "02",
+    label: "Agenda el servicio.",
+    icon: (
+      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="5" width="16" height="15" rx="2.5" />
+        <path d="M4 9.5h16" />
+        <path d="M8 3v4" />
+        <path d="M16 3v4" />
+        <circle cx="9" cy="14" r="1.1" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    num: "03",
+    label: "Sigue el proceso en tiempo real.",
+    icon: (
+      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 21s-6.5-4.4-6.5-10a6.5 6.5 0 0 1 13 0c0 5.6-6.5 10-6.5 10Z" />
+        <circle cx="12" cy="11" r="2.3" />
+      </svg>
+    ),
+  },
+  {
+    num: "04",
+    label: "Recibe resultados.",
+    icon: (
+      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 8.5 12 4l8 4.5-8 4.5-8-4.5Z" />
+        <path d="M4 8.5V16l8 4.5 8-4.5V8.5" />
+        <path d="M12 13v7.5" />
+      </svg>
+    ),
+  },
 ] as const;
 
 const STORE_BUTTONS = [
@@ -32,23 +74,36 @@ export function ProcessSection() {
         </h2>
 
         <div className="flex flex-col md:flex-row items-center gap-10 md:gap-8 lg:gap-12">
-          {/* Lista de pasos + botones */}
-          <div className="w-full md:w-[45%] flex flex-col gap-6 md:gap-8 md:pl-12 lg:pl-16">
-            <ul className="flex flex-col gap-4 md:gap-5">
-              {STEPS.map((step) => (
-                <li key={step.num} className="flex gap-4 items-start">
-                  <span className="text-xl font-extrabold text-primary leading-snug min-w-10">
-                    {step.num}.
-                  </span>
-                  <span className="text-lg font-extrabold leading-tight tracking-tight text-foreground md:text-base lg:text-lg xl:text-2xl">
-                    {step.label}
-                  </span>
+          {/* Timeline de pasos + botones */}
+          <div className="w-full md:w-[45%] flex flex-col items-center md:items-start gap-8 md:pl-12 lg:pl-16">
+            <ul className="flex flex-col w-full max-w-xs md:max-w-none">
+              {STEPS.map((step, idx) => (
+                <li key={step.num} className="flex gap-3.5 items-stretch">
+                  {/* Columna del número + conector */}
+                  <div className="flex flex-col items-center w-8.5 shrink-0">
+                    <span className="flex size-8.5 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-primary-foreground">
+                      {step.num}
+                    </span>
+                    {idx < STEPS.length - 1 && (
+                      <span className="w-0.5 flex-1 my-1 bg-primary/15" />
+                    )}
+                  </div>
+
+                  {/* Ícono + label */}
+                  <div className={`flex items-center gap-2.5 ${idx < STEPS.length - 1 ? "pb-5" : ""}`}>
+                    <span className="flex size-7.5 shrink-0 items-center justify-center rounded-[10px] bg-primary/8 text-primary">
+                      {step.icon}
+                    </span>
+                    <span className="text-base font-extrabold leading-tight tracking-tight text-foreground lg:text-lg xl:text-xl">
+                      {step.label}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
 
-            {/* Botones de descarga */}
-            <div className="flex flex-col items-start gap-3 mt-3">
+            {/* Botones de descarga, en fila */}
+            <div className="flex items-center gap-3">
               {STORE_BUTTONS.map((btn) => (
                 <Link key={btn.id} href={btn.href} className="hover:opacity-90 transition-opacity">
                   <Image
@@ -56,21 +111,25 @@ export function ProcessSection() {
                     alt={btn.alt}
                     width={180}
                     height={53}
-                    className="h-16 w-auto object-contain"
+                    className="h-11 w-auto object-contain md:h-14"
                   />
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Imagen perro */}
-          <div className="w-full md:w-[55%] flex justify-center">
+          {/* Imagen perro con fondo blob */}
+          <div className="relative w-full md:w-[55%] flex justify-center">
+            <div
+              aria-hidden="true"
+              className="absolute size-70 md:size-90 rounded-[46%_54%_58%_42%/48%_42%_58%_52%] bg-linear-to-br from-primary/12 to-tertiary/14"
+            />
             <Image
               src="/assets/perro-dlmt.png"
               alt="Perro feliz listo para su servicio de grooming móvil con Paku"
               width={520}
               height={520}
-              className="w-full max-w-90 md:max-w-115 h-auto object-contain"
+              className="relative w-full max-w-90 md:max-w-115 h-auto object-contain"
               priority={false}
             />
           </div>

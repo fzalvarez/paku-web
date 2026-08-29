@@ -46,13 +46,14 @@ export function SocialProofSection() {
             </div>
 
             {/* Stats y bullets */}
-            <div className="w-full md:w-1/2 flex flex-col gap-8">
-              {/* Stat principal */}
-              <div className="flex items-center gap-4">
-                <span className="text-5xl font-extrabold leading-none text-primary md:text-6xl">
+            <div className="w-full md:w-1/2 flex flex-col gap-6">
+              {/* Stat principal, como chip */}
+              <div className="flex items-center gap-4 bg-primary/6 rounded-[22px] px-6 py-5">
+                <span className="text-5xl font-extrabold leading-none text-primary md:text-6xl shrink-0">
                   +95%
                 </span>
-                <p className="text-base font-medium leading-snug text-muted-foreground md:font-semibold md:text-lg">
+                <span className="w-px self-stretch bg-primary/18" />
+                <p className="text-base font-bold leading-snug text-foreground md:text-lg">
                   de satisfacción
                   <br />
                   en servicio.
@@ -60,9 +61,9 @@ export function SocialProofSection() {
               </div>
 
               {/* Bullets */}
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-3">
                 {BULLETS.map((b) => (
-                  <div key={b.id} className="flex items-center gap-4">
+                  <div key={b.id} className="flex items-center gap-4 bg-muted/60 rounded-2xl px-5 py-4">
                     <div className="w-11 h-11 bg-primary rounded-full flex items-center justify-center shrink-0">
                       {b.icon}
                     </div>
