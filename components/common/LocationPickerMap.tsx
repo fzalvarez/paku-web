@@ -19,6 +19,12 @@ interface LocationPickerMapProps {
   lng: number;
   onChange: (lat: number, lng: number) => void;
   className?: string;
+  /**
+   * Centro sugerido (ej. centroide del distrito elegido en el form).
+   * Solo se usa mientras el usuario no haya colocado un pin (lat/lng en 0) —
+   * nunca desplaza un pin ya marcado.
+   */
+  centerHint?: { lat: number; lng: number } | null;
 }
 
 // Centro por defecto: Lima, Perú
@@ -31,6 +37,7 @@ export function LocationPickerMap({
   lng,
   onChange,
   className = "",
+  centerHint,
 }: LocationPickerMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,8 +49,24 @@ export function LocationPickerMap({
     if (!containerRef.current) return;
     if (mapRef.current) return; // ya inicializado
 
+    // React StrictMode (dev) invoca este efecto dos veces seguidas: monta,
+    // desmonta, vuelve a montar. Como la carga de Leaflet es asíncrona, el
+    // cleanup del primer montaje puede correr ANTES de que el import()
+    // resuelva (mapRef.current todavía null en ese momento), así que no
+    // alcanza a limpiar nada — y luego los dos imports resuelven y ambos
+    // intentan inicializar un mapa sobre el mismo <div>, de ahí el error
+    // "Map container is already initialized". `cancelled` evita que un
+    // import que ya quedó obsoleto termine creando el mapa.
+    let cancelled = false;
+
     // Carga dinámica de Leaflet para evitar errores SSR en Next.js
     import("leaflet").then((L) => {
+      if (cancelled || !containerRef.current) return;
+      // Resguardo extra: Leaflet marca el contenedor con _leaflet_id al
+      // inicializar — si ya lo tiene, nunca reintentar sobre el mismo nodo.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((containerRef.current as any)._leaflet_id) return;
+
       // Fix para el ícono por defecto que se rompe con bundlers
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -55,8 +78,8 @@ export function LocationPickerMap({
           "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
-      const centerLat = lat || DEFAULT_LAT;
-      const centerLng = lng || DEFAULT_LNG;
+      const centerLat = lat || centerHint?.lat || DEFAULT_LAT;
+      const centerLng = lng || centerHint?.lng || DEFAULT_LNG;
 
       const map = L.map(containerRef.current!, {
         center: [centerLat, centerLng],
@@ -110,6 +133,7 @@ export function LocationPickerMap({
     });
 
     return () => {
+      cancelled = true;
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -151,6 +175,14 @@ export function LocationPickerMap({
       mapRef.current.setView([lat, lng]);
     });
   }, [lat, lng, onChange]);
+
+  // Re-centrar el mapa cuando cambia el distrito elegido en el form —
+  // solo mientras el usuario no haya colocado un pin todavía (si ya lo
+  // colocó, no le movemos la vista por debajo).
+  useEffect(() => {
+    if (!mapRef.current || lat || lng || !centerHint) return;
+    mapRef.current.setView([centerHint.lat, centerHint.lng], DEFAULT_ZOOM);
+  }, [centerHint, lat, lng]);
 
   return (
     <div className={`relative w-full ${className}`}>

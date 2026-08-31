@@ -21,6 +21,7 @@ import {
 import { ApiCallError } from "@/lib/api/client";
 import { useDistricts } from "@/hooks/useDistricts";
 import { LocationPickerMap } from "@/components/common/LocationPickerMap";
+import { getDistrictCenter } from "@/lib/data/lima-districts-geo";
 import type { AddressOut, AddressCreateIn } from "@/types/api";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
@@ -208,6 +209,7 @@ export function AddressFormDialog({
                   lat={form.lat}
                   lng={form.lng}
                   onChange={handleMapChange}
+                  centerHint={getDistrictCenter(form.district_id)}
                   className="h-full"
                 />
               )}
