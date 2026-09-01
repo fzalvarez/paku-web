@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePayments } from "@/hooks/usePayments";
-import { paymentsService } from "@/lib/api/payments";
+import { paymentsService, getPaymentErrorMessage } from "@/lib/api/payments";
 import { CardDataForm } from "@/components/payment/CardDataForm";
-import type { SavedCard, CardData } from "@/types/payments";
+import type { SavedCard, CardData, AntifraudDetails } from "@/types/payments";
 
 // ─── Métodos de pago ──────────────────────────────────────────────────────────
 
@@ -38,6 +38,8 @@ interface StepPaymentCulqiProps {
   amountCents: number;
   currency?: "PEN" | "USD";
   userEmail?: string;
+  /** Datos para el motor antifraude de Culqi (opcional pero recomendado por backend) */
+  antifraudDetails?: AntifraudDetails;
   onBeforePaymentAttempt?: () => Promise<void> | void;
   onPaymentFailed?: () => Promise<void> | void;
   onPaymentSuccess: (paymentOrderId: string) => void;
@@ -83,6 +85,7 @@ export function StepPaymentCulqi({
   amountCents,
   currency = "PEN",
   userEmail = "",
+  antifraudDetails,
   onBeforePaymentAttempt,
   onPaymentFailed,
   onPaymentSuccess,
@@ -97,9 +100,6 @@ export function StepPaymentCulqi({
     payError,
     chargeNewCard,
     chargeSavedCard,
-    polling,
-    pollError,
-    startPolling,
     savingCard,
     saveCardError,
   } = usePayments();
@@ -118,20 +118,16 @@ export function StepPaymentCulqi({
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
   const handlePaymentSuccess = useCallback(
-    (orderId: string) => {
-      setPayStep("processing");
-      startPolling(orderId, (status) => {
-        if (status === "PAID") {
-          setPayStep("success");
-          setTimeout(() => onPaymentSuccess(orderId), 1500);
-        } else if (status === "FAILED" || status === "CANCELLED") {
-          setPayStep("failed");
-          setLocalError(`Pago ${status.toLowerCase()}`);
-          void onPaymentFailed?.();
-        }
-      });
+    (chargeId: string) => {
+      // Culqi confirma el cobro de forma síncrona en la respuesta de
+      // POST /api/culqi/charges — a diferencia de Mercado Pago (asíncrono,
+      // requería consultar un estado aparte), acá si charge() resolvió sin
+      // lanzar error, el cobro ya sucedió. No hay endpoint de estado que
+      // consultar (GET /api/payments/{id}/status era del flujo anterior).
+      setPayStep("success");
+      setTimeout(() => onPaymentSuccess(chargeId), 1200);
     },
-    [startPolling, onPaymentFailed, onPaymentSuccess]
+    [onPaymentSuccess]
   );
 
   const handlePayWithSavedCard = useCallback(async () => {
@@ -156,12 +152,13 @@ export function StepPaymentCulqi({
         cardId: selectedCard.payment_method_id,
         description: `Pagu - Pedido ${cartId}`,
         currencyCode: currency,
+        antifraudDetails,
       });
 
       handlePaymentSuccess(orderId);
     } catch (err) {
       void onPaymentFailed?.();
-      setLocalError(err instanceof Error ? err.message : "Error al procesar el pago");
+      setLocalError(getPaymentErrorMessage(err));
       setPayStep("failed");
     }
   }, [
@@ -170,6 +167,7 @@ export function StepPaymentCulqi({
     amountCents,
     cartId,
     currency,
+    antifraudDetails,
     chargeSavedCard,
     onBeforePaymentAttempt,
     onPaymentFailed,
@@ -198,18 +196,20 @@ export function StepPaymentCulqi({
           token: token.id,
           description: `Paku - Pedido ${cartId}`,
           currencyCode: currency,
+          antifraudDetails,
         });
 
         handlePaymentSuccess(orderId);
       } catch (err) {
         void onPaymentFailed?.();
-        setLocalError(err instanceof Error ? err.message : "Error al procesar el pago");
+        setLocalError(getPaymentErrorMessage(err));
         setPayStep("failed");
       }
     },
     [
       userEmail,
       currency,
+      antifraudDetails,
       chargeNewCard,
       amountCents,
       cartId,
@@ -281,24 +281,28 @@ export function StepPaymentCulqi({
               <ArrowLeft className="size-4" /> Atrás
             </button>
             <button
-              onClick={async () => {
+              disabled={payMethod === "card" && cardsLoading}
+              onClick={() => {
                 if (payMethod === "simulated") {
                   setPayStep("success");
                 } else {
-                  // Cargar tarjetas si no se han cargado
-                  let cards = savedCards;
-                  if (savedCards.length === 0) {
-                    await loadSavedCards();
-                    // Tras loadSavedCards, el estado se actualiza asincrono;
-                    // usamos el estado ya cargado para decidir
-                    cards = [];
-                  }
-                  setPayStep(cards.length > 0 ? "select-card" : "add-new-card");
+                  // Las tarjetas ya se cargan solas al montar el hook
+                  // (usePayments) — acá solo decidimos con el estado ya
+                  // resuelto, nunca disparamos una carga nueva desde acá.
+                  setPayStep(savedCards.length > 0 ? "select-card" : "add-new-card");
                 }
               }}
-              className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+              className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Continuar <ChevronRight className="size-4" />
+              {payMethod === "card" && cardsLoading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Cargando…
+                </>
+              ) : (
+                <>
+                  Continuar <ChevronRight className="size-4" />
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -462,24 +466,6 @@ export function StepPaymentCulqi({
             }}
             amountDisplay={displayAmount}
           />
-        </div>
-      )}
-
-      {/* ── PASO: procesando ── */}
-      {payStep === "processing" && (
-        <div className="flex flex-col items-center gap-4 rounded-2xl bg-muted/30 py-12 text-center">
-          <Loader2 className="size-8 animate-spin text-primary" />
-          <div>
-            <p className="font-bold">Procesando tu pago…</p>
-            <p className="text-sm text-muted-foreground">
-              {polling
-                ? "Verificando estado..."
-                : "Aguarda mientras procesamos tu transacción"}
-            </p>
-          </div>
-          {pollError && (
-            <p className="text-xs text-destructive">{pollError}</p>
-          )}
         </div>
       )}
 

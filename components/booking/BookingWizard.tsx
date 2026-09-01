@@ -15,6 +15,7 @@ import type { Pet } from "@/types/pets";
 import type { ServiceOut, ServiceAddon } from "@/types/services";
 import type { AddressOut } from "@/types/api";
 import type { OrderOut } from "@/types/orders";
+import type { AntifraudDetails } from "@/types/payments";
 import type { BookingStep } from "./WizardLayout";
 
 // ── Clave y helpers de sessionStorage ────────────────────────────────────────
@@ -160,6 +161,18 @@ export function BookingWizard() {
       setPaymentFailed(false);
       goTo("order-confirmed");
     } catch {
+      // Culqi ya cobró en este punto — confirm-payment pudo fallar por algo
+      // recuperable (ej. 409 "ya fue procesado" si otro intento anterior ya
+      // la confirmó). Antes de mostrar el mensaje genérico, intentamos traer
+      // el estado real de la orden para no ocultarle al usuario su pedido.
+      try {
+        const order = await ordersService.detail(pendingOrderId);
+        clearSnapshot();
+        setConfirmedOrder(order);
+      } catch {
+        clearSnapshot();
+      }
+      setPaymentFailed(false);
       goTo("order-confirmed");
     }
   }, [goTo, pendingOrderId]);
@@ -282,6 +295,18 @@ export function BookingWizard() {
           amountCents={amountCents}
           currency="PEN"
           userEmail={user?.email ?? ""}
+          antifraudDetails={
+            selectedAddress
+              ? {
+                  first_name: user?.first_name || "Usuario",
+                  last_name: user?.last_name || "Paku",
+                  address: selectedAddress.address_line,
+                  address_city: "Lima",
+                  country_code: "PE",
+                  phone_number: user?.phone || "000000000",
+                }
+              : undefined
+          }
           onBeforePaymentAttempt={handleBeforePaymentAttempt}
           onPaymentFailed={handlePaymentFailed}
           onPaymentSuccess={handlePaymentSuccess}

@@ -20,22 +20,68 @@ import type {
   PaymentAttemptOut,
   PaymentStatusOut,
 } from "@/types/payments";
+import { getAccessToken } from "@/lib/session";
+
+// ─── Error tipado del microservicio de pagos ─────────────────────────────────
+
+/**
+ * Error del microservicio de pagos — conserva el `detail` completo que
+ * devuelve el backend (incluye `decline_code`, `culqi_tracking_id`, etc.)
+ * para poder armar mensajes más específicos con getPaymentErrorMessage().
+ */
+export class PaymentApiError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public readonly detail: any
+  ) {
+    super(message);
+    this.name = "PaymentApiError";
+  }
+}
+
+/** Mensajes amigables por decline_code — según la doc que pasó backend. */
+const DECLINE_MESSAGES: Record<string, string> = {
+  insufficient_funds: "Tu tarjeta no tiene fondos suficientes.",
+  card_declined: "Tu tarjeta fue rechazada. Contacta a tu banco.",
+  expired_card: "Tu tarjeta está vencida.",
+  incorrect_cvv: "El código de seguridad (CVV) es incorrecto.",
+  processing_error: "Error al procesar el pago. Intenta nuevamente.",
+};
+
+/** Traduce un error de pago a un mensaje apto para mostrar al usuario. */
+export function getPaymentErrorMessage(err: unknown): string {
+  if (err instanceof PaymentApiError) {
+    const declineCode = err.detail?.decline_code;
+    if (declineCode && DECLINE_MESSAGES[declineCode]) {
+      return DECLINE_MESSAGES[declineCode];
+    }
+    return err.message || "No se pudo procesar el pago. Intenta nuevamente.";
+  }
+  if (err instanceof Error) return err.message;
+  return "Ocurrió un error inesperado.";
+}
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const CULQI_TOKEN_URL = "https://secure.culqi.com/v2/tokens";
+// El microservicio de pagos se movió de stream.dev-qa.site a este host
+// (confirmado con backend 31/ago) — soluciona el CORS que daba el anterior.
 const PAYMENT_BASE =
   process.env.NEXT_PUBLIC_PAYMENT_API_URL ??
-  "https://stream.dev-qa.site/payment";
+  "https://api.paku.com.pe";
 const PAYMENT_API_KEY =
   process.env.NEXT_PUBLIC_PAYMENT_API_KEY ??
   "test_key_from_env";
 const CULQI_PUBLIC_KEY =
   process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY ??
   "";
-const API_BASE =
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_API_URL ??
-  "https://paku.dev-qa.site/paku/api/v1";
+  "https://paku.dev-qa.site/paku/api/v1"
+).replace(/\/$/, "");
 
 // ─── Tokenización directa con Culqi ──────────────────────────────────────────
 
@@ -89,9 +135,19 @@ async function paymentFetch<T>(
 ): Promise<T> {
   const { idempotencyKey, ...fetchOptions } = options;
 
+  // El microservicio acepta la key de dos formas equivalentes (Authorization:
+  // Bearer <key> o X-API-Key: <key>) y usa el Bearer del usuario cuando está
+  // presente — confirmado con backend 01/sep. Mandamos el JWT del usuario en
+  // vez de depender de una key de servicio suelta que ni siquiera se valida.
+  const accessToken = getAccessToken();
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(PAYMENT_API_KEY ? { "X-API-Key": PAYMENT_API_KEY } : {}),
+    ...(accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : PAYMENT_API_KEY
+        ? { "X-API-Key": PAYMENT_API_KEY }
+        : {}),
     ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     ...(fetchOptions.headers as Record<string, string>),
   };
@@ -121,7 +177,9 @@ async function paymentFetch<T>(
       else if (detail.merchant_message) message = detail.merchant_message;
       else if (detail.message) message = detail.message;
     }
-    throw new Error(message);
+    // PaymentApiError conserva el `detail` completo (incluye decline_code)
+    // para poder mostrar mensajes más específicos — ver getPaymentErrorMessage.
+    throw new PaymentApiError(message, response.status, detail);
   }
 
   return data as T;
@@ -133,11 +191,10 @@ async function pakuFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  // En web, obtener token del localStorage
-  const accessToken =
-    typeof window !== "undefined"
-      ? localStorage.getItem("access_token")
-      : null;
+  // La sesión se guarda en cookies (lib/session.ts), no en localStorage —
+  // por eso el header Authorization nunca se mandaba y el backend
+  // respondía 401 "Not authenticated".
+  const accessToken = getAccessToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -260,14 +317,29 @@ export const paymentsService = {
   /**
    * POST /api/culqi/charges
    * Cobra con tarjeta nueva (token) o guardada (card id).
+   *
+   * Nota 3D Secure: Culqi puede responder 200 con un objeto que NO es un
+   * cargo (pide autenticación 3DS antes de cobrar). Hoy no soportamos ese
+   * flujo (necesita una pantalla de autenticación aparte) — si pasa, se
+   * lanza un error explícito en vez de tratarlo como pago exitoso.
    */
   async charge(payload: CreateChargePayload): Promise<CulqiCharge> {
     const idempotencyKey = generateIdempotencyKey();
-    return paymentFetch<CulqiCharge>("/api/culqi/charges", {
+    const charge = await paymentFetch<CulqiCharge>("/api/culqi/charges", {
       method: "POST",
       body: JSON.stringify(payload),
       idempotencyKey,
     });
+
+    if (charge?.object !== "charge") {
+      throw new PaymentApiError(
+        "Esta tarjeta requiere una verificación adicional (3D Secure) que todavía no soportamos. Prueba con otra tarjeta.",
+        200,
+        { code: "requires_3ds_unsupported" }
+      );
+    }
+
+    return charge;
   },
 
   /**

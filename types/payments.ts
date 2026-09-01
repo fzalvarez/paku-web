@@ -1,7 +1,7 @@
 /**
  * Tipos del dominio de pagos — Culqi
  * Reemplaza la integración anterior de Mercado Pago.
- * Microservicio: https://stream.dev-qa.site/payment
+ * Microservicio: https://api.paku.com.pe
  */
 
 // ─── Token de Culqi (respuesta de secure.culqi.com/v2/tokens) ────────────────

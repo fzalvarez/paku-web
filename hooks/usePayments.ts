@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { paymentsService } from "@/lib/api/payments";
-import type { SavedCard, PaymentStatus, CardData } from "@/types/payments";
+import { paymentsService, getPaymentErrorMessage } from "@/lib/api/payments";
+import type { SavedCard, PaymentStatus, CardData, AntifraudDetails } from "@/types/payments";
 
 // Cuánto tiempo entre intentos de polling (ms)
 const POLL_INTERVAL = 2500;
@@ -55,6 +55,7 @@ export function usePayments() {
       token: string;
       description?: string;
       currencyCode?: "PEN" | "USD";
+      antifraudDetails?: AntifraudDetails;
     }): Promise<string> => {
       setPaying(true);
       setPayError(null);
@@ -65,6 +66,7 @@ export function usePayments() {
           email: params.email,
           source_id: params.token,
           description: params.description,
+          antifraud_details: params.antifraudDetails,
         });
 
         // Retornar un ID de orden para polling
@@ -72,9 +74,7 @@ export function usePayments() {
         setPaymentOrderId(charge.id);
         return charge.id;
       } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "Error al procesar el pago.";
-        setPayError(msg);
+        setPayError(getPaymentErrorMessage(err));
         throw err;
       } finally {
         setPaying(false);
@@ -93,6 +93,7 @@ export function usePayments() {
       cardId: string;
       description?: string;
       currencyCode?: "PEN" | "USD";
+      antifraudDetails?: AntifraudDetails;
     }): Promise<string> => {
       setPaying(true);
       setPayError(null);
@@ -103,14 +104,13 @@ export function usePayments() {
           email: params.email,
           source_id: params.cardId, // crd_test_xxx
           description: params.description,
+          antifraud_details: params.antifraudDetails,
         });
 
         setPaymentOrderId(charge.id);
         return charge.id;
       } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "Error al procesar el pago.";
-        setPayError(msg);
+        setPayError(getPaymentErrorMessage(err));
         throw err;
       } finally {
         setPaying(false);
