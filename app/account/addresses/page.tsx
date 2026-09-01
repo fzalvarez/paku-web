@@ -5,6 +5,7 @@ import { Loader2, MapPin, Star, Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddressFormDialog } from "@/components/common/AddressFormDialog";
 import { useAddresses } from "@/hooks/useAddresses";
+import { useDistricts } from "@/hooks/useDistricts";
 import { ApiCallError } from "@/lib/api/client";
 import type { AddressOut, AddressCreateIn, AddressUpdateIn } from "@/types/api";
 
@@ -12,6 +13,7 @@ import type { AddressOut, AddressCreateIn, AddressUpdateIn } from "@/types/api";
 
 interface AddressCardProps {
   address: AddressOut;
+  districtName?: string;
   onEdit: (address: AddressOut) => void;
   onDelete: (id: string) => void;
   onSetDefault: (id: string) => void;
@@ -20,6 +22,7 @@ interface AddressCardProps {
 
 function AddressCard({
   address,
+  districtName,
   onEdit,
   onDelete,
   onSetDefault,
@@ -30,14 +33,9 @@ function AddressCard({
   return (
     <div
       className={`relative overflow-hidden rounded-2xl border bg-background shadow-sm transition-shadow hover:shadow-md ${
-        address.is_default ? "border-primary/40" : "border-border/60"
+        address.is_default ? "border-primary/30" : "border-border/60"
       }`}
     >
-      {/* Franja top de marca */}
-      <div
-        className={`h-1 w-full ${address.is_default ? "bg-linear-to-r from-primary to-secondary" : "bg-border/40"}`}
-      />
-
       <div className="p-4">
         {/* Badge predeterminada */}
         {address.is_default && (
@@ -49,10 +47,13 @@ function AddressCard({
 
         {/* Icono + datos */}
         <div className="flex items-start gap-3">
-          <div
-            className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ${address.is_default ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
-          >
-            <MapPin className="size-4" />
+          <div className="relative size-11 shrink-0">
+            <div
+              className={`absolute inset-0 rounded-[46%_54%_58%_42%/48%_42%_58%_52%] ${address.is_default ? "bg-primary/10" : "bg-muted"}`}
+            />
+            <div className={`absolute inset-0 flex items-center justify-center ${address.is_default ? "text-primary" : "text-muted-foreground"}`}>
+              <MapPin className="size-4" />
+            </div>
           </div>
           <div className="flex-1 min-w-0">
             {address.label && (
@@ -76,7 +77,7 @@ function AddressCard({
               </p>
             )}
             <p className="mt-1 text-xs text-muted-foreground">
-              Distrito: {address.district_id}
+              Distrito: {districtName ?? address.district_id}
             </p>
           </div>
         </div>
@@ -134,6 +135,8 @@ function AddressCard({
 export default function AddressesPage() {
   const { addresses, loading, error, create, update, remove, setDefault } =
     useAddresses();
+  const { districts } = useDistricts();
+  const districtNameById = new Map(districts.map((d) => [d.id, d.name]));
 
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AddressOut | null>(null);
@@ -213,7 +216,7 @@ export default function AddressesPage() {
           <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
             Direcciones
           </h1>
-          <p className="mt-1 text-sm md:text-md lg:text-lg text-foreground">
+          <p className="mt-1 text-sm text-muted-foreground md:text-base">
             Registra los lugares donde realizaremos el servicio.
           </p>
         </div>
@@ -262,15 +265,15 @@ export default function AddressesPage() {
 
       {/* Lista vacía */}
       {!loading && !error && addresses.length === 0 && (
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
-          <div className="flex size-16 items-center justify-center rounded-full bg-primary/25">
-            <MapPin className="size-7.5 text-white" strokeWidth={1.5} />
+        <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
+          <div className="flex size-20 items-center justify-center rounded-3xl bg-linear-to-br from-primary/10 via-secondary/5 to-tertiary/10">
+            <MapPin className="size-10 text-primary/50" strokeWidth={1.5} />
           </div>
           <div>
-            <p className="text-md lg:text-lg font-extrabold tracking-tight text-primary">
+            <p className="text-lg font-extrabold tracking-tight text-foreground">
               No tienes direcciones registradas
             </p>
-            <p className="text-sm lg:text-lg text-primary">
+            <p className="mt-1 text-sm text-muted-foreground">
               Agrega una dirección para facilitar la reserva de servicios.
             </p>
           </div>
@@ -290,6 +293,7 @@ export default function AddressesPage() {
               <li key={address.id}>
                 <AddressCard
                   address={address}
+                  districtName={districtNameById.get(address.district_id)}
                   onEdit={openEdit}
                   onDelete={handleDelete}
                   onSetDefault={handleSetDefault}

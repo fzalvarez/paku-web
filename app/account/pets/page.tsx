@@ -520,30 +520,31 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
   const isDog = pet.species !== "cat";
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm transition-shadow hover:shadow-md">
-      {/* Franja de color superior */}
-      <div
-        className={cn(
-          "h-1.5 w-full",
-          isDog
-            ? "bg-linear-to-r from-primary to-secondary"
-            : "bg-linear-to-r from-secondary to-tertiary",
-        )}
-      />
-
+    <div
+      className={cn(
+        "group relative overflow-hidden rounded-2xl border bg-background shadow-sm transition-shadow hover:shadow-md",
+        isDog ? "border-primary/20" : "border-secondary/20",
+      )}
+    >
       <div className="p-4">
         {/* Avatar + info básica */}
         <div className="flex items-start gap-4">
-          {/* Avatar */}
-          <div
-            className={cn(
-              "flex size-14 shrink-0 items-center justify-center rounded-2xl shadow-sm",
-              isDog
-                ? "bg-primary/10 text-primary"
-                : "bg-secondary/10 text-secondary",
-            )}
-          >
-            <SpeciesIcon species={pet.species} className="size-7" />
+          {/* Avatar en blob orgánico */}
+          <div className="relative size-14 shrink-0">
+            <div
+              className={cn(
+                "absolute inset-0 rounded-[46%_54%_58%_42%/48%_42%_58%_52%] shadow-sm",
+                isDog ? "bg-primary/10" : "bg-secondary/10",
+              )}
+            />
+            <div
+              className={cn(
+                "absolute inset-0 flex items-center justify-center",
+                isDog ? "text-primary" : "text-secondary",
+              )}
+            >
+              <SpeciesIcon species={pet.species} className="size-7" />
+            </div>
           </div>
 
           {/* Info */}

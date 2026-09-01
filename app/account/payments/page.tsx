@@ -49,7 +49,12 @@ interface SavedCardItemProps {
 
 function SavedCardItem({ card, onDelete, deleting }: SavedCardItemProps) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
+    <div
+      className={cn(
+        "flex items-center justify-between gap-4 rounded-2xl border bg-card p-4 shadow-sm",
+        card.is_default ? "border-primary/30" : "border-border/60"
+      )}
+    >
       <div className="flex items-center gap-4">
         <span
           className={cn(
@@ -152,7 +157,7 @@ export default function PaymentsPage() {
           <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
             Métodos de pago
           </h1>
-          <p className="mt-1 text-sm md:text-md lg:text-lg text-foreground">
+          <p className="mt-1 text-sm text-muted-foreground md:text-base">
             Gestiona tus tarjetas de crédito y débito de forma segura.
           </p>
         </div>
@@ -166,6 +171,7 @@ export default function PaymentsPage() {
           error={saveCardError}
           onErrorDismiss={() => {}}
           onCancel={() => setShowForm(false)}
+          submitLabel="Guardar tarjeta"
         />
       )}
 
@@ -255,9 +261,14 @@ export default function PaymentsPage() {
       )}
 
       {/* Sección de seguridad */}
-      <div className="mt-8 space-y-4 rounded-2xl border border-border/40 bg-card p-6">
+      <div className="mt-8 space-y-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-green-600" />
+          <div className="relative size-9 shrink-0">
+            <div className="absolute inset-0 rounded-[42%_58%_54%_46%/56%_44%_58%_42%] bg-secondary/10" />
+            <div className="absolute inset-0 flex items-center justify-center text-secondary">
+              <CheckCircle2 className="size-4" />
+            </div>
+          </div>
           <div>
             <p className="font-bold text-foreground">Pagos 100% seguros</p>
             <p className="mt-1 text-sm text-muted-foreground">

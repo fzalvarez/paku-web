@@ -12,6 +12,10 @@ interface CardDataFormProps {
   onErrorDismiss?: () => void;
   onCancel?: () => void;
   amountDisplay?: string;
+  /** Texto del botón de envío. Por defecto: "Pagar {amountDisplay}" si hay
+   * monto, o "Guardar tarjeta" si no (ej. cuando solo se está guardando
+   * una tarjeta sin cobrar, como en /account/payments). */
+  submitLabel?: string;
 }
 
 /**
@@ -25,6 +29,7 @@ export function CardDataForm({
   onErrorDismiss,
   onCancel,
   amountDisplay,
+  submitLabel,
 }: CardDataFormProps) {
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -47,7 +52,7 @@ export function CardDataForm({
     cardNumber.replace(/\s/g, "").length >= 13 &&
     cardHolder.trim().length >= 2 &&
     expiryMonth.length === 2 &&
-    expiryYear.length === 2 &&
+    expiryYear.length === 4 &&
     cvv.length >= 3 &&
     email.includes("@");
 
@@ -184,10 +189,11 @@ export function CardDataForm({
             <option value="">YY</option>
             {Array.from({ length: 20 }, (_, i) => {
               const year = new Date().getFullYear() + i;
-              const shortYear = String(year).slice(-2);
+              // Culqi exige el año completo de 4 dígitos — se guarda así,
+              // aunque en el selector se muestre corto (más compacto).
               return (
-                <option key={year} value={shortYear}>
-                  {shortYear}
+                <option key={year} value={String(year)}>
+                  {String(year).slice(-2)}
                 </option>
               );
             })}
@@ -270,7 +276,7 @@ export function CardDataForm({
           ) : (
             <>
               <Lock className="size-4" />
-              Pagar {amountDisplay}
+              {submitLabel ?? (amountDisplay ? `Pagar ${amountDisplay}` : "Guardar tarjeta")}
             </>
           )}
         </button>

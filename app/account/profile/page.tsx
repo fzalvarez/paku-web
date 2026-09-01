@@ -9,18 +9,17 @@ import { usersService } from "@/lib/api/users";
 import type { UpdateMeRequest, SetPasswordRequest } from "@/lib/api/users";
 import { cn } from "@/lib/utils";
 
-const FIELD_LABEL_CLASS =
-  "text-[15px] font-bold text-primary tracking-tight";
-
-const FIELD_INPUT_CLASS =
-  "h-14 rounded-xl border-[#d7ddff] bg-white px-4 text-[17px] text-primary placeholder:text-[#c7cdf6] shadow-none focus-visible:border-primary/50 focus-visible:ring-primary/20";
+// Estilos de campo — deliberadamente discretos: el label y el valor no
+// deben competir en color/tamaño con los títulos de la página o sección.
+const FIELD_LABEL_CLASS = "text-sm font-medium text-muted-foreground";
+const FIELD_INPUT_CLASS = "h-11";
 
 // ── Helper: banner de feedback ─────────────────────────────────────────────────
 function Feedback({ type, msg }: { type: "success" | "error"; msg: string }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium",
+        "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium",
         type === "success"
           ? "border border-green-200 bg-green-50 text-green-700"
           : "border border-destructive/20 bg-destructive/10 text-destructive"
@@ -37,34 +36,50 @@ function Feedback({ type, msg }: { type: "success" | "error"; msg: string }) {
 }
 
 // ── Sección reutilizable ───────────────────────────────────────────────────────
+
+const ACCENT_CLASSES = {
+  primary: {
+    text: "text-primary",
+    blobBg: "bg-primary/10",
+    button: "bg-primary text-primary-foreground hover:bg-primary/90",
+  },
+  secondary: {
+    text: "text-secondary",
+    blobBg: "bg-secondary/10",
+    button: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
+  },
+} as const;
+
 function SectionCard({
   icon: Icon,
   title,
   description,
   children,
-  iconColor = "text-primary",
-  iconBg = "bg-primary/10",
+  accent = "primary",
 }: {
   icon: React.ElementType;
   title: string;
   description?: string;
   children: React.ReactNode;
-  iconColor?: string;
-  iconBg?: string;
+  accent?: keyof typeof ACCENT_CLASSES;
 }) {
+  const a = ACCENT_CLASSES[accent];
   return (
-    <div className="rounded-[2rem] bg-white px-0 py-0">
+    <div className="rounded-2xl border border-border/60 bg-white p-6 shadow-sm sm:p-7">
       {/* Cabecera */}
-      <div className="flex items-start gap-3 px-0 py-0">
-        <span className={cn("mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full", iconBg, iconColor)}>
-          <Icon className="size-4" />
-        </span>
+      <div className="flex items-start gap-3.5">
+        <div className="relative size-10 shrink-0">
+          <div className={cn("absolute inset-0 rounded-[46%_54%_58%_42%/48%_42%_58%_52%]", a.blobBg)} />
+          <div className={cn("absolute inset-0 flex items-center justify-center", a.text)}>
+            <Icon className="size-4.5" />
+          </div>
+        </div>
         <div>
-          <p className="text-[1.65rem] font-extrabold tracking-tight text-primary">{title}</p>
-          {description && <p className="text-lg leading-snug text-[#4b4f83]">{description}</p>}
+          <p className="text-lg font-extrabold tracking-tight text-foreground">{title}</p>
+          {description && <p className="mt-0.5 text-sm leading-snug text-muted-foreground">{description}</p>}
         </div>
       </div>
-      <div className="px-0 py-5">{children}</div>
+      <div className="mt-5 border-t border-border/60 pt-5">{children}</div>
     </div>
   );
 }
@@ -109,8 +124,8 @@ function PersonalDataForm() {
         <label className={FIELD_LABEL_CLASS}>
           Correo electrónico
         </label>
-        <Input value={user?.email ?? ""} disabled className={cn(FIELD_INPUT_CLASS, "bg-white text-[#c7cdf6] opacity-100 disabled:opacity-100")} />
-        <p className="text-sm text-primary/70">El correo no se puede modificar.</p>
+        <Input value={user?.email ?? ""} disabled className={cn(FIELD_INPUT_CLASS, "disabled:opacity-70")} />
+        <p className="text-xs text-muted-foreground">El correo no se puede modificar.</p>
       </div>
 
       {/* Nombre + Apellido */}
@@ -148,7 +163,7 @@ function PersonalDataForm() {
           <select
             value={form.sex}
             onChange={set("sex")}
-            className="h-14 w-full rounded-xl border border-[#d7ddff] bg-white px-4 text-[17px] text-primary shadow-none outline-none focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20"
+            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="male">Masculino</option>
             <option value="female">Femenino</option>
@@ -158,8 +173,8 @@ function PersonalDataForm() {
 
       {feedback && <Feedback type={feedback.type} msg={feedback.msg} />}
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={loading} className="h-12 rounded-xl bg-primary px-7 text-base font-bold shadow-[0_8px_18px_rgba(37,51,214,0.22)] hover:bg-primary/95 gap-2">
+      <div className="flex justify-end pt-1">
+        <Button type="submit" disabled={loading} className="gap-2">
           {loading && <Loader2 className="size-4 animate-spin" />}
           Guardar cambios
         </Button>
@@ -266,8 +281,12 @@ function PasswordForm() {
 
       {feedback && <Feedback type={feedback.type} msg={feedback.msg} />}
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={loading} className="h-12 rounded-xl bg-[#cdd8ff] px-7 text-base font-bold text-white shadow-none hover:bg-[#cdd8ff] gap-2 disabled:opacity-100">
+      <div className="flex justify-end pt-1">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90"
+        >
           {loading && <Loader2 className="size-4 animate-spin" />}
           Cambiar contraseña
         </Button>
@@ -282,11 +301,11 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-8">
       {/* Encabezado de página */}
       <div>
-        <h1 className="text-5xl font-extrabold tracking-tight text-primary">Mi perfil</h1>
-        <p className="mt-2 text-xl text-[#4b4f83]">
+        <h1 className="text-3xl font-black tracking-tight text-primary md:text-4xl">Mi perfil</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground md:text-base">
           Administra tu información personal y seguridad de la cuenta.
         </p>
       </div>
@@ -296,8 +315,7 @@ export default function ProfilePage() {
         icon={User}
         title="Datos personales"
         description="Esta información es visible para los proveedores de servicios."
-        iconColor="text-primary"
-        iconBg="bg-[#dbe2ff]"
+        accent="primary"
       >
         <PersonalDataForm />
       </SectionCard>
@@ -307,8 +325,7 @@ export default function ProfilePage() {
         icon={Lock}
         title="Seguridad"
         description="Cambia tu contraseña periódicamente para mantener tu cuenta segura."
-        iconColor="text-primary"
-        iconBg="bg-[#dbe2ff]"
+        accent="secondary"
       >
         <PasswordForm />
       </SectionCard>

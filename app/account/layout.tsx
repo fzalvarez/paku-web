@@ -54,7 +54,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        <nav className="mb-5 flex items-center gap-1.5 text-sm text-[#c6c9f5]">
+        <nav className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href="/" className="transition-colors hover:text-primary">Home</Link>
           <ChevronRight className="size-3" />
           <span className="font-semibold text-primary">
@@ -104,10 +104,10 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                     key={href}
                     href={href}
                     className={cn(
-                      "group flex items-center gap-3 rounded-xl px-4 py-3 text-lg font-semibold transition-all",
+                      "group flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all",
                       active
                         ? "bg-primary text-white shadow-[0_10px_22px_rgba(37,51,214,0.22)]"
-                        : "bg-white text-primary hover:bg-primary/5"
+                        : "bg-white text-foreground hover:bg-primary/5"
                     )}
                   >
                     <span
