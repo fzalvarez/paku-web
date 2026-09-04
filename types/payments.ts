@@ -6,12 +6,20 @@
 
 // ─── Token de Culqi (respuesta de secure.culqi.com/v2/tokens) ────────────────
 
+/** Info de marca/tipo de tarjeta — Culqi la anida bajo `iin`, nunca es campo raíz. */
+export interface CulqiIin {
+  bin: string;
+  card_brand: string; // "Visa", "Mastercard", "Amex", ...
+  card_type?: string; // "Credito" | "Debito"
+  card_category?: string;
+}
+
 export interface CulqiToken {
   id: string; // "tkn_test_xxx" o "tkn_live_xxx" — se envía al backend
   object: string;
   email: string;
   last_four: string;
-  card_brand: string; // "Visa", "Mastercard", "Amex", ...
+  iin?: CulqiIin;
 }
 
 export interface CulqiTokenError {

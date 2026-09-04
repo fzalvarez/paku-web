@@ -159,6 +159,16 @@ async function paymentFetch<T>(
 
   const rawText = await response.text();
 
+  // 204 No Content (u otra respuesta sin cuerpo) — no hay nada que parsear,
+  // y no es un error. Antes esto tronaba con "Respuesta no válida del
+  // servidor" incluso cuando la operación (ej. borrar) sí había funcionado.
+  if (!rawText) {
+    if (!response.ok) {
+      throw new PaymentApiError(`Error ${response.status}`, response.status, null);
+    }
+    return undefined as T;
+  }
+
   let data: any;
   try {
     data = JSON.parse(rawText);
@@ -208,6 +218,12 @@ async function pakuFetch<T>(
   });
 
   const rawText = await response.text();
+
+  // 204 No Content (ej. DELETE /wallet/cards/{id}) — nada que parsear.
+  if (!rawText) {
+    if (!response.ok) throw new Error(`Error ${response.status}`);
+    return undefined as T;
+  }
 
   let data: any;
   try {
@@ -286,8 +302,13 @@ export const paymentsService = {
     });
 
     // Paso 3: persistir en paku-backend para mostrarlo en el wallet
-    const brand = culqiCard.card_brand ?? "Unknown";
-    const last4 = culqiCard.last_four ?? "";
+    // Culqi nunca manda card_brand como campo raíz — va anidado bajo
+    // `iin.card_brand` (en el token) o `source.iin.card_brand` (en la
+    // respuesta de /api/culqi/cards). last_four sí es raíz en el token,
+    // pero en la card va dentro de `source`.
+    const brand =
+      culqiCard?.source?.iin?.card_brand ?? token.iin?.card_brand ?? "Unknown";
+    const last4 = culqiCard?.source?.last_four ?? token.last_four ?? "";
 
     const savedCardResponse = await pakuFetch<SavedCard>("/wallet/cards", {
       method: "POST",
