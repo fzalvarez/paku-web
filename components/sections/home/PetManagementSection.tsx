@@ -168,7 +168,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
               >
                 <option value="">Sin especificar</option>
                 {breeds.map((b) => (
-                  <option key={b.id} value={b.name}>
+                  <option key={b.id} value={b.id}>
                     {b.name}
                   </option>
                 ))}

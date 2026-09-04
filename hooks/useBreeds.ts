@@ -26,9 +26,6 @@ export function useBreeds(species: PetSpecies) {
     catalogService
       .listBreeds(species)
       .then((data) => {
-        // Log de la data que llega
-        console.log("Datos de razas recibidos:", data);
-
         const data_temp = data[0];
         const breeds = data_temp.breeds;
 
