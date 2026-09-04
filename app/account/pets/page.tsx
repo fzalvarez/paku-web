@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Loader2,
   Plus,
@@ -32,6 +33,7 @@ import { useBreeds } from "@/hooks/useBreeds";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
 import { petsService } from "@/lib/api/pets";
+import { safePhotoUrl } from "@/lib/utils/pets";
 import type {
   Pet,
   CreatePetRequest,
@@ -112,6 +114,13 @@ interface PetFormDialogProps {
   /** Called after successful save with the pet id, so we can upload the photo */
   onSubmit: (data: CreatePetRequest | UpdatePetRequest) => Promise<Pet>;
   mutating: boolean;
+  /**
+   * Vuelve a pedir la lista completa al backend. Se llama SOLO después de
+   * confirmar la foto en el bucket — el registro que devuelve create/update
+   * todavía no trae photo_url (la subida pasa después), así que refrescar
+   * antes mostraría la mascota sin foto hasta que alguien recargue a mano.
+   */
+  onPhotoUploaded: () => void | Promise<void>;
 }
 
 function PetFormDialog({
@@ -120,6 +129,7 @@ function PetFormDialog({
   pet,
   onSubmit,
   mutating,
+  onPhotoUploaded,
 }: PetFormDialogProps) {
   const isEdit = !!pet;
   const [form, setForm] = useState<PetFormValues>(
@@ -170,6 +180,10 @@ function PetFormDialog({
       if (photoFile && savedPet?.id) {
         try {
           await uploadPhoto("pet", savedPet.id, photoFile);
+          // Recién ahora el backend tiene la photo_url — refrescamos la
+          // lista para traerla ya firmada, en vez de dejar la mascota sin
+          // foto hasta que alguien recargue la página a mano.
+          await onPhotoUploaded();
         } catch {
           // La mascota ya se guardó; el fallo de foto no bloquea
           setError(
@@ -518,6 +532,7 @@ interface PetCardProps {
 function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
   const age = calcAge(pet.birth_date);
   const isDog = pet.species !== "cat";
+  const photoUrl = safePhotoUrl(pet.photo_url);
 
   return (
     <div
@@ -530,21 +545,22 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
         {/* Avatar + info básica */}
         <div className="flex items-start gap-4">
           {/* Avatar en blob orgánico */}
-          <div className="relative size-14 shrink-0">
-            <div
-              className={cn(
-                "absolute inset-0 rounded-[46%_54%_58%_42%/48%_42%_58%_52%] shadow-sm",
-                isDog ? "bg-primary/10" : "bg-secondary/10",
-              )}
-            />
-            <div
-              className={cn(
-                "absolute inset-0 flex items-center justify-center",
-                isDog ? "text-primary" : "text-secondary",
-              )}
-            >
-              <SpeciesIcon species={pet.species} className="size-7" />
-            </div>
+          <div className="relative size-14 shrink-0 overflow-hidden rounded-[46%_54%_58%_42%/48%_42%_58%_52%] shadow-sm">
+            {photoUrl ? (
+              <Image src={photoUrl} alt={pet.name} fill sizes="56px" className="object-cover" />
+            ) : (
+              <>
+                <div className={cn("absolute inset-0", isDog ? "bg-primary/10" : "bg-secondary/10")} />
+                <div
+                  className={cn(
+                    "absolute inset-0 flex items-center justify-center",
+                    isDog ? "text-primary" : "text-secondary",
+                  )}
+                >
+                  <SpeciesIcon species={pet.species} className="size-7" />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Info */}
@@ -853,6 +869,7 @@ export default function PetsPage() {
         pet={editingPet}
         onSubmit={handleFormSubmit}
         mutating={mutating}
+        onPhotoUploaded={reload}
       />
 
       <ConfirmDeleteDialog

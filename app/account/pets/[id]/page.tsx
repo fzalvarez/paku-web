@@ -146,9 +146,12 @@ interface EditBasicDialogProps {
   onOpenChange: (v: boolean) => void;
   pet: Pet;
   onSaved: (pet: Pet) => void;
+  /** Se llama tras confirmar la foto en el bucket, para traer la mascota
+   * de nuevo con photo_url ya firmada (el PUT anterior no la trae aún). */
+  onPhotoUploaded: () => void | Promise<void>;
 }
 
-function EditBasicDialog({ open, onOpenChange, pet, onSaved }: EditBasicDialogProps) {
+function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: EditBasicDialogProps) {
   const [form, setForm] = useState<{
     name: string;
     breed: string;
@@ -198,10 +201,20 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved }: EditBasicDialogPr
         notes: form.notes || null,
       };
       const updated = await petsService.update(pet.id, payload);
+      let photoRefreshed = false;
       if (photoFile) {
-        try { await uploadPhoto("pet", updated.id, photoFile); } catch { /* no bloquea */ }
+        try {
+          await uploadPhoto("pet", updated.id, photoFile);
+          // El PUT de arriba no trae photo_url todavía — recién existe
+          // después de confirmar la subida, así que se pide la mascota de
+          // nuevo para traerla ya firmada. onSaved(updated) de abajo usa
+          // el objeto viejo sin foto, así que si esto funcionó lo saltamos
+          // para no pisar el estado recién refrescado.
+          await onPhotoUploaded();
+          photoRefreshed = true;
+        } catch { /* no bloquea */ }
       }
-      onSaved(updated);
+      if (!photoRefreshed) onSaved(updated);
       onOpenChange(false);
     } catch {
       setError("No se pudo guardar. Intenta de nuevo.");
@@ -818,7 +831,7 @@ export default function PetProfilePage() {
       </div>
 
       {/* Dialogs */}
-      <EditBasicDialog open={editBasicOpen} onOpenChange={setEditBasicOpen} pet={pet} onSaved={(updated) => setPet(updated)} />
+      <EditBasicDialog open={editBasicOpen} onOpenChange={setEditBasicOpen} pet={pet} onSaved={(updated) => setPet(updated)} onPhotoUploaded={loadPet} />
       <EditGroomingDialog open={editGroomingOpen} onOpenChange={setEditGroomingOpen} pet={pet} onSaved={(updated) => setPet(updated)} />
       <WeightDialog open={weightOpen} onOpenChange={setWeightOpen} pet={pet} onSuccess={loadPet} />
     </div>
