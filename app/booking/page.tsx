@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BookingWizard } from "@/components/booking/BookingWizard";
 
 export default function BookingPage() {
@@ -11,7 +12,10 @@ export default function BookingPage() {
           Grooming profesional a domicilio para tu mascota.
         </p>
       </div>
-      <BookingWizard />
+      {/* BookingWizard usa useSearchParams (?service=<id> desde /paku-spa) */}
+      <Suspense fallback={null}>
+        <BookingWizard />
+      </Suspense>
     </div>
   );
 }

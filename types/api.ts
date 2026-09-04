@@ -46,6 +46,8 @@ export interface ProductOut {
   is_active: boolean;
   price: number | null;
   currency: string | null;
+  /** Lista de lo que incluye el producto — null en productos sin este dato aún */
+  included_items: string[] | null;
 }
 
 export interface AddonOut {

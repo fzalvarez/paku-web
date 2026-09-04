@@ -23,8 +23,6 @@ export const servicesService = {
     slug: string,
     params?: { pet_id?: string; species?: "dog" | "cat" },
   ): Promise<ServiceOut[]> {
-    console.log("GAAAAAAA::", params);
-
     const qs = new URLSearchParams();
     if (params?.pet_id) qs.set("pet_id", params.pet_id);
     if (params?.species) qs.set("species", params.species);

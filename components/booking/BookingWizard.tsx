@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { servicesService } from "@/lib/api/services";
 import { WizardProgress, useWizardNavigation } from "./WizardLayout";
 import { StepSelectPet } from "./StepSelectPet";
 import { StepSelectService } from "./StepSelectService";
@@ -58,6 +60,8 @@ function clearSnapshot() {
 
 export function BookingWizard() {
   const { user, isAuthenticated } = useAuthContext();
+  const searchParams = useSearchParams();
+  const preselectServiceId = searchParams.get("service");
 
   // useState con lazy initializer — se ejecuta solo en cliente, evita mismatch SSR
   const [savedOnce] = useState<WizardSnapshot | null>(() => loadSnapshot());
@@ -78,6 +82,22 @@ export function BookingWizard() {
   const [pendingOrderId, setPendingOrderId]     = useState<string | null>(savedOnce?.pendingOrderId ?? null);
   const [paymentFailed, setPaymentFailed]       = useState(false);
   const [amountCents, setAmountCents]           = useState<number>(savedOnce?.amountCents ?? 0);
+
+  // Preseleccionar servicio cuando se llega desde /booking?service=<id>
+  // (ej. botón "Reservar" de un producto en /paku-spa). Solo aplica en un
+  // inicio limpio — si ya había una reserva en curso guardada, no la pisamos.
+  useEffect(() => {
+    if (savedOnce || !preselectServiceId) return;
+    let cancelled = false;
+    servicesService
+      .getProduct(preselectServiceId)
+      .then((service) => {
+        if (!cancelled) setSelectedService(service);
+      })
+      .catch(() => { /* si falla, el usuario simplemente lo elige a mano en el paso 2 */ });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Persistir en sessionStorage cada vez que cambie cualquier dato relevante
   useEffect(() => {
