@@ -154,13 +154,13 @@ interface EditBasicDialogProps {
 function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: EditBasicDialogProps) {
   const [form, setForm] = useState<{
     name: string;
-    breed: string;
+    breed_id: string;
     sex: "male" | "female" | "";
     birth_date: string;
     notes: string;
   }>({
     name: pet.name,
-    breed: pet.breed ?? "",
+    breed_id: pet.breed_id ?? "",
     sex: (pet.sex as "male" | "female") ?? "",
     birth_date: pet.birth_date ?? "",
     notes: pet.notes ?? "",
@@ -175,7 +175,7 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: 
     if (open) {
       setForm({
         name: pet.name,
-        breed: pet.breed ?? "",
+        breed_id: pet.breed_id ?? "",
         sex: (pet.sex as "male" | "female") ?? "",
         birth_date: pet.birth_date ?? "",
         notes: pet.notes ?? "",
@@ -195,7 +195,7 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: 
     try {
       const payload: UpdatePetRequest = {
         name: form.name.trim(),
-        breed: form.breed || null,
+        breed_id: form.breed_id || null,
         sex: (form.sex as "male" | "female") || null,
         birth_date: form.birth_date || null,
         notes: form.notes || null,
@@ -260,12 +260,23 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: 
               Raza {breedsLoading && <Loader2 className="ml-1 inline size-3 animate-spin" />}
             </label>
             {breeds.length > 0 ? (
-              <select value={form.breed} onChange={(e) => setForm(p => ({ ...p, breed: e.target.value }))} className={selectCls}>
+              <select value={form.breed_id} onChange={(e) => setForm(p => ({ ...p, breed_id: e.target.value }))} className={selectCls}>
                 <option value="">Sin especificar</option>
                 {breeds.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
             ) : (
-              <Input placeholder="Ej. Labrador" value={form.breed} onChange={(e) => setForm(p => ({ ...p, breed: e.target.value }))} />
+              <>
+                <Input
+                  placeholder={breedsLoading ? "Cargando razas…" : "No se pudo cargar el catálogo de razas"}
+                  value={pet.breed_name ?? ""}
+                  disabled
+                />
+                {!breedsLoading && (
+                  <p className="text-xs text-muted-foreground">
+                    No se puede elegir raza en este momento. Intenta de nuevo más tarde.
+                  </p>
+                )}
+              </>
             )}
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -685,7 +696,7 @@ export default function PetProfilePage() {
             </div>
 
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-              {pet.breed && <span className="font-medium">{pet.breed}</span>}
+              {pet.breed_name && <span className="font-medium">{pet.breed_name}</span>}
               {age && <span className="flex items-center gap-1.5"><Calendar className="size-3.5" />{age}</span>}
               {pet.weight_kg != null && <span className="flex items-center gap-1.5"><Weight className="size-3.5" />{pet.weight_kg} kg</span>}
             </div>
@@ -716,7 +727,7 @@ export default function PetProfilePage() {
             <h2 className="mb-4 text-sm font-extrabold uppercase tracking-widest text-foreground">Información básica</h2>
             <div className="flex flex-col gap-2">
               <ProfileField label="Especie" icon={isDog ? Dog : Cat} value={isDog ? "Perro" : "Gato"} />
-              <ProfileField label="Raza" icon={User} value={pet.breed} empty={!pet.breed} />
+              <ProfileField label="Raza" icon={User} value={pet.breed_name} empty={!pet.breed_name} />
               <ProfileField label="Sexo" icon={pet.sex === "female" ? Venus : Mars} value={pet.sex === "male" ? "Macho" : pet.sex === "female" ? "Hembra" : null} empty={!pet.sex} />
               <ProfileField label="Fecha de nacimiento" icon={Calendar} value={formatDate(pet.birth_date)} empty={!pet.birth_date} />
               {age && <ProfileField label="Edad" icon={Clock} value={age} />}

@@ -78,7 +78,7 @@ function SexIcon({ sex }: { sex?: string | null }) {
 interface PetFormValues {
   name: string;
   species: "dog" | "cat";
-  breed: string;
+  breed_id: string;
   sex: "male" | "female" | "";
   birth_date: string;
   weight_kg: string;
@@ -88,7 +88,7 @@ interface PetFormValues {
 const EMPTY_FORM: PetFormValues = {
   name: "",
   species: "dog",
-  breed: "",
+  breed_id: "",
   sex: "",
   birth_date: "",
   weight_kg: "",
@@ -99,7 +99,7 @@ function petToForm(pet: Pet): PetFormValues {
   return {
     name: pet.name,
     species: (pet.species as "dog" | "cat") ?? "dog",
-    breed: pet.breed ?? "",
+    breed_id: pet.breed_id ?? "",
     sex: (pet.sex as "male" | "female") ?? "",
     birth_date: pet.birth_date ?? "",
     weight_kg: pet.weight_kg != null ? String(pet.weight_kg) : "",
@@ -168,7 +168,7 @@ function PetFormDialog({
     const payload: CreatePetRequest = {
       name: form.name.trim(),
       species: form.species,
-      breed: form.breed || null,
+      breed_id: form.breed_id || null,
       sex: (form.sex as "male" | "female") || null,
       birth_date: form.birth_date || null,
       weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : null,
@@ -251,7 +251,7 @@ function PetFormDialog({
                   setForm((p) => ({
                     ...p,
                     species: e.target.value as "dog" | "cat",
-                    breed: "",
+                    breed_id: "",
                   }))
                 }
                 className={selectClass}
@@ -274,9 +274,9 @@ function PetFormDialog({
               {breeds.length > 0 ? (
                 <select
                   className={selectClass}
-                  value={form.breed}
+                  value={form.breed_id}
                   onChange={(e) =>
-                    setForm((p) => ({ ...p, breed: e.target.value }))
+                    setForm((p) => ({ ...p, breed_id: e.target.value }))
                   }
                 >
                   <option value="">Sin especificar</option>
@@ -287,12 +287,18 @@ function PetFormDialog({
                   ))}
                 </select>
               ) : (
-                <Input
-                  placeholder="Ej. Labrador"
-                  value={form.breed}
-                  onChange={set("breed")}
-                  disabled={breedsLoading}
-                />
+                <>
+                  <Input
+                    placeholder={breedsLoading ? "Cargando razas…" : "No se pudo cargar el catálogo de razas"}
+                    value={pet?.breed_name ?? ""}
+                    disabled
+                  />
+                  {!breedsLoading && (
+                    <p className="text-xs text-muted-foreground">
+                      No se puede elegir raza en este momento. Intenta de nuevo más tarde.
+                    </p>
+                  )}
+                </>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
@@ -573,9 +579,9 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
             </div>
 
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              {pet.breed && (
+              {pet.breed_name && (
                 <span className="text-xs text-muted-foreground">
-                  {pet.breed}
+                  {pet.breed_name}
                 </span>
               )}
               {age && (

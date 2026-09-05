@@ -27,7 +27,7 @@ import { AuthDialog } from "@/components/common/AuthDialog";
 const EMPTY_FORM: CreatePetRequest = {
   name: "",
   species: "dog",
-  breed: "",
+  breed_id: "",
   sex: "male",
   birth_date: "",
   notes: "",
@@ -61,7 +61,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
       const newPet = await petsService.create({
         name: form.name.trim(),
         species: form.species,
-        breed: form.breed || null,
+        breed_id: form.breed_id || null,
         sex: form.sex || null,
         birth_date: form.birth_date || null,
         notes: form.notes || null,
@@ -86,7 +86,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
 
   // Al cambiar de especie, limpiar la raza seleccionada
   function handleSpeciesChange(species: PetSpecies) {
-    setForm((prev) => ({ ...prev, species, breed: "" }));
+    setForm((prev) => ({ ...prev, species, breed_id: "" }));
   }
 
   return (
@@ -163,8 +163,8 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
             {breeds.length > 0 ? (
               <select
                 className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                value={form.breed ?? ""}
-                onChange={(e) => setForm({ ...form, breed: e.target.value })}
+                value={form.breed_id ?? ""}
+                onChange={(e) => setForm({ ...form, breed_id: e.target.value })}
               >
                 <option value="">Sin especificar</option>
                 {breeds.map((b) => (
@@ -174,13 +174,19 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
                 ))}
               </select>
             ) : (
-              <input
-                className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                value={form.breed ?? ""}
-                onChange={(e) => setForm({ ...form, breed: e.target.value })}
-                placeholder={breedsLoading ? "Cargando razas…" : "Ej: Labrador"}
-                disabled={breedsLoading}
-              />
+              <>
+                <input
+                  className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  value=""
+                  placeholder={breedsLoading ? "Cargando razas…" : "No se pudo cargar el catálogo de razas"}
+                  disabled
+                />
+                {!breedsLoading && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    No se puede elegir raza en este momento. Intenta de nuevo más tarde.
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -279,7 +285,7 @@ function PetCard({ pet }: { pet: Pet }) {
         <p className="truncate font-bold text-foreground">{pet.name}</p>
         <p className="text-sm text-muted-foreground">
           {speciesLabel(pet.species)}
-          {pet.breed ? ` • ${pet.breed}` : ""}
+          {pet.breed_name ? ` • ${pet.breed_name}` : ""}
         </p>
         <p className="text-xs text-muted-foreground">
           {calcPetAge(pet.birth_date)}

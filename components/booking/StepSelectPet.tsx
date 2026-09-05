@@ -18,7 +18,7 @@ import type { Pet, CreatePetRequest, PetSpecies, PetSex } from "@/types/pets";
 const EMPTY_FORM: CreatePetRequest = {
   name: "",
   species: "dog",
-  breed: "",
+  breed_id: "",
   sex: "male",
   birth_date: "",
   notes: "",
@@ -53,7 +53,7 @@ function AddPetModal({
       const newPet = await petsService.create({
         ...form,
         name: form.name.trim(),
-        breed: form.breed || null,
+        breed_id: form.breed_id || null,
         sex: form.sex || null,
         birth_date: form.birth_date || null,
         notes: form.notes || null,
@@ -123,7 +123,7 @@ function AddPetModal({
                 setForm({
                   ...form,
                   species: e.target.value as PetSpecies,
-                  breed: "",
+                  breed_id: "",
                 })
               }
             >
@@ -154,8 +154,8 @@ function AddPetModal({
             {breeds.length > 0 ? (
               <select
                 className={inputCls}
-                value={form.breed ?? ""}
-                onChange={(e) => setForm({ ...form, breed: e.target.value })}
+                value={form.breed_id ?? ""}
+                onChange={(e) => setForm({ ...form, breed_id: e.target.value })}
               >
                 <option value="">Sin especificar</option>
                 {breeds.map((b) => (
@@ -165,13 +165,19 @@ function AddPetModal({
                 ))}
               </select>
             ) : (
-              <input
-                className={inputCls}
-                value={form.breed ?? ""}
-                onChange={(e) => setForm({ ...form, breed: e.target.value })}
-                placeholder="Ej: Labrador"
-                disabled={breedsLoading}
-              />
+              <>
+                <input
+                  className={inputCls}
+                  value=""
+                  placeholder={breedsLoading ? "Cargando razas…" : "No se pudo cargar el catálogo de razas"}
+                  disabled
+                />
+                {!breedsLoading && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    No se puede elegir raza en este momento. Intenta de nuevo más tarde.
+                  </p>
+                )}
+              </>
             )}
           </div>
           <div>
@@ -318,7 +324,7 @@ export function StepSelectPet({
                 <h4 className="font-bold leading-tight">{pet.name}</h4>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {speciesLabel(pet.species)}
-                  {pet.breed ? ` · ${pet.breed}` : ""}
+                  {pet.breed_name ? ` · ${pet.breed_name}` : ""}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground/70">
                   {calcPetAge(pet.birth_date)}

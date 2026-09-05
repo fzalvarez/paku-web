@@ -16,7 +16,9 @@ export interface Pet {
   owner_id?: string;
   name: string;
   species: PetSpecies | string;
-  breed?: string | null;
+  breed_id?: string | null;
+  /** Nombre de display de la raza — lo deriva el backend a partir de breed_id, solo lectura. */
+  breed_name?: string | null;
   sex?: PetSex | string | null;
   birth_date?: string | null;
   notes?: string | null;
@@ -44,7 +46,7 @@ export interface Pet {
 export interface CreatePetRequest {
   name: string;
   species: PetSpecies;
-  breed?: string | null;
+  breed_id?: string | null;
   sex?: PetSex | null;
   birth_date?: string | null;
   notes?: string | null;
@@ -68,7 +70,7 @@ export interface Breed {
  */
 export interface UpdatePetRequest {
   name: string;
-  breed?: string | null;
+  breed_id?: string | null;
   sex?: PetSex | null;
   birth_date?: string | null;
   notes?: string | null;
