@@ -42,7 +42,7 @@ export function StepSelectDate({
   onNext,
   onBack,
 }: StepSelectDateProps) {
-  const { slots, slotsLoading, slotsError, fetchAvailability, getSlotForDate } = useBooking();
+  const { slots, slotsLoading, slotsError, slotsFetched, fetchAvailability, getSlotForDate } = useBooking();
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
@@ -124,8 +124,11 @@ export function StepSelectDate({
             {gridCells.map(({ day, iso, isCurrentMonth }, i) => {
               const slot = isCurrentMonth ? getSlotForDate(iso) : undefined;
               const isPast = isCurrentMonth && iso < toISO(today);
-              // Si hay error o no hay slots del backend, permitir cualquier día futuro
-              const hasBackendData = !slotsError && slots.length > 0;
+              // Un fetch exitoso (sin error) es autoritativo, incluso si devuelve
+              // un array vacío: significa que no hay cupos configurados en ese rango.
+              // Solo si el fetch falló (error de red) permitimos elegir cualquier
+              // día futuro como fallback, para no bloquear al usuario.
+              const hasBackendData = slotsFetched && !slotsError;
               const isUnavailable = hasBackendData
                 ? (slot ? (slot.available <= 0 || !slot.is_active) : isCurrentMonth)
                 : false;
@@ -133,11 +136,15 @@ export function StepSelectDate({
               const isToday = iso === toISO(today);
               const disabled = !isCurrentMonth || isPast || isUnavailable;
 
-              const badgeColor = slot
-                ? slot.available === 0 ? "bg-destructive/80"
-                  : slot.available <= 2 ? "bg-orange-400"
-                    : "bg-green-500"
-                : null;
+              // Tono del día según disponibilidad, para pintar el fondo de la celda
+              const dayTone: "ok" | "low" | "unavailable" | null =
+                !isCurrentMonth || isPast
+                  ? null
+                  : isUnavailable
+                    ? "unavailable"
+                    : slot
+                      ? (slot.available <= 2 ? "low" : "ok")
+                      : null;
 
               return (
                 <div key={i} className="relative flex flex-col items-center">
@@ -147,18 +154,17 @@ export function StepSelectDate({
                     className={cn(
                       "relative flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold transition-all sm:h-9 sm:w-9 sm:text-sm",
                       !isCurrentMonth && "text-muted-foreground/30 cursor-default",
-                      isCurrentMonth && !disabled && !isSelected && "hover:bg-muted",
-                      isPast && "text-muted-foreground/40 cursor-default",
-                      isUnavailable && isCurrentMonth && !isPast && "text-muted-foreground/50 line-through cursor-not-allowed",
+                      isPast && isCurrentMonth && "text-muted-foreground/40 cursor-default",
+                      isCurrentMonth && !disabled && !isSelected && !dayTone && "hover:bg-muted",
+                      dayTone === "ok" && !isSelected && "bg-green-500/10 text-green-700 hover:bg-green-500/15",
+                      dayTone === "low" && !isSelected && "bg-orange-400/15 text-orange-700 hover:bg-orange-400/20",
+                      dayTone === "unavailable" && !isSelected && "bg-destructive/10 text-muted-foreground/50 line-through cursor-not-allowed",
                       isToday && !isSelected && "ring-2 ring-primary/30",
                       isSelected && "bg-primary font-bold text-primary-foreground shadow-lg ring-4 ring-primary/20",
                     )}
                   >
                     {day}
                   </button>
-                  {badgeColor && isCurrentMonth && !isPast && (
-                    <span className={cn("mt-0.5 h-1 w-1 rounded-full", badgeColor)} />
-                  )}
                 </div>
               );
             })}

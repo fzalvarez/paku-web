@@ -8,6 +8,7 @@ interface UseBookingReturn {
   slots: AvailabilitySlot[];
   slotsLoading: boolean;
   slotsError: string | null;
+  slotsFetched: boolean;
   fetchAvailability: (params?: GetAvailabilityParams) => Promise<void>;
   getSlotForDate: (date: string) => AvailabilitySlot | undefined;
 
@@ -25,6 +26,7 @@ export function useBooking(): UseBookingReturn {
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState<string | null>(null);
+  const [slotsFetched, setSlotsFetched] = useState(false);
 
   const [activeHold, setActiveHold] = useState<HoldOut | null>(null);
   const [holdLoading, setHoldLoading] = useState(false);
@@ -64,6 +66,7 @@ export function useBooking(): UseBookingReturn {
       setSlotsError(err instanceof Error ? err.message : "No se pudo cargar la disponibilidad");
     } finally {
       setSlotsLoading(false);
+      setSlotsFetched(true);
     }
   }, []);
 
@@ -133,7 +136,7 @@ export function useBooking(): UseBookingReturn {
   const clearHoldError = useCallback(() => setHoldError(null), []);
 
   return {
-    slots, slotsLoading, slotsError, fetchAvailability, getSlotForDate,
+    slots, slotsLoading, slotsError, slotsFetched, fetchAvailability, getSlotForDate,
     activeHold, holdLoading, holdError, secondsLeft,
     createHold, confirmHold, cancelHold, clearHoldError,
   };
