@@ -14,11 +14,7 @@ import type {
   CulqiToken,
   CulqiTokenError,
   CulqiCustomer,
-  CulqiCharge,
   CreateCustomerPayload,
-  CreateChargePayload,
-  PaymentAttemptOut,
-  PaymentStatusOut,
 } from "@/types/payments";
 import { getAccessToken } from "@/lib/session";
 
@@ -131,10 +127,8 @@ export async function createCulqiToken(card: CardData): Promise<CulqiToken> {
 
 async function paymentFetch<T>(
   path: string,
-  options: RequestInit & { idempotencyKey?: string } = {}
+  options: RequestInit = {}
 ): Promise<T> {
-  const { idempotencyKey, ...fetchOptions } = options;
-
   // El microservicio acepta la key de dos formas equivalentes (Authorization:
   // Bearer <key> o X-API-Key: <key>) y usa el Bearer del usuario cuando está
   // presente — confirmado con backend 01/sep. Mandamos el JWT del usuario en
@@ -148,12 +142,11 @@ async function paymentFetch<T>(
       : PAYMENT_API_KEY
         ? { "X-API-Key": PAYMENT_API_KEY }
         : {}),
-    ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
-    ...(fetchOptions.headers as Record<string, string>),
+    ...(options.headers as Record<string, string>),
   };
 
   const response = await fetch(`${PAYMENT_BASE}${path}`, {
-    ...fetchOptions,
+    ...options,
     headers,
   });
 
@@ -247,17 +240,6 @@ async function pakuFetch<T>(
   return data as T;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Genera un UUID v4 simple para Idempotency-Key */
-function generateIdempotencyKey(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 // ─── Servicio de pagos ────────────────────────────────────────────────────────
 
 export const paymentsService = {
@@ -336,34 +318,6 @@ export const paymentsService = {
   },
 
   /**
-   * POST /api/culqi/charges
-   * Cobra con tarjeta nueva (token) o guardada (card id).
-   *
-   * Nota 3D Secure: Culqi puede responder 200 con un objeto que NO es un
-   * cargo (pide autenticación 3DS antes de cobrar). Hoy no soportamos ese
-   * flujo (necesita una pantalla de autenticación aparte) — si pasa, se
-   * lanza un error explícito en vez de tratarlo como pago exitoso.
-   */
-  async charge(payload: CreateChargePayload): Promise<CulqiCharge> {
-    const idempotencyKey = generateIdempotencyKey();
-    const charge = await paymentFetch<CulqiCharge>("/api/culqi/charges", {
-      method: "POST",
-      body: JSON.stringify(payload),
-      idempotencyKey,
-    });
-
-    if (charge?.object !== "charge") {
-      throw new PaymentApiError(
-        "Esta tarjeta requiere una verificación adicional (3D Secure) que todavía no soportamos. Prueba con otra tarjeta.",
-        200,
-        { code: "requires_3ds_unsupported" }
-      );
-    }
-
-    return charge;
-  },
-
-  /**
    * DELETE /wallet/cards/{id}
    * Elimina una tarjeta guardada del wallet del usuario.
    */
@@ -371,11 +325,8 @@ export const paymentsService = {
     await pakuFetch<void>(`/wallet/cards/${cardId}`, { method: "DELETE" });
   },
 
-  /**
-   * POST /api/payments/pay — legacy para compatibilidad con órdenes
-   * Consulta el estado de una orden de pago.
-   */
-  async getPaymentStatus(orderId: string): Promise<PaymentStatusOut> {
-    return paymentFetch<PaymentStatusOut>(`/api/payments/${orderId}/status`);
-  },
+  // El cobro del checkout ya no pasa por este microservicio directo —
+  // migró a POST /orders/{id}/pay (ver lib/api/orders.ts `pay()` y
+  // doc_fase1_paku-web_migracion_pago.md). Este servicio ahora solo cubre
+  // el wallet (tokenizar, guardar/listar/borrar tarjetas).
 };

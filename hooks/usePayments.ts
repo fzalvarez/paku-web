@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { paymentsService, getPaymentErrorMessage } from "@/lib/api/payments";
-import type { SavedCard, PaymentStatus, CardData, AntifraudDetails } from "@/types/payments";
-
-// Cuánto tiempo entre intentos de polling (ms)
-const POLL_INTERVAL = 2500;
-const POLL_MAX_ATTEMPTS = 20; // ~50 segundos máximo
+import { ordersService } from "@/lib/api/orders";
+import type { SavedCard, CardData } from "@/types/payments";
+import type { OrderOut } from "@/types/orders";
 
 // Local storage key para Culqi customer ID
 const CULQI_CUSTOMER_KEY = "paku_culqi_customer_id";
@@ -40,39 +38,23 @@ export function usePayments() {
     loadSavedCards();
   }, [loadSavedCards]);
 
-  // ── Pago con tarjeta guardada o nueva ─────────────────────────────────────
+  // ── Pago de una orden (POST /orders/{id}/pay) ─────────────────────────────
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
-  const [paymentOrderId, setPaymentOrderId] = useState<string | null>(null);
 
   /**
-   * Cobrar con tarjeta nueva (token de Culqi)
+   * Cobra una orden servidor a servidor con un source_id de Culqi (token
+   * tkn_... de tarjeta nueva, o card id crd_... de tarjeta guardada).
+   * Reemplaza el chargeNewCard/chargeSavedCard + confirmPayment de dos
+   * pasos — ver doc_fase1_paku-web_migracion_pago.md. Devuelve la orden
+   * completa: revisar `payment_status` ("paid" | "failed" | "verifying").
    */
-  const chargeNewCard = useCallback(
-    async (params: {
-      amount: number;
-      email: string;
-      token: string;
-      description?: string;
-      currencyCode?: "PEN" | "USD";
-      antifraudDetails?: AntifraudDetails;
-    }): Promise<string> => {
+  const payOrder = useCallback(
+    async (orderId: string, sourceId: string): Promise<OrderOut> => {
       setPaying(true);
       setPayError(null);
       try {
-        const charge = await paymentsService.charge({
-          amount: params.amount,
-          currency_code: params.currencyCode ?? "PEN",
-          email: params.email,
-          source_id: params.token,
-          description: params.description,
-          antifraud_details: params.antifraudDetails,
-        });
-
-        // Retornar un ID de orden para polling
-        // (El backend generará una orden con este cargo)
-        setPaymentOrderId(charge.id);
-        return charge.id;
+        return await ordersService.pay(orderId, sourceId);
       } catch (err) {
         setPayError(getPaymentErrorMessage(err));
         throw err;
@@ -82,100 +64,6 @@ export function usePayments() {
     },
     []
   );
-
-  /**
-   * Cobrar con tarjeta guardada (ya en Culqi)
-   */
-  const chargeSavedCard = useCallback(
-    async (params: {
-      amount: number;
-      email: string;
-      cardId: string;
-      description?: string;
-      currencyCode?: "PEN" | "USD";
-      antifraudDetails?: AntifraudDetails;
-    }): Promise<string> => {
-      setPaying(true);
-      setPayError(null);
-      try {
-        const charge = await paymentsService.charge({
-          amount: params.amount,
-          currency_code: params.currencyCode ?? "PEN",
-          email: params.email,
-          source_id: params.cardId, // crd_test_xxx
-          description: params.description,
-          antifraud_details: params.antifraudDetails,
-        });
-
-        setPaymentOrderId(charge.id);
-        return charge.id;
-      } catch (err) {
-        setPayError(getPaymentErrorMessage(err));
-        throw err;
-      } finally {
-        setPaying(false);
-      }
-    },
-    []
-  );
-
-  // ── Polling de estado ─────────────────────────────────────────────────────
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(
-    null
-  );
-  const [polling, setPolling] = useState(false);
-  const [pollError, setPollError] = useState<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pollAttemptsRef = useRef(0);
-
-  const stopPolling = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-    setPolling(false);
-  }, []);
-
-  const startPolling = useCallback(
-    (orderId: string, onDone: (status: PaymentStatus) => void) => {
-      stopPolling();
-      pollAttemptsRef.current = 0;
-      setPolling(true);
-      setPollError(null);
-
-      const TERMINAL: PaymentStatus[] = ["PAID", "FAILED", "CANCELLED"];
-
-      pollRef.current = setInterval(async () => {
-        pollAttemptsRef.current += 1;
-
-        try {
-          const { status } = await paymentsService.getPaymentStatus(orderId);
-          setPaymentStatus(status);
-
-          if (TERMINAL.includes(status)) {
-            stopPolling();
-            onDone(status);
-          } else if (pollAttemptsRef.current >= POLL_MAX_ATTEMPTS) {
-            stopPolling();
-            setPollError(
-              "El pago está tardando más de lo esperado. Consulta tu historial de pedidos."
-            );
-            onDone("PENDING");
-          }
-        } catch (err) {
-          stopPolling();
-          setPollError(
-            err instanceof Error
-              ? err.message
-              : "Error consultando estado del pago."
-          );
-        }
-      }, POLL_INTERVAL);
-    },
-    [stopPolling]
-  );
-
-  useEffect(() => () => stopPolling(), [stopPolling]);
 
   // ── Eliminar tarjeta ──────────────────────────────────────────────────────
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
@@ -283,16 +171,7 @@ export function usePayments() {
     // Pago
     paying,
     payError,
-    paymentOrderId,
-    chargeNewCard,
-    chargeSavedCard,
-
-    // Polling
-    paymentStatus,
-    polling,
-    pollError,
-    startPolling,
-    stopPolling,
+    payOrder,
 
     // Eliminar tarjeta
     deletingCardId,

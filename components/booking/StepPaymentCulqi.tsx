@@ -17,7 +17,8 @@ import { cn } from "@/lib/utils";
 import { usePayments } from "@/hooks/usePayments";
 import { paymentsService, getPaymentErrorMessage } from "@/lib/api/payments";
 import { CardDataForm } from "@/components/payment/CardDataForm";
-import type { SavedCard, CardData, AntifraudDetails } from "@/types/payments";
+import type { SavedCard, CardData } from "@/types/payments";
+import type { OrderOut } from "@/types/orders";
 
 // ─── Métodos de pago ──────────────────────────────────────────────────────────
 
@@ -30,19 +31,16 @@ type PayStep =
   | "select-card"    // Lista de tarjetas guardadas
   | "add-new-card"   // Formulario para tarjeta nueva
   | "processing"     // Procesando pago
-  | "success"        // Pago exitoso
-  | "failed";        // Error
+  | "success"        // Pago exitoso (payment_status="paid")
+  | "verifying"      // Cobro intentado, banco no confirmó a tiempo (payment_status="verifying")
+  | "failed";        // Error o rechazo (payment_status="failed")
 
 interface StepPaymentCulqiProps {
-  cartId: string;
+  /** Orden ya creada (POST /orders) que se va a cobrar con POST /orders/{id}/pay */
+  orderId: string;
   amountCents: number;
   currency?: "PEN" | "USD";
-  userEmail?: string;
-  /** Datos para el motor antifraude de Culqi (opcional pero recomendado por backend) */
-  antifraudDetails?: AntifraudDetails;
-  onBeforePaymentAttempt?: () => Promise<void> | void;
-  onPaymentFailed?: () => Promise<void> | void;
-  onPaymentSuccess: (paymentOrderId: string) => void;
+  onPaymentSuccess: (order: OrderOut) => void;
   onBack: () => void;
 }
 
@@ -81,13 +79,9 @@ function formatAmount(centsAmount: number, currency: "PEN" | "USD" = "PEN"): str
 const SHOW_SIMULATED_PAYMENT = process.env.NODE_ENV !== "production";
 
 export function StepPaymentCulqi({
-  cartId,
+  orderId,
   amountCents,
   currency = "PEN",
-  userEmail = "",
-  antifraudDetails,
-  onBeforePaymentAttempt,
-  onPaymentFailed,
   onPaymentSuccess,
   onBack,
 }: StepPaymentCulqiProps) {
@@ -98,8 +92,7 @@ export function StepPaymentCulqi({
     loadSavedCards,
     paying,
     payError,
-    chargeNewCard,
-    chargeSavedCard,
+    payOrder,
     savingCard,
     saveCardError,
   } = usePayments();
@@ -117,15 +110,17 @@ export function StepPaymentCulqi({
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
-  const handlePaymentSuccess = useCallback(
-    (chargeId: string) => {
-      // Culqi confirma el cobro de forma síncrona en la respuesta de
-      // POST /api/culqi/charges — a diferencia de Mercado Pago (asíncrono,
-      // requería consultar un estado aparte), acá si charge() resolvió sin
-      // lanzar error, el cobro ya sucedió. No hay endpoint de estado que
-      // consultar (GET /api/payments/{id}/status era del flujo anterior).
-      setPayStep("success");
-      setTimeout(() => onPaymentSuccess(chargeId), 1200);
+  const handlePaymentResult = useCallback(
+    (order: OrderOut) => {
+      if (order.payment_status === "failed") {
+        setLocalError("Tu pago fue rechazado. Intenta con otra tarjeta.");
+        setPayStep("failed");
+        return;
+      }
+      // "paid" o "verifying" — ambos son un flujo exitoso desde la UI, la
+      // pantalla de confirmación distingue el mensaje según el estado real.
+      setPayStep(order.payment_status === "verifying" ? "verifying" : "success");
+      setTimeout(() => onPaymentSuccess(order), 1200);
     },
     [onPaymentSuccess]
   );
@@ -136,87 +131,34 @@ export function StepPaymentCulqi({
       return;
     }
 
-    if (!userEmail) {
-      setLocalError("Email del usuario no disponible");
-      return;
-    }
-
     setLocalError(null);
 
     try {
-      await onBeforePaymentAttempt?.();
-
-      const orderId = await chargeSavedCard({
-        amount: amountCents,
-        email: userEmail,
-        cardId: selectedCard.payment_method_id,
-        description: `Pagu - Pedido ${cartId}`,
-        currencyCode: currency,
-        antifraudDetails,
-      });
-
-      handlePaymentSuccess(orderId);
+      const order = await payOrder(orderId, selectedCard.payment_method_id);
+      handlePaymentResult(order);
     } catch (err) {
-      void onPaymentFailed?.();
       setLocalError(getPaymentErrorMessage(err));
       setPayStep("failed");
     }
-  }, [
-    selectedCard,
-    userEmail,
-    amountCents,
-    cartId,
-    currency,
-    antifraudDetails,
-    chargeSavedCard,
-    onBeforePaymentAttempt,
-    onPaymentFailed,
-    handlePaymentSuccess,
-  ]);
+  }, [selectedCard, orderId, payOrder, handlePaymentResult]);
 
   const handleSaveAndPay = useCallback(
     async (cardData: CardData) => {
-      if (!userEmail) {
-        setLocalError("Email del usuario no disponible");
-        return;
-      }
-
       setLocalError(null);
 
       try {
-        await onBeforePaymentAttempt?.();
-
-        // 1. Tokenizar directamente con Culqi (patrón paku-vet-dev chargeNewCard)
+        // 1. Tokenizar directamente con Culqi
         const token = await paymentsService.createToken(cardData);
 
-        // 2. Cobrar con el token (source_id = tkn_test_xxx)
-        const orderId = await chargeNewCard({
-          amount: amountCents,
-          email: userEmail,
-          token: token.id,
-          description: `Paku - Pedido ${cartId}`,
-          currencyCode: currency,
-          antifraudDetails,
-        });
-
-        handlePaymentSuccess(orderId);
+        // 2. Cobrar la orden con el token (source_id = tkn_test_xxx)
+        const order = await payOrder(orderId, token.id);
+        handlePaymentResult(order);
       } catch (err) {
-        void onPaymentFailed?.();
         setLocalError(getPaymentErrorMessage(err));
         setPayStep("failed");
       }
     },
-    [
-      userEmail,
-      currency,
-      antifraudDetails,
-      chargeNewCard,
-      amountCents,
-      cartId,
-      onBeforePaymentAttempt,
-      onPaymentFailed,
-      handlePaymentSuccess,
-    ]
+    [orderId, payOrder, handlePaymentResult]
   );
 
   const displayAmount = formatAmount(amountCents, currency);
@@ -479,6 +421,24 @@ export function StepPaymentCulqi({
             <p className="font-bold text-green-900">¡Pago exitoso!</p>
             <p className="text-sm text-green-700">
               Tu pedido ha sido procesado correctamente.
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Redirigiendo…
+          </p>
+        </div>
+      )}
+
+      {/* ── PASO: verificando (microcorte al confirmar con el banco, no es un error) ── */}
+      {payStep === "verifying" && (
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-amber-50 py-12 text-center">
+          <div className="flex size-16 items-center justify-center rounded-full bg-amber-100">
+            <Loader2 className="size-8 animate-spin text-amber-600" />
+          </div>
+          <div>
+            <p className="font-bold text-amber-900">Confirmando tu pago…</p>
+            <p className="text-sm text-amber-700">
+              Estamos confirmando tu pago con el banco 🏦, te avisaremos en cuanto se confirme.
             </p>
           </div>
           <p className="text-xs text-muted-foreground">

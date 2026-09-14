@@ -17,7 +17,6 @@ import type { Pet } from "@/types/pets";
 import type { ServiceOut, ServiceAddon } from "@/types/services";
 import type { AddressOut } from "@/types/api";
 import type { OrderOut } from "@/types/orders";
-import type { AntifraudDetails } from "@/types/payments";
 import type { BookingStep } from "./WizardLayout";
 
 // ── Clave y helpers de sessionStorage ────────────────────────────────────────
@@ -59,7 +58,7 @@ function clearSnapshot() {
 // ── Componente ────────────────────────────────────────────────────────────────
 
 export function BookingWizard() {
-  const { user, isAuthenticated } = useAuthContext();
+  const { isAuthenticated } = useAuthContext();
   const searchParams = useSearchParams();
   const preselectServiceId = searchParams.get("service");
 
@@ -80,7 +79,6 @@ export function BookingWizard() {
   const [confirmedOrder, setConfirmedOrder]     = useState<OrderOut | null>(null);
   const [cartId, setCartId]                     = useState<string | null>(savedOnce?.cartId ?? null);
   const [pendingOrderId, setPendingOrderId]     = useState<string | null>(savedOnce?.pendingOrderId ?? null);
-  const [paymentFailed, setPaymentFailed]       = useState(false);
   const [amountCents, setAmountCents]           = useState<number>(savedOnce?.amountCents ?? 0);
 
   // Preseleccionar servicio cuando se llega desde /booking?service=<id>
@@ -161,7 +159,6 @@ export function BookingWizard() {
         address_id: selectedAddress.id,
       });
       setPendingOrderId(order.id);
-      setPaymentFailed(false);
       goTo("payment");
     } catch (err) {
       throw new Error(
@@ -172,47 +169,17 @@ export function BookingWizard() {
     }
   }, [goTo, pendingOrderId, selectedAddress]);
 
-  const handlePaymentSuccess = useCallback(async (culqiChargeId: string) => {
-    if (!pendingOrderId) return;
-    try {
-      const order = await ordersService.confirmPayment(pendingOrderId, culqiChargeId);
-      clearSnapshot();
-      setConfirmedOrder(order);
-      setPaymentFailed(false);
-      goTo("order-confirmed");
-    } catch {
-      // Culqi ya cobró en este punto — confirm-payment pudo fallar por algo
-      // recuperable (ej. 409 "ya fue procesado" si otro intento anterior ya
-      // la confirmó). Antes de mostrar el mensaje genérico, intentamos traer
-      // el estado real de la orden para no ocultarle al usuario su pedido.
-      try {
-        const order = await ordersService.detail(pendingOrderId);
-        clearSnapshot();
-        setConfirmedOrder(order);
-      } catch {
-        clearSnapshot();
-      }
-      setPaymentFailed(false);
-      goTo("order-confirmed");
-    }
-  }, [goTo, pendingOrderId]);
-
-  const handlePaymentFailed = useCallback(async () => {
-    if (!pendingOrderId) return;
-    try {
-      await ordersService.failPayment(pendingOrderId);
-    } catch {
-      // noop
-    } finally {
-      setPaymentFailed(true);
-    }
-  }, [pendingOrderId]);
-
-  const handleBeforePaymentAttempt = useCallback(async () => {
-    if (!pendingOrderId || !paymentFailed) return;
-    await ordersService.retryPayment(pendingOrderId);
-    setPaymentFailed(false);
-  }, [pendingOrderId, paymentFailed]);
+  // POST /orders/{id}/pay cobra y confirma la orden en una sola operación
+  // atómica del lado del backend — ya no hace falta un segundo llamado a
+  // confirm-payment ni manejar el caso "Culqi cobró pero el aviso no llegó"
+  // (ver doc_fase1_paku-web_migracion_pago.md). StepPaymentCulqi ya filtró
+  // el caso "failed" antes de llamar a este callback — acá solo llegan
+  // órdenes "paid" o "verifying".
+  const handlePaymentSuccess = useCallback((order: OrderOut) => {
+    clearSnapshot();
+    setConfirmedOrder(order);
+    goTo("order-confirmed");
+  }, [goTo]);
 
   const handleNewOrder = useCallback(() => {
     clearSnapshot(); // Limpiar al iniciar nuevo pedido
@@ -226,7 +193,6 @@ export function BookingWizard() {
     setConfirmedOrder(null);
     setCartId(null);
     setPendingOrderId(null);
-    setPaymentFailed(false);
     setAmountCents(0);
     goTo("select-pet");
   }, [goTo]);
@@ -309,26 +275,11 @@ export function BookingWizard() {
         />
       )}
 
-      {currentStep === "payment" && cartId && (
+      {currentStep === "payment" && cartId && pendingOrderId && (
         <StepPaymentCulqi
-          cartId={cartId}
+          orderId={pendingOrderId}
           amountCents={amountCents}
           currency="PEN"
-          userEmail={user?.email ?? ""}
-          antifraudDetails={
-            selectedAddress
-              ? {
-                  first_name: user?.first_name || "Usuario",
-                  last_name: user?.last_name || "Paku",
-                  address: selectedAddress.address_line,
-                  address_city: "Lima",
-                  country_code: "PE",
-                  phone_number: user?.phone || "000000000",
-                }
-              : undefined
-          }
-          onBeforePaymentAttempt={handleBeforePaymentAttempt}
-          onPaymentFailed={handlePaymentFailed}
           onPaymentSuccess={handlePaymentSuccess}
           onBack={goBack}
         />

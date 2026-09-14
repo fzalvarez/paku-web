@@ -74,20 +74,6 @@ export interface CulqiCustomer {
   email: string;
 }
 
-// ─── Cargo (respuesta de POST /api/culqi/charges) ─────────────────────────────
-
-export interface CulqiCharge {
-  id: string; // chr_test_xxx
-  object: "charge";
-  amount: number;
-  currency_code: string;
-  email: string;
-  source_id: string;
-  outcome: { type: string; merchant_message: string };
-  duplicated: boolean;
-  culqi_tracking_id?: string;
-}
-
 // ─── Payloads hacia el backend ────────────────────────────────────────────────
 
 export interface CreateCustomerPayload {
@@ -100,43 +86,11 @@ export interface CreateCustomerPayload {
   country_code: string;
 }
 
-export interface CreateChargePayload {
-  amount: number; // En céntimos: 1000 = S/10.00
-  currency_code: "PEN" | "USD";
-  email: string;
-  source_id: string; // tkn_... (nueva) | crd_... (guardada)
-  description?: string;
-  metadata?: Record<string, string>;
-  antifraud_details?: AntifraudDetails;
-}
-
-export interface AntifraudDetails {
-  first_name: string;
-  last_name: string;
-  address: string;
-  address_city: string;
-  country_code: string;
-  phone_number: string;
-}
-
-// ─── Respuestas de pago ───────────────────────────────────────────────────────
-
-export interface PaymentAttemptOut {
-  order_id: string;
-  status: PaymentStatus;
-}
-
-export type PaymentStatus =
-  | "PENDING"
-  | "PROCESSING"
-  | "PAID"
-  | "FAILED"
-  | "CANCELLED";
-
-export interface PaymentStatusOut {
-  order_id: string;
-  status: PaymentStatus;
-}
+// El cobro en sí (antes POST /api/culqi/charges, con amount/email/
+// antifraud_details armados a mano acá) migró a POST /orders/{id}/pay —
+// ver lib/api/orders.ts `pay()`. Ese endpoint solo pide { source_id }; el
+// resto (monto, antifraude) lo arma paku-backend server-side con datos que
+// ya tiene. Ver doc_fase1_paku-web_migracion_pago.md.
 
 // ─── Errores de negocio ────────────────────────────────────────────────────────
 
