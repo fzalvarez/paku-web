@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, MapPin, CalendarDays, Package, ArrowRight } from "lucide-react";
+import { CheckCircle2, MapPin, CalendarDays, Package, ArrowRight, Printer } from "lucide-react";
 import Link from "next/link";
 import type { OrderOut, OrderItemSnapshot } from "@/types/orders";
 
@@ -45,7 +45,7 @@ export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProp
   const scheduledTime = baseItem?.meta?.scheduled_time;
 
   return (
-    <div className="flex flex-col items-center text-center">
+    <div data-print-area className="flex flex-col items-center text-center">
       {/* Ícono de éxito */}
       <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-green-100">
         <CheckCircle2 className="size-10 text-green-600" />
@@ -55,6 +55,17 @@ export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProp
       <p className="mt-2 text-sm text-muted-foreground">
         Tu pedido ha sido creado exitosamente. El equipo de Paku se pondrá en contacto contigo.
       </p>
+
+      {/* payment_status="verifying": el cobro se intentó pero el banco no
+          confirmó a tiempo (posible microcorte) — no es un error, backend
+          sigue reconciliando en segundo plano. Ver
+          doc_fase1_paku-web_migracion_pago.md. */}
+      {order.payment_status === "verifying" && (
+        <div className="mt-4 w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-800">
+          Estamos confirmando tu pago con el banco 🏦, te avisaremos en cuanto se confirme. Puedes revisar el estado más tarde en{" "}
+          <Link href="/mis-pedidos" className="font-semibold underline">mis pedidos</Link>.
+        </div>
+      )}
 
       {/* Número de orden */}
       <div className="mt-4 rounded-xl bg-muted/50 px-4 py-2">
@@ -118,8 +129,15 @@ export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProp
         <p className="mt-1">Nuestro equipo revisará tu pedido y asignará un especialista. Recibirás una notificación cuando el especialista esté en camino.</p>
       </div>
 
-      {/* Acciones */}
-      <div className="mt-6 flex w-full flex-col gap-3">
+      {/* Acciones — ocultas al imprimir (solo interesa el resumen) */}
+      <div data-print-hide className="mt-6 flex w-full flex-col gap-3">
+        <button
+          onClick={() => window.print()}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted"
+        >
+          <Printer className="size-4" />
+          Imprimir / Descargar PDF
+        </button>
         <Link
           href="/mis-pedidos"
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90"

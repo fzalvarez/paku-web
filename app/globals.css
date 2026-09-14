@@ -153,3 +153,27 @@
     @apply font-sans;
   }
 }
+
+/*
+ * Impresión "solo este elemento" — usado por el botón de imprimir/descargar
+ * PDF del resumen de pedido confirmado. Marca el bloque a imprimir con
+ * data-print-area y lo que debe ocultarse aun dentro de ese bloque
+ * (botones de acción, etc.) con data-print-hide.
+ */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  [data-print-area],
+  [data-print-area] * {
+    visibility: visible;
+  }
+  [data-print-area] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  [data-print-hide] {
+    display: none !important;
+  }
+}
