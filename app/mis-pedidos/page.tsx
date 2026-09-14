@@ -18,6 +18,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 const PAYMENT_STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: "Pago pendiente", color: "bg-amber-50 text-amber-700 border-amber-200" },
   paid: { label: "Pago confirmado", color: "bg-green-50 text-green-700 border-green-200" },
+  verifying: { label: "Confirmando pago", color: "bg-amber-50 text-amber-700 border-amber-200" },
   failed: { label: "Pago fallido", color: "bg-red-50 text-red-700 border-red-200" },
 };
 
@@ -111,6 +112,11 @@ export default function MisPedidosPage() {
                             )}
                           >
                             {PAYMENT_STATUS_LABELS[order.payment_status]?.label ?? order.payment_status}
+                          </span>
+                        )}
+                        {order.parent_order_id && (
+                          <span className="inline-block rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                            Cargo adicional
                           </span>
                         )}
                       </div>

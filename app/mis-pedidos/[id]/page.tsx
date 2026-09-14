@@ -13,11 +13,13 @@ const AllyMapLeaflet = dynamic(
 );
 import { useWebRTCViewer } from "@/hooks/useWebRTCViewer";
 import { ChatPanel } from "@/components/chat/ChatPanel";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { StepPaymentCulqi } from "@/components/booking/StepPaymentCulqi";
 import {
   Loader2, AlertCircle, MapPin, CalendarDays, Package,
   ArrowLeft, CheckCircle2, Clock, Truck, Scissors,
   Navigation, Wifi, WifiOff, RefreshCw, ExternalLink,
-  Video, VideoOff, Signal,
+  Video, VideoOff, Signal, CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -137,6 +139,12 @@ const PAYMENT_STATUS_CONFIG: Record<
     color: "text-green-700",
     bgColor: "bg-green-50 border-green-200",
     description: "El pago fue confirmado correctamente.",
+  },
+  verifying: {
+    label: "Confirmando pago",
+    color: "text-amber-700",
+    bgColor: "bg-amber-50 border-amber-200",
+    description: "Estamos confirmando tu pago con el banco 🏦, te avisaremos en cuanto se confirme.",
   },
   failed: {
     label: "Pago fallido",
@@ -567,9 +575,11 @@ function TrackingPanel({ orderId, orderStatus, destination }: TrackingPanelProps
 
 interface OrderDetailContentProps {
   order: OrderOut;
+  onOrderUpdated: (order: OrderOut) => void;
 }
 
-function OrderDetailContent({ order }: OrderDetailContentProps) {
+function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) {
+  const [payModalOpen, setPayModalOpen] = useState(false);
   const statusConfig = STATUS_CONFIG[order.status];
   const paymentStatus = order.payment_status ?? "pending";
   const paymentConfig = PAYMENT_STATUS_CONFIG[paymentStatus] ?? PAYMENT_STATUS_CONFIG.pending;
@@ -604,9 +614,16 @@ function OrderDetailContent({ order }: OrderDetailContentProps) {
       <div className={cn("rounded-2xl border px-4 py-3", paymentConfig.bgColor)}>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className={cn("text-sm font-bold", paymentConfig.color)}>
-              {paymentConfig.label}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className={cn("text-sm font-bold", paymentConfig.color)}>
+                {paymentConfig.label}
+              </p>
+              {order.parent_order_id && (
+                <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                  Cargo adicional
+                </span>
+              )}
+            </div>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {paymentConfig.description}
             </p>
@@ -617,7 +634,40 @@ function OrderDetailContent({ order }: OrderDetailContentProps) {
             </span>
           )}
         </div>
+        {paymentStatus === "pending" && (
+          <button
+            onClick={() => setPayModalOpen(true)}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+          >
+            <CreditCard className="size-4" />
+            Pagar S/ {order.total_snapshot.toFixed(2)}
+          </button>
+        )}
       </div>
+
+      {/* Modal de pago — reutiliza el mismo flujo de Culqi del checkout
+          (POST /orders/{id}/pay) sobre esta orden puntual, ya sea el
+          checkout original quedado pendiente o un cargo de ajuste. */}
+      <Dialog open={payModalOpen} onOpenChange={setPayModalOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-extrabold">Pagar pedido</DialogTitle>
+            <DialogDescription>
+              Pedido #{order.id.slice(0, 8).toUpperCase()} — S/ {order.total_snapshot.toFixed(2)}
+            </DialogDescription>
+          </DialogHeader>
+          <StepPaymentCulqi
+            orderId={order.id}
+            amountCents={Math.round(order.total_snapshot * 100)}
+            currency="PEN"
+            onPaymentSuccess={(updated) => {
+              onOrderUpdated(updated);
+              setPayModalOpen(false);
+            }}
+            onBack={() => setPayModalOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* ── Panel de Tracking (estados on_the_way, in_service, done) ── */}
       {(["on_the_way", "in_service", "done"] as OrderStatus[]).includes(order.status) && (
@@ -816,7 +866,7 @@ export default function OrderDetailPage() {
       )}
 
       {order && !loading && (
-        <OrderDetailContent order={order} />
+        <OrderDetailContent order={order} onOrderUpdated={setOrder} />
       )}
     </div>
   );
