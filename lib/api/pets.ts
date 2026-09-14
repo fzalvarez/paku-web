@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 import { ENDPOINTS } from "./endpoints";
-import type { Pet, CreatePetRequest, UpdatePetRequest, PatchPetOptionalRequest, WeightRecord, RecordWeightRequest } from "@/types/pets";
+import type { Pet, CreatePetRequest, UpdatePetRequest, PatchPetOptionalRequest } from "@/types/pets";
 
 /**
  * Servicios del dominio de mascotas.
@@ -28,11 +28,7 @@ export const petsService = {
   delete: (id: string) =>
     apiClient.delete<void>(ENDPOINTS.PETS.DETAIL(id)),
 
-  /** POST /pets/{id}/weight — Registra el peso de una mascota */
-  recordWeight: (id: string, data: RecordWeightRequest) =>
-    apiClient.post<WeightRecord>(`${ENDPOINTS.PETS.DETAIL(id)}/weight`, data),
-
-  /** GET /pets/{id}/weight-history — Historial de peso */
-  weightHistory: (id: string) =>
-    apiClient.get<WeightRecord[]>(`${ENDPOINTS.PETS.DETAIL(id)}/weight-history`),
+  // El registro y consulta de peso ahora vive en el módulo pet_records
+  // (ver lib/api/pet-records.ts) — el backend eliminó por completo
+  // /pets/{id}/weight y /pets/{id}/weight-history.
 };

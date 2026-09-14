@@ -41,6 +41,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { petsService } from "@/lib/api/pets";
+import { petRecordsService } from "@/lib/api/pet-records";
 import { useBreeds } from "@/hooks/useBreeds";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
@@ -50,14 +51,13 @@ import type {
   Pet,
   UpdatePetRequest,
   PatchPetOptionalRequest,
-  WeightRecord,
-  RecordWeightRequest,
   PetSize,
   PetCoatType,
   PetActivityLevel,
   PetBathBehavior,
   PetAntiparasiticInterval,
 } from "@/types/pets";
+import type { PetRecordOut } from "@/types/pet-records";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -330,7 +330,6 @@ function EditGroomingDialog({ open, onOpenChange, pet, onSaved }: EditGroomingDi
   useEffect(() => {
     if (open) {
       setForm({
-        weight_kg: pet.weight_kg ?? undefined,
         size: pet.size ?? undefined,
         coat_type: pet.coat_type ?? undefined,
         sterilized: pet.sterilized ?? undefined,
@@ -408,11 +407,9 @@ function EditGroomingDialog({ open, onOpenChange, pet, onSaved }: EditGroomingDi
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Peso (kg)</label>
-                <Input
-                  type="number" step="0.1" min="0" placeholder="Ej. 8.5"
-                  value={form.weight_kg ?? ""}
-                  onChange={(e) => setForm(p => ({ ...p, weight_kg: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                />
+                <p className="flex h-9 items-center rounded-md border border-dashed border-input px-2.5 text-sm text-muted-foreground">
+                  Usa el botón &quot;Peso&quot; del perfil para registrarlo
+                </p>
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tamaño</label>
@@ -525,8 +522,14 @@ function WeightDialog({ open, onOpenChange, pet, onSuccess }: { open: boolean; o
     if (!weight || parseFloat(weight) <= 0) { setFeedback({ type: "error", msg: "Ingresa un peso válido." }); return; }
     setLoading(true);
     try {
-      const payload: RecordWeightRequest = { weight_kg: parseFloat(weight), recorded_at: date };
-      await petsService.recordWeight(pet.id, payload);
+      // occurred_at a medianoche local de la fecha elegida — nunca queda en
+      // el futuro (el input ya limita a "hoy" como máximo) y evita líos de
+      // zona horaria innecesarios para un registro que solo lleva fecha.
+      await petRecordsService.create(pet.id, {
+        type: "weight_record",
+        occurred_at: new Date(`${date}T00:00:00`).toISOString(),
+        data: { weight_kg: parseFloat(weight) },
+      });
       setFeedback({ type: "success", msg: "Peso registrado correctamente." });
       setTimeout(() => { onOpenChange(false); onSuccess(); }, 1200);
     } catch {
@@ -580,7 +583,7 @@ export default function PetProfilePage() {
   const petId = params?.id as string;
 
   const [pet, setPet] = useState<Pet | null>(null);
-  const [weightHistory, setWeightHistory] = useState<WeightRecord[]>([]);
+  const [weightHistory, setWeightHistory] = useState<PetRecordOut[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -594,7 +597,9 @@ export default function PetProfilePage() {
     try {
       const [petData, history] = await Promise.all([
         petsService.detail(petId),
-        petsService.weightHistory(petId).catch(() => [] as WeightRecord[]),
+        petRecordsService
+          .list(petId, { type: "weight_record" })
+          .catch(() => [] as PetRecordOut[]),
       ]);
       setPet(petData);
       setWeightHistory(history);
@@ -752,9 +757,9 @@ export default function PetProfilePage() {
                 {weightHistory.slice(0, 6).map((entry) => (
                   <li key={entry.id} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
                     <span className="text-xs text-muted-foreground">
-                      {new Date(entry.recorded_at).toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" })}
+                      {new Date(entry.occurred_at).toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" })}
                     </span>
-                    <span className="text-sm font-bold text-foreground">{entry.weight_kg} kg</span>
+                    <span className="text-sm font-bold text-foreground">{entry.data.weight_kg} kg</span>
                   </li>
                 ))}
               </ul>

@@ -33,12 +33,12 @@ import { useBreeds } from "@/hooks/useBreeds";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
 import { petsService } from "@/lib/api/pets";
+import { petRecordsService } from "@/lib/api/pet-records";
 import { safePhotoUrl } from "@/lib/utils/pets";
 import type {
   Pet,
   CreatePetRequest,
   UpdatePetRequest,
-  RecordWeightRequest,
 } from "@/types/pets";
 import { cn } from "@/lib/utils";
 
@@ -432,11 +432,13 @@ function WeightDialog({
     setLoading(true);
     setFeedback(null);
     try {
-      const payload: RecordWeightRequest = {
-        weight_kg: parseFloat(weight),
-        recorded_at: date,
-      };
-      await petsService.recordWeight(pet.id, payload);
+      // occurred_at a medianoche local de la fecha elegida — nunca queda en
+      // el futuro (el input ya limita a "hoy" como máximo).
+      await petRecordsService.create(pet.id, {
+        type: "weight_record",
+        occurred_at: new Date(`${date}T00:00:00`).toISOString(),
+        data: { weight_kg: parseFloat(weight) },
+      });
       setFeedback({ type: "success", msg: "Peso registrado correctamente." });
       setTimeout(() => {
         onOpenChange(false);

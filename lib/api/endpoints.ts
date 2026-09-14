@@ -16,6 +16,7 @@ export const ENDPOINTS = {
   PETS: {
     LIST: "/pets",
     DETAIL: (id: string) => `/pets/${id}`,
+    RECORDS: (id: string) => `/pets/${id}/records`,
   },
   STORE: {
     CATEGORIES: "/store/categories",
@@ -50,6 +51,9 @@ export const ENDPOINTS = {
     LIST: "/orders",
     CREATE: "/orders",
     DETAIL: (id: string) => `/orders/${id}`,
+    PAY: (id: string) => `/orders/${id}/pay`,
+    // Fallback — el flujo normal ya no los llama (ver lib/api/orders.ts
+    // `pay()`), quedan por si soporte necesita corregir algo manualmente.
     CONFIRM_PAYMENT: (id: string) => `/orders/${id}/confirm-payment`,
     FAIL_PAYMENT: (id: string) => `/orders/${id}/fail-payment`,
     RETRY_PAYMENT: (id: string) => `/orders/${id}/retry-payment`,

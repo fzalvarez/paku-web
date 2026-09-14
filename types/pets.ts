@@ -79,9 +79,10 @@ export interface UpdatePetRequest {
 /**
  * PATCH /pets/{id}/optional — actualiza el perfil avanzado de grooming.
  * Todos los campos son opcionales; solo se envían los que cambian.
+ * No incluye weight_kg — el backend lo ignora silenciosamente en este
+ * endpoint desde la migración a pet_records (ver types/pet-records.ts).
  */
 export interface PatchPetOptionalRequest {
-  weight_kg?: number | null;
   size?: PetSize | null;
   coat_type?: PetCoatType | null;
   sterilized?: boolean | null;
@@ -98,14 +99,5 @@ export interface PatchPetOptionalRequest {
   special_shampoo?: boolean | null;
 }
 
-export interface WeightRecord {
-  id: string;
-  pet_id: string;
-  weight_kg: number;
-  recorded_at: string;
-}
-
-export interface RecordWeightRequest {
-  weight_kg: number;
-  recorded_at?: string; // ISO date, default: now
-}
+// El historial de peso ahora es un caso particular de pet_records
+// (type: "weight_record") — ver types/pet-records.ts.
