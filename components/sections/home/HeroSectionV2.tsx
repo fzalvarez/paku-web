@@ -28,7 +28,7 @@ export function HeroSectionV2() {
           aria-hidden="true"
           loading="eager"
           fetchPriority="high"
-          className="w-full h-full object-cover object-[85%_center] md:object-center"
+          className="w-full h-full object-cover object-[60%_center] md:object-center"
         />
         {/* Overlay: degradado vertical solo en la mitad inferior */}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/60 via-black/25 to-transparent" />
