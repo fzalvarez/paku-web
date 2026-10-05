@@ -36,7 +36,7 @@ export interface PetRecordOut {
   created_at: string;
   updated_at: string;
   recorded_by_user_id: string | null;
-  recorded_by_role: "owner" | "ally" | "admin" | "system";
+  recorded_by_role: "owner" | "groomer" | "admin" | "system";
   recorded_by_name?: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>;
@@ -55,7 +55,7 @@ export interface CreatePetRecordPayload {
 
 /**
  * price_check solo viene presente (no null) cuando quien registra el peso
- * es admin/ally con una orden pagada de esa mascota en curso — nunca desde
+ * es admin/groomer con una orden pagada de esa mascota en curso — nunca desde
  * paku-web (siempre viene null acá). Se tipa por completitud del contrato.
  */
 export interface PriceCheckOut {
@@ -74,7 +74,7 @@ export interface ListRecordsParams {
   type?: RecordType;
   date_from?: string;
   date_to?: string;
-  recorded_by_role?: "owner" | "ally" | "admin" | "system";
+  recorded_by_role?: "owner" | "groomer" | "admin" | "system";
   limit?: number;
   offset?: number;
 }

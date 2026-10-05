@@ -3,14 +3,7 @@
 import { CheckCircle2, MapPin, CalendarDays, Package, ArrowRight, Printer } from "lucide-react";
 import Link from "next/link";
 import type { OrderOut, OrderItemSnapshot } from "@/types/orders";
-
-const ORDER_STATUS_LABELS: Record<string, string> = {
-  created: "Creada — pendiente de asignación",
-  on_the_way: "El especialista está en camino",
-  in_service: "Servicio en curso",
-  done: "Servicio finalizado",
-  cancelled: "Cancelado",
-};
+import { orderStatusLabel } from "@/lib/labels";
 
 function formatDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -77,7 +70,7 @@ export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProp
       <div className="mt-6 w-full rounded-2xl border border-border bg-card p-4 text-left">
         <div className="mb-4 flex items-center gap-2">
           <div className="size-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-sm font-semibold">{ORDER_STATUS_LABELS[order.status] ?? order.status}</span>
+          <span className="text-sm font-semibold">{orderStatusLabel(order.status)}</span>
         </div>
 
         {/* Fecha programada */}

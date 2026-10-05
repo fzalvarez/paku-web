@@ -1,12 +1,12 @@
 /**
- * Tipos del módulo de chat entre cliente y ally durante una orden activa.
+ * Tipos del módulo de chat entre cliente y groomer durante una orden activa.
  */
 
 export interface ChatMessage {
   id: string;
   order_id: string;
   sender_id: string;
-  sender_role: "user" | "ally" | "admin";
+  sender_role: "user" | "groomer" | "admin";
   body: string;
   is_read: boolean;
   created_at: string; // ISO-8601

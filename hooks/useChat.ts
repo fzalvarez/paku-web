@@ -19,7 +19,7 @@ export interface UseChatReturn {
  * Hook de chat para una orden activa.
  * - Carga inicial sin cursor.
  * - Polling cada 3s usando el cursor `since` (solo trae mensajes nuevos).
- * - El backend marca los mensajes del ally como leídos automáticamente al hacer GET.
+ * - El backend marca los mensajes del groomer como leídos automáticamente al hacer GET.
  *
  * @param orderId  ID de la orden
  * @param active   true cuando el estado de la orden es on_the_way | in_service

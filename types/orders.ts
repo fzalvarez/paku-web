@@ -6,13 +6,24 @@ import type { CartItemMeta } from "./cart";
 
 // ── Estados ────────────────────────────────────────────────────────────────────
 
+/**
+ * "skipped" (C-13): el groomer no pudo hacer la parada (mascota o tutor
+ * ausente). El backend puede sumar estados: no asumir que la lista es cerrada
+ * (los textos tienen valor por defecto en lib/labels.ts).
+ */
 export type OrderStatus =
   | "created"
   | "accepted"
   | "on_the_way"
   | "in_service"
   | "done"
-  | "cancelled";
+  | "cancelled"
+  | "skipped";
+
+/** Pasos del servicio en la van (C-11), en orden. */
+export type ServiceStep = "reception" | "bath" | "drying" | "finishing" | "return";
+
+export type SkipReason = "pet_not_present" | "tutor_not_present" | "other";
 
 /**
  * "verifying" es nuevo desde la migración a POST /orders/{id}/pay: el cobro
@@ -63,14 +74,33 @@ export interface OrderOut {
    * doc_fase4_recalculo_precio_por_peso.md.
    */
   parent_order_id?: string | null;
-  ally_id: string | null;
+  groomer_id: string | null;
+  /** Fecha y hora de la parada que asigna el admin (UTC). Null hasta la asignación. */
   scheduled_at: string | null;
   hold_id: string | null;
   payment_status?: OrderPaymentStatus;
   payment_method?: OrderPaymentMethod | null;
   culqi_charge_id?: string | null;
+  /** Paso actual dentro de in_service (C-11). Null fuera del servicio. */
+  service_step?: ServiceStep | null;
+  service_steps_log?: ServiceStepLogEntry[];
+  addons_done?: AddonDoneEntry[];
+  /** Solo en órdenes saltadas (C-13). */
+  skip_reason?: SkipReason | null;
+  skip_note?: string | null;
+  skipped_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ServiceStepLogEntry {
+  step: ServiceStep;
+  started_at: string;
+}
+
+export interface AddonDoneEntry {
+  addon_id: string;
+  done_at: string;
 }
 
 // ── Input para crear orden ─────────────────────────────────────────────────────

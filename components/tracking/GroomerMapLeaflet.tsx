@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * AllyMapLeaflet
- * Mapa de seguimiento del ally usando Leaflet + OpenStreetMap (sin API key).
+ * GroomerMapLeaflet
+ * Mapa de seguimiento del groomer usando Leaflet + OpenStreetMap (sin API key).
  *
- * - El marcador del ally se actualiza en tiempo real sin recargar el mapa.
+ * - El marcador del groomer se actualiza en tiempo real sin recargar el mapa.
  * - La polyline de la ruta se dibuja cuando está disponible (GET /route).
  * - El marcador del destino es fijo (domicilio del cliente).
  *
@@ -36,7 +36,7 @@ L.Icon.Default.mergeOptions({
 
 // ── Íconos personalizados ─────────────────────────────────────────────────────
 
-const allyIcon = L.divIcon({
+const groomerIcon = L.divIcon({
   className: "",
   html: `
     <div style="
@@ -83,7 +83,7 @@ const destIcon = L.divIcon({
   popupAnchor: [0, -16],
 });
 
-// ── Helper: recentrar el mapa cuando cambia la posición del ally ─────────────
+// ── Helper: recentrar el mapa cuando cambia la posición del groomer ─────────────
 
 interface RecenterProps {
   lat: number;
@@ -129,10 +129,10 @@ function DynamicMarker({ lat, lng, icon, popupText }: DynamicMarkerProps) {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
-export interface AllyMapLeafletProps {
-  /** Posición actual del ally (se actualiza con polling) */
-  allyLat: number;
-  allyLng: number;
+export interface GroomerMapLeafletProps {
+  /** Posición actual del groomer (se actualiza con polling) */
+  groomerLat: number;
+  groomerLng: number;
   /** Posición fija del destino (domicilio del cliente) */
   destLat: number;
   destLng: number;
@@ -140,13 +140,13 @@ export interface AllyMapLeafletProps {
   polyline?: string | null;
 }
 
-export function AllyMapLeaflet({
-  allyLat,
-  allyLng,
+export function GroomerMapLeaflet({
+  groomerLat,
+  groomerLng,
   destLat,
   destLng,
   polyline,
-}: AllyMapLeafletProps) {
+}: GroomerMapLeafletProps) {
   // Decodificar polyline → array de [lat, lng] para Leaflet
   const routePositions: [number, number][] = polyline
     ? polylineCodec.decode(polyline).map(([lat, lng]) => [lat, lng])
@@ -154,7 +154,7 @@ export function AllyMapLeaflet({
 
   return (
     <MapContainer
-      center={[allyLat, allyLng]}
+      center={[groomerLat, groomerLng]}
       zoom={15}
       scrollWheelZoom={false}
       style={{ height: "280px", width: "100%", borderRadius: "0.75rem" }}
@@ -166,14 +166,14 @@ export function AllyMapLeaflet({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* Recentrar suavemente cuando el ally se mueve */}
-      <RecenterOnMove lat={allyLat} lng={allyLng} />
+      {/* Recentrar suavemente cuando el groomer se mueve */}
+      <RecenterOnMove lat={groomerLat} lng={groomerLng} />
 
-      {/* Marcador del ally (se mueve con useEffect interno) */}
+      {/* Marcador del groomer (se mueve con useEffect interno) */}
       <DynamicMarker
-        lat={allyLat}
-        lng={allyLng}
-        icon={allyIcon}
+        lat={groomerLat}
+        lng={groomerLng}
+        icon={groomerIcon}
         popupText="Tu especialista"
       />
 

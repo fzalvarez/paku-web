@@ -2,11 +2,11 @@
 
 /**
  * ChatPanel
- * Panel de mensajería entre el cliente y el ally para órdenes activas.
+ * Panel de mensajería entre el cliente y el groomer para órdenes activas.
  * Disponible durante on_the_way e in_service.
  *
  * - Polling cada 3s mediante useChat
- * - Burbujas de mensaje estilo WhatsApp (usuario a la derecha, ally a la izquierda)
+ * - Burbujas de mensaje estilo WhatsApp (usuario a la derecha, groomer a la izquierda)
  * - Input de texto con envío por Enter o botón
  * - Scroll automático al último mensaje
  */
@@ -45,7 +45,7 @@ function Bubble({ message, isMe }: BubbleProps) {
             : "rounded-bl-sm bg-muted text-foreground border border-border"
         )}
       >
-        {/* Etiqueta de remitente solo para ally */}
+        {/* Etiqueta de remitente solo para el groomer */}
         {!isMe && (
           <p className="mb-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Especialista
@@ -91,7 +91,7 @@ export function ChatPanel({ orderId, active }: ChatPanelProps) {
     }
   }, [messages, isOpen]);
 
-  // Contar mensajes no leídos del ally (para el badge)
+  // Contar mensajes no leídos del groomer (para el badge)
   const unreadCount = messages.filter(
     (m) => m.sender_role !== "user" && !m.is_read
   ).length;

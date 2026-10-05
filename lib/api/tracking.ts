@@ -36,7 +36,7 @@ async function trackingFetch<T>(path: string): Promise<T> {
 export const trackingService = {
   /**
    * GET /tracking/orders/{order_id}/current
-   * Última posición del ally. Disponible en on_the_way | in_service.
+   * Última posición del groomer. Disponible en on_the_way | in_service.
    */
   getCurrent(orderId: string): Promise<TrackingCurrent> {
     return trackingFetch<TrackingCurrent>(

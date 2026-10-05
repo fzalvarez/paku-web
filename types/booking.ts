@@ -7,6 +7,7 @@
 export interface AvailabilitySlot {
   id: string;
   service_id: string;
+  service_name?: string | null;
   date: string; // YYYY-MM-DD
   capacity: number;
   booked: number;
@@ -32,7 +33,7 @@ export interface HoldOut {
   status: HoldStatus;
   expires_at: string; // ISO datetime
   created_at: string;
-  date: string;       // YYYY-MM-DD
+  date: string | null; // YYYY-MM-DD
 }
 
 export interface CreateHoldRequest {

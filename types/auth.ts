@@ -2,7 +2,7 @@
  * Tipos del dominio de autenticación.
  */
 
-export type UserRole = "admin" | "user";
+export type UserRole = "admin" | "user" | "groomer";
 export type UserSex = "male" | "female";
 
 // ── Requests ──────────────────────────────────────────────────────────────────

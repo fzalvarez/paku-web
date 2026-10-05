@@ -1,6 +1,7 @@
 import type { RequestOptions } from "@/types/api";
 import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from "@/lib/session";
 import { ENDPOINTS } from "./endpoints";
+import { parseApiErrorBody } from "./errors";
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ??
@@ -10,11 +11,17 @@ const BASE_URL = (
 
 // ── Error tipado ──────────────────────────────────────────────────────────────
 
+/**
+ * `message` ya viene en español (lib/api/errors.ts). `code` sirve para decidir
+ * qué hacer (ej. HOLD_EXPIRED → volver a elegir fecha) y `detail` conserva el
+ * cuerpo original para los datos extra (ej. PRICE_CHANGED trae items y total).
+ */
 export class ApiCallError extends Error {
   constructor(
     public status: number,
     public code: string,
-    message: string
+    message: string,
+    public detail?: unknown
   ) {
     super(message);
     this.name = "ApiCallError";
@@ -37,29 +44,8 @@ function buildQueryString(
 }
 
 function parseApiError(body: Record<string, unknown>, status: number): ApiCallError {
-  const detail = body?.detail;
-
-  if (!detail) return new ApiCallError(status, "API_ERROR", "Error desconocido");
-
-  if (Array.isArray(detail) && detail.length > 0) {
-    const first = detail[0] as Record<string, unknown>;
-    return new ApiCallError(
-      status,
-      String(first?.code ?? "VALIDATION_ERROR"),
-      String(first?.msg ?? first)
-    );
-  }
-
-  if (typeof detail === "object" && detail !== null) {
-    const d = detail as Record<string, unknown>;
-    return new ApiCallError(
-      status,
-      String(d.code ?? "API_ERROR"),
-      String(d.message ?? d.detail ?? "Error")
-    );
-  }
-
-  return new ApiCallError(status, String(detail), String(detail));
+  const { code, message } = parseApiErrorBody(body, status);
+  return new ApiCallError(status, code, message, body?.detail);
 }
 
 // ── Refresh token ─────────────────────────────────────────────────────────────

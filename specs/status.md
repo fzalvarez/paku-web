@@ -23,6 +23,13 @@
 
 - [ ] (pendiente de priorización)
 
+## Pedidos al backend
+
+- [x] **500 en las respuestas de reservas** (`HoldOut.date` tipado como `null`). Reportado 2026-10-05;
+  corregido en paku-backend `fd48bb5` (**C-19**). **Pendiente de despliegue:** hasta entonces `POST /holds`
+  guarda la reserva pero responde 500, y el flujo de compra nuevo no se puede probar contra el servidor.
+  Para comprobar el despliegue: `HoldOut.date` en `/openapi.json` debe decir `string`/`date`, no `null`.
+
 ## Observaciones
 
 - Pagos: solo Culqi. Tokenización en cliente; el cobro va a un microservicio (`stream.dev-qa.site/payment/*`).

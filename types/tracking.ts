@@ -2,7 +2,7 @@
  * Tipos del dominio de tracking de órdenes activas.
  */
 
-export interface AllyLocationPoint {
+export interface LocationPoint {
   lat: number;
   lng: number;
   accuracy_m: number | null;
@@ -12,15 +12,16 @@ export interface AllyLocationPoint {
 export interface TrackingCurrent {
   order_id: string;
   order_status: string;
-  ally_location: AllyLocationPoint | null;
-  destination: AllyLocationPoint | null;
-  staleness_seconds: number;
+  /** Null hasta que el groomer envía su primera posición */
+  groomer_location: LocationPoint | null;
+  destination: LocationPoint;
+  staleness_seconds: number | null;
 }
 
 export interface TrackingRoute {
   order_id: string;
-  ally_location: AllyLocationPoint | null;
-  destination: AllyLocationPoint | null;
+  groomer_location: LocationPoint | null;
+  destination: LocationPoint;
   eta_seconds: number | null;
   eta_display: string | null;
   polyline: string | null;

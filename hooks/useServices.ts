@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { ServiceOut, ServiceCategoryOut } from "@/types/services";
 import { servicesService } from "@/lib/api/services";
-import { ApiCallError } from "@/lib/api/client";
 
 interface UseServicesReturn {
   services: ServiceOut[];
@@ -56,13 +55,7 @@ export function useServices(petId?: string): UseServicesReturn {
           setServices(allProducts);
         }
       } catch (err) {
-        if (err instanceof ApiCallError) {
-          setError(`Error ${err.status}: ${err.message}`);
-        } else if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("No se pudieron cargar los servicios.");
-        }
+        setError(err instanceof Error ? err.message : "No se pudieron cargar los servicios.");
       } finally {
         setLoading(false);
       }

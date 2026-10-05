@@ -483,7 +483,7 @@ function HoldView({
                 : "Reserva temporal activa"}
           </p>
           <p className="text-sm text-muted-foreground">
-            {formatDateLong(hold.date)}
+            {hold.date ? formatDateLong(hold.date) : ""}
           </p>
         </div>
       </div>

@@ -7,8 +7,8 @@ import { ordersService } from "@/lib/api/orders";
 import { useTracking } from "@/hooks/useTracking";
 
 // Leaflet requiere window → carga dinámica solo en cliente
-const AllyMapLeaflet = dynamic(
-  () => import("@/components/tracking/AllyMapLeaflet").then((m) => m.AllyMapLeaflet),
+const GroomerMapLeaflet = dynamic(
+  () => import("@/components/tracking/GroomerMapLeaflet").then((m) => m.GroomerMapLeaflet),
   { ssr: false, loading: () => <div className="flex items-center justify-center rounded-xl bg-muted/30 aspect-video text-xs text-muted-foreground">Cargando mapa…</div> }
 );
 import { useWebRTCViewer } from "@/hooks/useWebRTCViewer";
@@ -23,57 +23,25 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { orderStatusInfo, paymentStatusInfo } from "@/lib/labels";
 import type { OrderOut, OrderStatus } from "@/types/orders";
 
 // ── Config de estados ─────────────────────────────────────────────────────────
+// Textos y colores en lib/labels.ts; aquí solo los íconos.
 
-const STATUS_CONFIG: Record<
-  OrderStatus,
-  { label: string; icon: React.ReactNode; color: string; bgColor: string; description: string }
-> = {
-  created: {
-    label: "Pendiente de asignación",
-    icon: <Clock className="size-5" />,
-    color: "text-yellow-600",
-    bgColor: "bg-yellow-50 border-yellow-200",
-    description: "Tu pedido fue creado y está esperando que le asignemos un especialista.",
-  },
-  accepted: {
-    label: "Aceptado",
-    icon: <CheckCircle2 className="size-5" />,
-    color: "text-teal-600",
-    bgColor: "bg-teal-50 border-teal-200",
-    description: "Un especialista ha aceptado tu pedido y se está preparando.",
-  },
-  on_the_way: {
-    label: "Especialista en camino",
-    icon: <Truck className="size-5" />,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50 border-blue-200",
-    description: "Tu especialista ya salió y está dirigiéndose a tu domicilio.",
-  },
-  in_service: {
-    label: "Servicio en curso",
-    icon: <Scissors className="size-5" />,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50 border-purple-200",
-    description: "El especialista llegó y el servicio está en progreso.",
-  },
-  done: {
-    label: "Servicio finalizado",
-    icon: <CheckCircle2 className="size-5" />,
-    color: "text-green-600",
-    bgColor: "bg-green-50 border-green-200",
-    description: "¡Servicio completado! Esperamos que tu mascota quede feliz.",
-  },
-  cancelled: {
-    label: "Cancelado",
-    icon: <AlertCircle className="size-5" />,
-    color: "text-red-600",
-    bgColor: "bg-red-50 border-red-200",
-    description: "Este pedido fue cancelado.",
-  },
+const STATUS_ICONS: Partial<Record<OrderStatus, React.ReactNode>> = {
+  created: <Clock className="size-5" />,
+  accepted: <CheckCircle2 className="size-5" />,
+  on_the_way: <Truck className="size-5" />,
+  in_service: <Scissors className="size-5" />,
+  done: <CheckCircle2 className="size-5" />,
+  cancelled: <AlertCircle className="size-5" />,
+  skipped: <AlertCircle className="size-5" />,
 };
+
+function statusIcon(status: string): React.ReactNode {
+  return STATUS_ICONS[status as OrderStatus] ?? <Clock className="size-5" />;
+}
 
 // Solo estos 3 estados son relevantes para la barra de progreso del tracking
 type TrackingFlowStatus = "on_the_way" | "in_service" | "done";
@@ -124,36 +92,6 @@ const TRACKING_FLOW_CONFIG: Record<TrackingFlowStatus, {
 // Flujo completo para la barra de progreso inferior
 const STATUS_FLOW: OrderStatus[] = ["created", "accepted", "on_the_way", "in_service", "done"];
 
-const PAYMENT_STATUS_CONFIG: Record<
-  string,
-  { label: string; color: string; bgColor: string; description: string }
-> = {
-  pending: {
-    label: "Pago pendiente",
-    color: "text-amber-700",
-    bgColor: "bg-amber-50 border-amber-200",
-    description: "Estamos esperando la confirmación del pago de esta orden.",
-  },
-  paid: {
-    label: "Pago confirmado",
-    color: "text-green-700",
-    bgColor: "bg-green-50 border-green-200",
-    description: "El pago fue confirmado correctamente.",
-  },
-  verifying: {
-    label: "Confirmando pago",
-    color: "text-amber-700",
-    bgColor: "bg-amber-50 border-amber-200",
-    description: "Estamos confirmando tu pago con el banco 🏦, te avisaremos en cuanto se confirme.",
-  },
-  failed: {
-    label: "Pago fallido",
-    color: "text-red-700",
-    bgColor: "bg-red-50 border-red-200",
-    description: "El último intento de pago falló. Puedes reintentar desde el flujo de pago.",
-  },
-};
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string): string {
@@ -175,11 +113,11 @@ function mapsUrl(lat: number, lng: number): string {
   return `https://www.google.com/maps?q=${lat},${lng}`;
 }
 
-// ── Sub-componente: mapa Leaflet del ally ────────────────────────────────────
+// ── Sub-componente: mapa Leaflet del groomer ────────────────────────────────────
 
-interface AllyMapContainerProps {
-  allyLat: number;
-  allyLng: number;
+interface GroomerMapContainerProps {
+  groomerLat: number;
+  groomerLng: number;
   destLat: number;
   destLng: number;
   destAddress: string;
@@ -188,17 +126,17 @@ interface AllyMapContainerProps {
   polyline?: string | null;
 }
 
-function AllyMapContainer({
-  allyLat, allyLng, destLat, destLng,
+function GroomerMapContainer({
+  groomerLat, groomerLng, destLat, destLng,
   destAddress, isStale, etaDisplay, polyline,
-}: AllyMapContainerProps) {
+}: GroomerMapContainerProps) {
   return (
     <div className="space-y-2">
       {/* Mapa Leaflet */}
       <div className="overflow-hidden rounded-xl border border-border">
-        <AllyMapLeaflet
-          allyLat={allyLat}
-          allyLng={allyLng}
+        <GroomerMapLeaflet
+          groomerLat={groomerLat}
+          groomerLng={groomerLng}
           destLat={destLat}
           destLng={destLng}
           polyline={polyline}
@@ -229,7 +167,7 @@ function AllyMapContainer({
         )}
 
         <a
-          href={mapsUrl(allyLat, allyLng)}
+          href={mapsUrl(groomerLat, groomerLng)}
           target="_blank"
           rel="noopener noreferrer"
           className="ml-auto flex items-center gap-1 text-[10px] font-semibold text-primary hover:underline"
@@ -485,7 +423,7 @@ function TrackingPanel({ orderId, orderStatus, destination }: TrackingPanelProps
           </p>
         )}
 
-        {/* ── EN CAMINO: mapa de ubicación del ally ── */}
+        {/* ── EN CAMINO: mapa de ubicación del groomer ── */}
         {isOnTheWay && (
           <div>
             <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -498,10 +436,10 @@ function TrackingPanel({ orderId, orderStatus, destination }: TrackingPanelProps
                 Obteniendo ubicación…
               </div>
             )}
-            {!loading && current?.ally_location && destination ? (
-              <AllyMapContainer
-                allyLat={current.ally_location.lat}
-                allyLng={current.ally_location.lng}
+            {!loading && current?.groomer_location && destination ? (
+              <GroomerMapContainer
+                groomerLat={current.groomer_location.lat}
+                groomerLng={current.groomer_location.lng}
                 destLat={destination.lat}
                 destLng={destination.lng}
                 destAddress={destination.address_line}
@@ -580,9 +518,9 @@ interface OrderDetailContentProps {
 
 function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) {
   const [payModalOpen, setPayModalOpen] = useState(false);
-  const statusConfig = STATUS_CONFIG[order.status];
+  const statusConfig = orderStatusInfo(order.status);
   const paymentStatus = order.payment_status ?? "pending";
-  const paymentConfig = PAYMENT_STATUS_CONFIG[paymentStatus] ?? PAYMENT_STATUS_CONFIG.pending;
+  const paymentConfig = paymentStatusInfo(paymentStatus);
   const baseItem = order.items_snapshot.find((i) => i.kind === "service_base");
   const scheduledDate = baseItem?.meta?.scheduled_date;
   const scheduledTime = baseItem?.meta?.scheduled_time;
@@ -606,7 +544,7 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
           "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold shrink-0",
           statusConfig.bgColor, statusConfig.color
         )}>
-          {statusConfig.icon}
+          {statusIcon(order.status)}
           {statusConfig.label}
         </span>
       </div>
@@ -688,15 +626,22 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
         active={(["on_the_way", "in_service"] as OrderStatus[]).includes(order.status)}
       />
 
-      {/* ── Progreso completo (barra de 4 estados) ── */}
-      {order.status !== "cancelled" && (
+      {/* ── Progreso completo (barra de 5 estados) ── */}
+      {/* Fuera del flujo normal (cancelado, saltado o un estado nuevo) solo se muestra la descripción */}
+      {currentStatusIdx < 0 && statusConfig.description && (
+        <div className={cn("rounded-2xl border px-4 py-3", statusConfig.bgColor)}>
+          <p className={cn("text-sm font-bold", statusConfig.color)}>{statusConfig.label}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{statusConfig.description}</p>
+        </div>
+      )}
+      {currentStatusIdx >= 0 && (
         <div className="rounded-2xl border border-border bg-card p-4">
           <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Progreso del pedido
           </p>
           <div className="flex items-center gap-0">
             {STATUS_FLOW.map((status, idx) => {
-              const conf = STATUS_CONFIG[status];
+              const conf = orderStatusInfo(status);
               const isPast = idx < currentStatusIdx;
               const isCurrentStep = idx === currentStatusIdx;
               return (
@@ -708,7 +653,7 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
                       isCurrentStep && `border-current ${conf.color} bg-current/10`,
                       !isPast && !isCurrentStep && "border-border bg-muted text-muted-foreground"
                     )}>
-                      {isPast ? <CheckCircle2 className="size-4" /> : conf.icon}
+                      {isPast ? <CheckCircle2 className="size-4" /> : statusIcon(status)}
                     </div>
                     <span className={cn(
                       "hidden text-[10px] font-semibold sm:block text-center leading-tight max-w-16",

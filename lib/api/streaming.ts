@@ -1,6 +1,6 @@
 /**
  * Servicio de streaming WebRTC para órdenes activas.
- * El viewer (cliente) se conecta para ver la transmisión del ally (groomer).
+ * El viewer (cliente) se conecta para ver la transmisión del groomer.
  */
 import { getAccessToken } from "@/lib/session";
 
@@ -14,7 +14,7 @@ export interface StreamingSession {
   room_id: string;
   order_id: string;
   user_id: string;
-  ally_id: string;
+  groomer_id: string;
   order_status: string;
   /** "viewer" para el cliente web */
   role: "host" | "viewer";

@@ -12,6 +12,9 @@ export type CartItemKind = "service_base" | "service_addon" | "product";
 export interface CartItemMeta {
   /** Para service_base */
   pet_id?: string;
+  /** Reserva de cupo (POST /holds), obligatoria en el servicio base (C-15) */
+  hold_id?: string;
+  /** La completa el backend a partir de la reserva */
   scheduled_date?: string; // YYYY-MM-DD
   scheduled_time?: string; // HH:MM
   /** Para service_addon */
@@ -28,8 +31,12 @@ export interface CartItemOut {
   ref_id: string;
   name: string;
   qty: number;
+  /** Precio calculado por el backend (C-07). Es el único que se muestra. */
   unit_price: number;
   meta: CartItemMeta;
+  /** true si el precio que envió el front no coincidía con el del backend */
+  price_adjusted?: boolean;
+  client_unit_price?: number | null;
 }
 
 export interface CartOut {

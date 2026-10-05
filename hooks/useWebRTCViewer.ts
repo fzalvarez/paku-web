@@ -7,7 +7,7 @@
  * Flujo:
  * 1. GET /streaming/orders/{id}/session → obtener ws_url + stream_token + ice_servers
  * 2. Conectar WebSocket a wss://...?token=<JWT>
- * 3. Esperar "offer" del ally (host), responder con "answer"
+ * 3. Esperar "offer" del groomer (host), responder con "answer"
  * 4. Intercambiar ICE candidates
  * 5. Recibir remoteStream → reproducir en <video>
  */
@@ -17,7 +17,7 @@ import { getStreamingSession } from "@/lib/api/streaming";
 
 // ── Configuración ─────────────────────────────────────────────────────────────
 
-const GROOMER_TIMEOUT_MS = 15_000;   // tiempo máx esperando offer del ally
+const GROOMER_TIMEOUT_MS = 15_000;   // tiempo máx esperando offer del groomer
 const HEARTBEAT_INTERVAL_MS = 10_000;
 const HEARTBEAT_TIMEOUT_MS = 8_000;
 const MAX_RETRIES = 4;
@@ -28,11 +28,11 @@ const retryDelay = (attempt: number) => Math.min(2000 * Math.pow(2, attempt), 30
 export type WebRTCConnectionState =
   | "idle"
   | "fetching_session"   // GET /session
-  | "connecting"         // WS abierto, esperando offer del ally
+  | "connecting"         // WS abierto, esperando offer del groomer
   | "calling"            // ICE checking
   | "connected"          // vídeo activo ✅
   | "disconnected"       // caída temporal
-  | "groomer_absent"     // timeout: ally no en la sala
+  | "groomer_absent"     // timeout: groomer no en la sala
   | "order_not_active"   // 409: la orden no está in_service
   | "reconnecting"       // reintento en curso
   | "failed"             // agotó reintentos
@@ -223,7 +223,7 @@ export function useWebRTCViewer(orderId: string): UseWebRTCViewerResult {
 
     ws.onopen = () => {
       if (isCleanedUpRef.current) return;
-      // Timeout: si el ally no envía offer en X segundos → groomer_absent
+      // Timeout: si el groomer no envía offer en X segundos → groomer_absent
       if (retryCountRef.current === 0) {
         groomerTimerRef.current = setTimeout(() => {
           if (!isCleanedUpRef.current && !isConnectedRef.current) {
@@ -248,7 +248,7 @@ export function useWebRTCViewer(orderId: string): UseWebRTCViewerResult {
         return;
       }
 
-      // Ally terminó la transmisión
+      // El groomer terminó la transmisión
       if (msg.type === "stream_ended") {
         setConnectionState("closed");
         cleanup();
@@ -256,7 +256,7 @@ export function useWebRTCViewer(orderId: string): UseWebRTCViewerResult {
       }
 
       try {
-        // Offer del ally → responder con answer
+        // Offer del groomer → responder con answer
         if (msg.type === "offer" && msg.sdp) {
           if (groomerTimerRef.current) {
             clearTimeout(groomerTimerRef.current);
@@ -270,7 +270,7 @@ export function useWebRTCViewer(orderId: string): UseWebRTCViewerResult {
           }
         }
 
-        // ICE candidates del ally
+        // ICE candidates del groomer
         if ((msg.type === "ice-candidate" || msg.type === "candidate") && msg.candidate) {
           await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
         }
