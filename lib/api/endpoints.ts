@@ -69,6 +69,11 @@ export const ENDPOINTS = {
     HOLDS: "/holds",
     HOLD_CANCEL: (id: string) => `/holds/${id}/cancel`,
   },
+  NOTIFICATIONS: {
+    LIST: "/notifications",
+    UNREAD_COUNT: "/notifications/unread-count",
+    READ: (id: string) => `/notifications/${id}/read`,
+  },
   MEDIA: {
     SIGNED_UPLOAD: "/media/signed-upload",
     CONFIRM_PHOTO: "/media/confirm-profile-photo",

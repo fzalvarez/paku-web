@@ -19,7 +19,9 @@ import {
 import { ROUTES } from "@/constants/routes";
 import { AuthDialog } from "@/components/common/AuthDialog";
 import { CartButton } from "@/components/common/CartButton";
+import { NotificationBell } from "@/components/common/NotificationBell";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 const NAV_LINKS = [
   { label: "Servicios", href: ROUTES.PAKU_SPA },
@@ -199,6 +201,8 @@ export function Header() {
   const [authTab, setAuthTab] = useState<"login" | "register">("register");
   const [cartOpen, setCartOpen] = useState(false);
   const { user, loading, logout } = useAuthContext();
+  // Una sola campana montada (escritorio o móvil) para no consultar dos veces
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   function openLogin() {
     setAuthTab("login");
@@ -260,6 +264,7 @@ export function Header() {
               <div className="h-9 w-20 animate-pulse rounded-full bg-muted" />
             ) : (
               <>
+                {user && isDesktop && <NotificationBell />}
                 {user && (
                   <CartButton
                     open={cartOpen}
@@ -293,6 +298,7 @@ export function Header() {
 
           {/* Acciones mobile: CTA siempre visible + hamburguesa */}
           <div className="flex items-center gap-2 md:hidden">
+            {user && !isDesktop && <NotificationBell />}
             <Button asChild size="sm" className="rounded-full px-4">
               <Link href={ROUTES.BOOKING}>Agenda tu servicio</Link>
             </Button>

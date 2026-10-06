@@ -9,3 +9,4 @@
 | # | Feature | Estado |
 |---|---------|--------|
 | 0001 | [Seguimiento del servicio](features/0001-seguimiento-servicio/spec.md) — pasos, fotos, demoras, motivo del salto | done |
+| 0002 | [Campana de notificaciones](features/0002-campana-notificaciones/spec.md) — avisos del pedido en la web | done |
