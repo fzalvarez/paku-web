@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { usePets } from "@/hooks/usePets";
 import { useBreeds } from "@/hooks/useBreeds";
 import { petsService } from "@/lib/api/pets";
+import { petRecordsService } from "@/lib/api/pet-records";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
 import { calcPetAge, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
@@ -45,6 +46,11 @@ function AddPetModal({
   async function handleSubmit() {
     if (!form.name.trim()) {
       setError("El nombre es requerido");
+      return;
+    }
+    // Sin peso el backend no puede cotizar el servicio (C-07)
+    if (!form.weight_kg || Number(form.weight_kg) <= 0) {
+      setError("El peso es necesario para calcular el precio del servicio");
       return;
     }
     setSubmitting(true);
@@ -182,7 +188,7 @@ function AddPetModal({
           </div>
           <div>
             <label className="mb-1 block text-sm font-semibold">
-              Peso (kg)
+              Peso (kg) *
             </label>
             <input
               type="number"
@@ -254,6 +260,41 @@ export function StepSelectPet({
 }: StepSelectPetProps) {
   const { pets, loading, error, reload } = usePets();
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [weightInput, setWeightInput] = useState("");
+  const [savingWeight, setSavingWeight] = useState(false);
+  const [weightError, setWeightError] = useState<string | null>(null);
+
+  // La mascota que viene del listado tiene el peso al día; la guardada en el
+  // asistente puede ser anterior a registrarlo.
+  const selectedPet = pets.find((p) => p.id === selectedPetId) ?? null;
+  const missingWeight = !!selectedPet && !(selectedPet.weight_kg && selectedPet.weight_kg > 0);
+
+  // Registrar el peso: pet_records (type weight_record) es el único camino (ver lib/api/pet-records.ts)
+  async function handleSaveWeight() {
+    if (!selectedPet) return;
+    const value = parseFloat(weightInput);
+    if (!value || value <= 0) {
+      setWeightError("Ingresa un peso válido.");
+      return;
+    }
+    setSavingWeight(true);
+    setWeightError(null);
+    try {
+      await petRecordsService.create(selectedPet.id, {
+        type: "weight_record",
+        occurred_at: new Date().toISOString(),
+        data: { weight_kg: value },
+      });
+      const updated = await petsService.detail(selectedPet.id);
+      await reload();
+      onSelectPet(updated.id, updated);
+      setWeightInput("");
+    } catch (err) {
+      setWeightError(err instanceof Error ? err.message : "No se pudo registrar el peso.");
+    } finally {
+      setSavingWeight(false);
+    }
+  }
 
   return (
     <div>
@@ -329,6 +370,9 @@ export function StepSelectPet({
                 <p className="mt-0.5 text-xs text-muted-foreground/70">
                   {calcPetAge(pet.birth_date)}
                 </p>
+                {!(pet.weight_kg && pet.weight_kg > 0) && (
+                  <p className="mt-1 text-[11px] font-semibold text-orange-600">Falta el peso</p>
+                )}
               </button>
             );
           })}
@@ -345,10 +389,40 @@ export function StepSelectPet({
         </div>
       )}
 
+      {missingWeight && selectedPet && (
+        <div className="mt-6 rounded-2xl border border-orange-200 bg-orange-50 p-4">
+          <p className="text-sm font-bold text-orange-800">¿Cuánto pesa {selectedPet.name}?</p>
+          <p className="mt-0.5 text-xs text-orange-700">
+            El precio del servicio depende del peso de tu mascota.
+          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              placeholder="Ej: 8.5"
+              value={weightInput}
+              onChange={(e) => setWeightInput(e.target.value)}
+              className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <span className="text-sm text-muted-foreground">kg</span>
+            <button
+              onClick={handleSaveWeight}
+              disabled={savingWeight}
+              className="ml-auto flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {savingWeight && <Loader2 className="size-4 animate-spin" />}
+              Guardar peso
+            </button>
+          </div>
+          {weightError && <p className="mt-2 text-xs text-destructive">{weightError}</p>}
+        </div>
+      )}
+
       <WizardNavButtons
         canGoBack={false}
         onNext={onNext}
-        nextDisabled={!selectedPetId}
+        nextDisabled={!selectedPetId || loading || missingWeight}
         nextLabel="Continuar"
       />
     </div>

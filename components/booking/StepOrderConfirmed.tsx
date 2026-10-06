@@ -4,13 +4,7 @@ import { CheckCircle2, MapPin, CalendarDays, Package, ArrowRight, Printer } from
 import Link from "next/link";
 import type { OrderOut, OrderItemSnapshot } from "@/types/orders";
 import { orderStatusLabel } from "@/lib/labels";
-
-function formatDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("es-PE", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric",
-  });
-}
+import { orderScheduleText } from "@/lib/utils/dates";
 
 function ItemRow({ item }: { item: OrderItemSnapshot }) {
   const isBase = item.kind === "service_base";
@@ -34,8 +28,7 @@ interface StepOrderConfirmedProps {
 
 export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProps) {
   const baseItem = order.items_snapshot.find((i) => i.kind === "service_base");
-  const scheduledDate = baseItem?.meta?.scheduled_date;
-  const scheduledTime = baseItem?.meta?.scheduled_time;
+  const schedule = orderScheduleText(order.scheduled_at, baseItem?.meta?.scheduled_date);
 
   return (
     <div data-print-area className="flex flex-col items-center text-center">
@@ -74,12 +67,12 @@ export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProp
         </div>
 
         {/* Fecha programada */}
-        {scheduledDate && (
+        {schedule && (
           <div className="mb-3 flex items-center gap-3">
             <CalendarDays className="size-4 shrink-0 text-primary" />
             <div>
               <p className="text-xs text-muted-foreground">Fecha del servicio</p>
-              <p className="text-sm font-semibold capitalize">{formatDate(scheduledDate)}{scheduledTime ? ` a las ${scheduledTime}` : ""}</p>
+              <p className="text-sm font-semibold first-letter:uppercase">{schedule}</p>
             </div>
           </div>
         )}

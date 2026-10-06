@@ -55,13 +55,16 @@ export interface CartWithItemsOut {
 
 // ── Inputs ─────────────────────────────────────────────────────────────────────
 
+/**
+ * Ítem que se envía al carrito. Sin nombre ni precio: los calcula el backend
+ * (C-07). El servicio base lleva meta.pet_id y meta.hold_id; los adicionales
+ * van sin meta (el backend los liga al servicio base).
+ */
 export interface CartItemInput {
   kind: CartItemKind;
   ref_id: string;
-  name: string;
   qty: number;
-  unit_price: number;
-  meta: CartItemMeta;
+  meta?: CartItemMeta;
 }
 
 export interface AddCartItemsIn {
@@ -92,13 +95,12 @@ export interface CartCheckoutOut {
   items: CartItemOut[];
 }
 
-// ── Legacy (conservado para compatibilidad durante migración) ──────────────────
+/** detail del 409 PRICE_CHANGED en POST /cart/{id}/checkout. El carrito ya quedó con los precios nuevos. */
+export interface PriceChangedDetail {
+  code: "PRICE_CHANGED";
+  message: string;
+  items: { item_id: string; name: string; old_unit_price: number; new_unit_price: number }[];
+  total: number;
+  currency: string;
+}
 
-/** @deprecated Usar CartItemInput */
-export type AddCartItemIn = CartItemInput;
-/** @deprecated Usar CartItemInput */
-export type UpdateCartItemIn = { quantity: number };
-/** @deprecated */
-export interface CheckoutIn { address_id: string; payment_method?: string; notes?: string; }
-/** @deprecated */
-export interface CheckoutOut { order_id: string; status: string; total: number; currency: string; message?: string; }

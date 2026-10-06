@@ -1,15 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Loader2, AlertCircle, Trash2, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Loader2, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCart } from "@/hooks/useCart";
+import { cartService } from "@/lib/api/cart";
 import { ApiCallError } from "@/lib/api/client";
+import { formatPrice } from "@/types/services";
 import { WizardNavButtons } from "./WizardLayout";
-import type { CartItemOut, CartValidateOut } from "@/types/cart";
-import type { ServiceOut, ServiceAddon } from "@/types/services";
+import type { CartItemInput, CartItemOut, CartWithItemsOut, PriceChangedDetail } from "@/types/cart";
+import type { ServiceOut } from "@/types/services";
 import type { Pet } from "@/types/pets";
 import type { AddressOut } from "@/types/api";
+import type { HoldOut } from "@/types/booking";
+
+// El servicio se atiende por orden de ruta que define el admin; el backend
+// todavía exige meta.scheduled_time, así que se envía un valor fijo que no se muestra.
+const SCHEDULED_TIME = "09:00";
+
+/** Errores que obligan a volver a elegir la fecha (la reserva ya no sirve). */
+const HOLD_LOST_CODES = new Set([
+  "HOLD_EXPIRED", "HOLD_REQUIRED", "HOLD_MISMATCH", "HOLD_NOT_FOUND", "HOLD_NOT_OWNED", "INVALID_HOLD_ID",
+  "Cart expired",
+]);
+
+export function isHoldLost(err: unknown): err is ApiCallError {
+  return err instanceof ApiCallError && HOLD_LOST_CODES.has(err.code);
+}
 
 function formatDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -18,16 +34,8 @@ function formatDate(iso: string): string {
   });
 }
 
-interface CartItemRowProps {
-  item: CartItemOut;
-  onRemove: (id: string) => void;
-  removing: boolean;
-}
-
-function CartItemRow({ item, onRemove, removing }: CartItemRowProps) {
+function CartItemRow({ item }: { item: CartItemOut }) {
   const isBase = item.kind === "service_base";
-  const isAddon = item.kind === "service_addon";
-
   return (
     <div className={cn(
       "flex items-start justify-between rounded-xl p-3",
@@ -35,307 +43,255 @@ function CartItemRow({ item, onRemove, removing }: CartItemRowProps) {
     )}>
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          {isBase && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">Principal</span>}
-          {isAddon && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">Adicional</span>}
+          {isBase
+            ? <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">Principal</span>
+            : <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">Adicional</span>}
           <p className="text-sm font-semibold">{item.name}</p>
         </div>
-        {item.meta?.scheduled_date && (
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            📅 {formatDate(item.meta.scheduled_date)} a las {item.meta.scheduled_time}
-          </p>
+        {isBase && item.meta?.scheduled_date && (
+          <p className="mt-0.5 text-xs text-muted-foreground first-letter:uppercase">📅 {formatDate(item.meta.scheduled_date)}</p>
         )}
       </div>
-      <div className="flex items-center gap-2">
-        <span className="font-bold text-primary">S/ {(item.qty * item.unit_price).toFixed(2)}</span>
-        <button
-          onClick={() => onRemove(item.id)}
-          disabled={removing}
-          className="flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
-        >
-          <Trash2 className="size-3.5" />
-        </button>
-      </div>
+      <span className="font-bold text-primary">{formatPrice(item.unit_price)}</span>
     </div>
   );
 }
 
 interface StepReviewCartProps {
-  // Datos del wizard
   selectedPet: Pet | null;
   selectedService: ServiceOut | null;
   selectedAddonIds: string[];
-  selectedDate: string | null;
-  selectedTime: string | null;
   selectedAddress: AddressOut | null;
-  // Callbacks
+  hold: HoldOut | null;
+  /** Carrito que ya armó el asistente (se reemplaza en lugar de crear otro) */
+  cartId: string | null;
+  /** Ya existe la orden: el carrito quedó cerrado y no se puede cambiar */
+  orderCreated: boolean;
+  onCartChange: (cart: CartWithItemsOut) => void;
+  /** La reserva venció o ya no sirve: volver a elegir la fecha */
+  onHoldLost: (message: string) => void;
   onBack: () => void;
-  onProceedToPayment: (cartId: string, amountCents: number) => Promise<void>;
+  /** Crea la orden (si no existe) y pasa al pago */
+  onProceedToPayment: (cartId: string) => Promise<void>;
 }
 
 export function StepReviewCart({
   selectedPet,
   selectedService,
   selectedAddonIds,
-  selectedDate,
-  selectedTime,
   selectedAddress,
+  hold,
+  cartId,
+  orderCreated,
+  onCartChange,
+  onHoldLost,
   onBack,
   onProceedToPayment,
 }: StepReviewCartProps) {
-  const { cart, loading, mutating, error, addItems, removeItem, validate, checkout } = useCart();
-  const [cartBuilt, setCartBuilt] = useState(false);
-  const [buildingCart, setBuildingCart] = useState(false);
+  const [cart, setCart] = useState<CartWithItemsOut | null>(null);
+  const [total, setTotal] = useState<number | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
-  const [validation, setValidation] = useState<CartValidateOut | null>(null);
-  const [validating, setValidating] = useState(false);
-  const [checkingOut, setCheckingOut] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [processError, setProcessError] = useState<string | null>(null);
+  const [priceChange, setPriceChange] = useState<PriceChangedDetail | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const startedRef = useRef<number | null>(null);
+  const mountedRef = useRef(false);
 
-  // Construir el carrito al entrar al paso si no está construido
   useEffect(() => {
-    if (cartBuilt || buildingCart || !selectedService || !selectedPet || !selectedDate || !selectedTime) return;
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
-    async function buildCart() {
-      if (!selectedService || !selectedPet || !selectedDate || !selectedTime) return;
-      setBuildingCart(true);
-      setBuildError(null);
-      try {
-        const addonObjects: ServiceAddon[] = (selectedService.available_addons ?? []).filter(
-          (a) => selectedAddonIds.includes(a.id)
-        );
+  // Armar el carrito al entrar: precios y nombres los pone el backend (C-07)
+  useEffect(() => {
+    // Una sola vez por intento (en desarrollo React ejecuta los efectos dos veces y
+    // crearía dos carritos); el resultado se descarta si el paso ya se desmontó.
+    if (startedRef.current === attempt) return;
+    startedRef.current = attempt;
+    if (!selectedService || !selectedPet || !hold) return;
 
-        const items = [
-          {
-            kind: "service_base" as const,
-            ref_id: selectedService.id,
-            name: selectedService.name,
-            qty: 1,
-            unit_price: selectedService.price,
-            meta: {
-              pet_id: selectedPet.id,
-              scheduled_date: selectedDate,
-              scheduled_time: selectedTime,
-            },
-          },
-          ...addonObjects.map((addon) => ({
-            kind: "service_addon" as const,
-            ref_id: addon.id,
-            name: addon.name,
-            qty: 1,
-            unit_price: addon.price,
-            meta: {
-              base_service_id: selectedService.id,
-            },
-          })),
-        ];
+    const items: CartItemInput[] = [
+      {
+        kind: "service_base",
+        ref_id: selectedService.id,
+        qty: 1,
+        meta: { pet_id: selectedPet.id, hold_id: hold.id, scheduled_time: SCHEDULED_TIME },
+      },
+      ...selectedAddonIds.map((id) => ({ kind: "service_addon" as const, ref_id: id, qty: 1 })),
+    ];
 
-        await addItems({ items });
-        setCartBuilt(true);
-      } catch (err) {
-        if (err instanceof ApiCallError) {
-          setBuildError(`Error al crear el carrito: ${err.message}`);
-        } else {
-          setBuildError("No se pudo crear el carrito. Intenta de nuevo.");
+    async function build(): Promise<CartWithItemsOut> {
+      if (cartId) {
+        try {
+          const existing = await cartService.get(cartId);
+          // Orden ya creada: el carrito está cerrado, solo se muestra
+          if (existing.cart.status === "checked_out") return existing;
+          if (existing.cart.status === "active") return await cartService.replaceItems(cartId, { items });
+        } catch (err) {
+          // Carrito vencido o inexistente → se crea uno nuevo (la reserva dirá si sigue vigente)
+          if (!(err instanceof ApiCallError) || ![404, 410].includes(err.status)) throw err;
         }
-      } finally {
-        setBuildingCart(false);
       }
+      return cartService.addItems({ items });
     }
 
-    buildCart();
-  }, [cartBuilt, buildingCart, selectedService, selectedPet, selectedDate, selectedTime, selectedAddonIds, addItems]);
-
-  // Validar carrito cuando esté construido
-  useEffect(() => {
-    if (!cartBuilt || !cart?.cart.id || validating) return;
-    async function runValidation() {
-      setValidating(true);
+    (async () => {
       try {
-        const result = await validate();
-        setValidation(result);
-      } catch {
-        // Si falla la validación, no bloqueamos pero mostramos advertencia
-      } finally {
-        setValidating(false);
+        const built = await build();
+        if (!mountedRef.current) return;
+        setCart(built);
+        onCartChange(built);
+        const validation = await cartService.validate(built.cart.id).catch(() => null);
+        if (mountedRef.current && validation) setTotal(validation.total);
+      } catch (err) {
+        if (!mountedRef.current) return;
+        if (isHoldLost(err)) {
+          onHoldLost(err.message);
+          return;
+        }
+        setBuildError(err instanceof Error ? err.message : "No se pudo preparar tu pedido. Intenta de nuevo.");
       }
-    }
-    runValidation();
+    })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartBuilt, cart?.cart.id]);
+  }, [attempt]);
 
-  async function handleProceedToPayment() {
-    if (!cart?.cart.id) return;
+  async function handleProceed() {
+    if (!cart) return;
     setProcessError(null);
-
+    setProcessing(true);
     try {
-      // Si el carrito ya está checked_out (usuario volvió atrás desde pago)
-      // saltar validación y checkout, pasar directamente al pago
-      if (cart.cart.status === "checked_out") {
-        const localTotal = cart.items.reduce((acc, item) => acc + item.qty * item.unit_price, 0);
-        const totalCents = Math.round((validation?.total ?? localTotal) * 100);
-        await onProceedToPayment(cart.cart.id, totalCents);
-        return;
+      if (cart.cart.status !== "checked_out") {
+        // Checkout recotiza: si un precio cambió responde 409 PRICE_CHANGED y el
+        // carrito ya queda con los precios nuevos; al confirmar se vuelve a llamar.
+        const result = await cartService.checkout(cart.cart.id);
+        setTotal(result.total);
+        setCart({ ...cart, cart: { ...cart.cart, status: "checked_out" }, items: result.items });
+        setPriceChange(null);
       }
-
-      // Validar carrito
-      setValidating(true);
-      const validResult = await validate();
-      setValidation(validResult);
-      setValidating(false);
-
-      if (!validResult.valid) {
-        setProcessError("El carrito tiene errores: " + validResult.errors.join(", "));
-        return;
-      }
-
-      // Hacer checkout (bloquea el carrito y congela el precio)
-      setCheckingOut(true);
-      await checkout();
-      setCheckingOut(false);
-
-      const backendTotal = validResult.total ?? 0;
-      const localTotal = cart.items.reduce((acc, item) => acc + item.qty * item.unit_price, 0);
-      const totalCents = Math.round((backendTotal > 0 ? backendTotal : localTotal) * 100);
-      await onProceedToPayment(cart.cart.id, totalCents);
+      await onProceedToPayment(cart.cart.id);
     } catch (err) {
-      setCheckingOut(false);
-      setValidating(false);
-      if (err instanceof ApiCallError) {
-        setProcessError(`Error: ${err.message}`);
-      } else if (err instanceof Error) {
-        setProcessError(err.message);
-      } else {
-        setProcessError("Ocurrió un error al preparar el pago. Intenta de nuevo.");
+      if (isHoldLost(err)) {
+        onHoldLost(err.message);
+        return;
       }
+      if (err instanceof ApiCallError && err.code === "PRICE_CHANGED") {
+        const detail = err.detail as PriceChangedDetail;
+        setPriceChange(detail);
+        setTotal(detail.total);
+        const refreshed = await cartService.get(cart.cart.id).catch(() => null);
+        if (refreshed) {
+          setCart(refreshed);
+          onCartChange(refreshed);
+        }
+        return;
+      }
+      setProcessError(err instanceof Error ? err.message : "Ocurrió un error al preparar el pago. Intenta de nuevo.");
+    } finally {
+      setProcessing(false);
     }
   }
 
-  const isProcessing = buildingCart || mutating || validating || checkingOut;
-  const total = cart?.items.reduce((acc, item) => acc + item.qty * item.unit_price, 0) ?? 0;
+  const building = !cart && !buildError;
+  const checkedOut = cart?.cart.status === "checked_out";
 
   return (
     <div>
       <div className="mb-6">
         <h2 className="text-2xl font-extrabold">Revisa tu pedido</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Confirma los detalles antes de finalizar. El carrito expira en 2 horas.
+          Confirma los detalles antes de pagar. Para cambiar el servicio o los adicionales, vuelve atrás.
         </p>
       </div>
 
-      {/* Estado de construcción del carrito */}
-      {(buildingCart || loading) && (
+      {building && (
         <div className="flex items-center justify-center gap-2 rounded-xl bg-muted/60 py-8">
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Preparando tu carrito…</span>
+          <span className="text-sm text-muted-foreground">Preparando tu pedido…</span>
         </div>
       )}
 
       {buildError && (
-        <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <AlertCircle className="size-4 shrink-0" />
-          {buildError}
+        <div className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            {buildError}
+          </div>
+          <button
+            onClick={() => { setBuildError(null); setAttempt((a) => a + 1); }}
+            className="mt-2 flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-semibold hover:bg-destructive/20"
+          >
+            <RefreshCw className="size-3" /> Reintentar
+          </button>
         </div>
       )}
 
-      {!buildingCart && !loading && cart && (
+      {cart && (
         <div className="space-y-4">
-          {/* Items del carrito */}
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Servicio seleccionado</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Servicio para {selectedPet?.name ?? "tu mascota"}
+            </p>
             <div className="space-y-2">
-              {cart.items.map((item) => (
-                <CartItemRow
-                  key={item.id}
-                  item={item}
-                  onRemove={(id) => removeItem(id)}
-                  removing={mutating || cart.cart.status === "checked_out"}
-                />
-              ))}
+              {cart.items.map((item) => <CartItemRow key={item.id} item={item} />)}
             </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              La hora de la visita te la confirmamos cuando armemos la ruta del día.
+            </p>
           </div>
 
-          {/* Dirección */}
           {selectedAddress && (
             <div className="rounded-xl bg-muted/50 px-4 py-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Dirección de servicio</p>
+              <p className="mb-1 text-xs font-bold uppercase tracking-widest text-muted-foreground">Dirección de servicio</p>
               <p className="text-sm font-semibold">{selectedAddress.address_line}</p>
               {selectedAddress.reference && <p className="text-xs text-muted-foreground">{selectedAddress.reference}</p>}
             </div>
           )}
 
-          {/* Validación */}
-          {cart.cart.status === "checked_out" && (
-            <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-              <CheckCircle2 className="size-4 shrink-0" />
-              Carrito confirmado — puedes proceder al pago.
-            </div>
-          )}
-          {cart.cart.status !== "checked_out" && validating && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" /> Validando carrito…
-            </div>
-          )}
-          {cart.cart.status !== "checked_out" && validation && !validating && (
-            <div className={cn(
-              "rounded-xl px-4 py-3 text-sm",
-              validation.valid
-                ? "bg-green-50 border border-green-200 text-green-700"
-                : "bg-destructive/10 border border-destructive/20 text-destructive"
-            )}>
-              {validation.valid ? (
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4" />
-                  Carrito validado correctamente
-                </div>
-              ) : (
-                <div>
-                  <div className="flex items-center gap-2 font-semibold">
-                    <AlertCircle className="size-4" /> Hay problemas en el carrito
-                  </div>
-                  <ul className="mt-1 list-inside list-disc text-xs">
-                    {validation.errors.map((e, i) => <li key={i}>{e}</li>)}
-                  </ul>
-                </div>
-              )}
+          {priceChange && (
+            <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+              <p className="font-bold">Los precios cambiaron</p>
+              <ul className="mt-1 space-y-0.5 text-xs">
+                {priceChange.items.map((i) => (
+                  <li key={i.item_id}>
+                    {i.name}: <span className="line-through">{formatPrice(i.old_unit_price)}</span> → {formatPrice(i.new_unit_price)}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1 text-xs">Revisa el nuevo total y confirma para continuar.</p>
             </div>
           )}
 
-          {/* Total */}
+          {checkedOut && (
+            <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Pedido confirmado. Puedes continuar con el pago.
+            </div>
+          )}
+
           <div className="flex items-center justify-between rounded-xl bg-primary/5 px-4 py-3">
             <span className="font-bold">Total</span>
-            <span className="text-xl font-extrabold text-primary">
-              S/ {(validation?.total ?? total).toFixed(2)}
-            </span>
+            {total !== null
+              ? <span className="text-xl font-extrabold text-primary">{formatPrice(total)}</span>
+              : <Loader2 className="size-5 animate-spin text-muted-foreground" />}
           </div>
 
-          {/* Error de proceso */}
-          {(error || processError) && (
+          {processError && (
             <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               <AlertCircle className="size-4 shrink-0" />
-              {processError ?? error}
+              {processError}
             </div>
           )}
-        </div>
-      )}
-
-      {/* Nota del carrito expirado */}
-      {!buildingCart && !loading && !cart && cartBuilt && (
-        <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700">
-          El carrito expiró. Por favor, vuelve a comenzar.
         </div>
       )}
 
       <WizardNavButtons
-        canGoBack={!isProcessing}
+        canGoBack={!processing && !orderCreated}
         onBack={onBack}
-        nextLabel={
-          checkingOut ? "Preparando pago…" :
-          validating ? "Validando…" :
-          "Ir a pagar"
-        }
-        nextDisabled={!cart || isProcessing || (validation !== null && !validation.valid)}
-        nextLoading={isProcessing}
-        onNext={handleProceedToPayment}
+        nextLabel={processing ? "Preparando pago…" : priceChange ? "Confirmar nuevo total" : "Ir a pagar"}
+        nextDisabled={!cart || processing}
+        nextLoading={processing}
+        onNext={handleProceed}
       />
     </div>
   );

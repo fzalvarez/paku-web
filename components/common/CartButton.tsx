@@ -4,7 +4,6 @@ import { useRef, useEffect } from "react";
 import {
   ShoppingCart,
   X,
-  Trash2,
   Loader2,
   PackageOpen,
 } from "lucide-react";
@@ -25,11 +24,11 @@ function formatPrice(amount: number): string {
 // ── Ítem del carrito ──────────────────────────────────────────────────────────
 interface CartItemRowProps {
   item: CartItemOut;
-  mutating: boolean;
-  onRemove: (itemId: string) => void;
 }
 
-function CartItemRow({ item, mutating, onRemove }: CartItemRowProps) {
+// Solo lectura: el pedido se arma y se cambia en el asistente de reserva
+// (quitar el servicio desde aquí liberaría la reserva del cupo).
+function CartItemRow({ item }: CartItemRowProps) {
   const isAddon = item.kind === "service_addon";
   const subtotal = item.qty * item.unit_price;
 
@@ -65,24 +64,15 @@ function CartItemRow({ item, mutating, onRemove }: CartItemRowProps) {
         {item.meta?.scheduled_date && (
           <p className="mt-0.5 text-xs text-muted-foreground">
             📅 {item.meta.scheduled_date}
-            {item.meta.scheduled_time ? ` · ${item.meta.scheduled_time}` : ""}
           </p>
         )}
       </div>
 
-      {/* Subtotal + eliminar */}
+      {/* Subtotal */}
       <div className="flex flex-col items-end gap-1.5">
         <span className="text-sm font-bold text-foreground">
           {formatPrice(subtotal)}
         </span>
-        <button
-          disabled={mutating}
-          onClick={() => onRemove(item.id)}
-          className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-40"
-          aria-label="Eliminar ítem"
-        >
-          <Trash2 className="size-3.5" />
-        </button>
       </div>
     </div>
   );
@@ -97,7 +87,7 @@ interface CartButtonProps {
 }
 
 export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) {
-  const { cart, loading, mutating, totalItems, total, removeItem } = useCart();
+  const { cart, loading, totalItems, total } = useCart();
 
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -129,22 +119,11 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
     };
   }, [open, onOpenChange]);
 
-  // Separar servicios base de addons
-  const baseItems = cart?.items.filter((i) => i.kind === "service_base" || i.kind === "product") ?? [];
-  const addonItems = cart?.items.filter((i) => i.kind === "service_addon") ?? [];
-
-  // Lista ordenada: cada servicio seguido de sus addons (por base_service_id)
-  const orderedItems: CartItemOut[] = [];
-  for (const base of baseItems) {
-    orderedItems.push(base);
-    orderedItems.push(...addonItems.filter((a) => a.meta?.base_service_id === base.ref_id));
-  }
-  // Addons sin base asociada (caso borde)
-  orderedItems.push(
-    ...addonItems.filter(
-      (a) => !baseItems.some((b) => b.ref_id === a.meta?.base_service_id)
-    )
-  );
+  // Un carrito tiene un solo servicio base (C-07): primero el servicio, luego sus adicionales
+  const orderedItems: CartItemOut[] = [
+    ...(cart?.items.filter((i) => i.kind !== "service_addon") ?? []),
+    ...(cart?.items.filter((i) => i.kind === "service_addon") ?? []),
+  ];
 
   return (
     <div className="relative">
@@ -175,7 +154,7 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
           </span>
         )}
 
-        {/* Total estimado (solo si hay items) */}
+        {/* Total (solo si hay items) */}
         {total > 0 && (
           <span className="hidden text-xs font-bold text-primary sm:inline">
             {formatPrice(total)}
@@ -261,8 +240,6 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
                   <CartItemRow
                     key={item.id}
                     item={item}
-                    mutating={mutating}
-                    onRemove={removeItem}
                   />
                 ))}
               </div>
@@ -272,33 +249,9 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
           {/* Footer con total + botón checkout */}
           {cart && orderedItems.length > 0 && (
             <div className="border-t border-border/60 bg-background p-3">
-              {/* Desglose por servicio base */}
-              <div className="mb-3 space-y-1">
-                {baseItems.map((base) => {
-                  const addons = addonItems.filter(
-                    (a) => a.meta?.base_service_id === base.ref_id
-                  );
-                  const addonSubtotal = addons.reduce(
-                    (s, a) => s + a.qty * a.unit_price,
-                    0
-                  );
-                  return (
-                    <div key={base.id} className="flex justify-between text-xs text-muted-foreground">
-                      <span className="truncate pr-2">
-                        {base.name}
-                        {addons.length > 0 && ` + ${addons.length} extra`}
-                      </span>
-                      <span className="shrink-0 font-medium">
-                        {formatPrice(base.qty * base.unit_price + addonSubtotal)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
               {/* Total */}
-              <div className="mb-3 flex items-baseline justify-between border-t border-dashed border-border pt-2">
-                <span className="text-sm font-bold text-foreground">Total estimado</span>
+              <div className="mb-3 flex items-baseline justify-between">
+                <span className="text-sm font-bold text-foreground">Total</span>
                 <span className="text-base font-extrabold text-primary">
                   {formatPrice(total)}
                 </span>
@@ -311,18 +264,14 @@ export function CartButton({ onCheckout, open, onOpenChange }: CartButtonProps) 
                   onOpenChange(false);
                   onCheckout?.();
                 }}
-                disabled={mutating || !onCheckout}
+                disabled={!onCheckout}
               >
-                {mutating ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <ShoppingCart className="size-4" />
-                )}
+                <ShoppingCart className="size-4" />
                 Ir al checkout
               </Button>
 
               <p className="mt-2 text-center text-[10px] text-muted-foreground">
-                Los precios pueden variar según la dirección de entrega
+                Precios calculados para tu mascota
               </p>
             </div>
           )}

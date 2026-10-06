@@ -25,8 +25,8 @@ export interface ServiceAddon {
   species: "dog" | "cat";
   allowed_breeds: string[] | null;
   is_active: boolean;
-  /** Precio decimal (ej. 15.00) */
-  price: number;
+  /** Precio para la mascota (ej. 15.00). Null si no aplica o no tiene precio. */
+  price: number | null;
   currency: string;
 }
 
@@ -40,8 +40,8 @@ export interface ServiceOut {
   species: "dog" | "cat";
   allowed_breeds: string[] | null;
   is_active: boolean;
-  /** Precio decimal (ej. 65.00) */
-  price: number;
+  /** Precio para la mascota (ej. 65.00). Null si la mascota no tiene peso o no hay regla de precio. */
+  price: number | null;
   currency: string;
   /** Solo presente en GET /store/products/{id} */
   available_addons?: ServiceAddon[];
@@ -49,7 +49,7 @@ export interface ServiceOut {
 
 // ── Helper ─────────────────────────────────────────────────────────────────────
 
-/** Convierte monto decimal a string formateado: 65 → "S/ 65.00" */
+/** Formatea un monto que calculó el backend: 65 → "S/ 65.00" */
 export function formatPrice(amount: number, currency = "PEN"): string {
   const symbol = currency === "PEN" ? "S/" : currency;
   return `${symbol} ${Number(amount).toFixed(2)}`;

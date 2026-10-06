@@ -19,11 +19,19 @@ export const cartService = {
 
   /**
    * POST /cart/items
-   * Crea el carrito con todos los items de una sola llamada.
-   * Si ya existe un carrito activo, agrega los items al existente.
+   * Crea un carrito NUEVO con todos los items. Si ya hay un carrito del
+   * asistente, usar replaceItems para no dejar carritos sueltos.
    */
   addItems(data: AddCartItemsIn): Promise<CartWithItemsOut> {
     return apiClient.post<CartWithItemsOut>(ENDPOINTS.CART.ITEMS, data);
+  },
+
+  /**
+   * GET /cart/{id}
+   * Carrito concreto (p. ej. para recargar precios tras un 409 PRICE_CHANGED).
+   */
+  get(cartId: string): Promise<CartWithItemsOut> {
+    return apiClient.get<CartWithItemsOut>(ENDPOINTS.CART.DETAIL(cartId));
   },
 
   /**
@@ -52,7 +60,8 @@ export const cartService = {
 
   /**
    * POST /cart/{id}/checkout
-   * Marca el carrito como checked_out. No procesa el pago.
+   * Marca el carrito como checked_out. No procesa el pago. Recotiza: si un
+   * precio cambió responde 409 PRICE_CHANGED (ver PriceChangedDetail).
    */
   checkout(cartId: string): Promise<CartCheckoutOut> {
     return apiClient.post<CartCheckoutOut>(ENDPOINTS.CART.CHECKOUT(cartId), {});

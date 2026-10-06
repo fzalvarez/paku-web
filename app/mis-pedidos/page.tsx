@@ -6,19 +6,12 @@ import { Loader2, Package, CalendarDays, MapPin, ChevronRight, AlertCircle } fro
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { orderStatusInfo, paymentStatusInfo } from "@/lib/labels";
+import { orderScheduleText } from "@/lib/utils/dates";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-PE", {
     day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
   });
-}
-
-function formatScheduledDate(iso: string, time?: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const dateStr = new Date(y, m - 1, d).toLocaleDateString("es-PE", {
-    weekday: "long", day: "numeric", month: "long",
-  });
-  return time ? `${dateStr} a las ${time}` : dateStr;
 }
 
 export default function MisPedidosPage() {
@@ -74,8 +67,7 @@ export default function MisPedidosPage() {
               const status = orderStatusInfo(order.status);
               const payment = paymentStatusInfo(order.payment_status);
               const baseItem = order.items_snapshot.find((i) => i.kind === "service_base");
-              const scheduledDate = baseItem?.meta?.scheduled_date;
-              const scheduledTime = baseItem?.meta?.scheduled_time;
+              const schedule = orderScheduleText(order.scheduled_at, baseItem?.meta?.scheduled_date);
 
               return (
                 <Link
@@ -113,10 +105,10 @@ export default function MisPedidosPage() {
                       )}
 
                       {/* Fecha del servicio */}
-                      {scheduledDate && (
+                      {schedule && (
                         <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                           <CalendarDays className="size-3.5 shrink-0" />
-                          <span className="capitalize">{formatScheduledDate(scheduledDate, scheduledTime)}</span>
+                          <span className="first-letter:uppercase">{schedule}</span>
                         </div>
                       )}
 

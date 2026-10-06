@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { orderStatusInfo, paymentStatusInfo } from "@/lib/labels";
+import { orderScheduleText } from "@/lib/utils/dates";
 import type { OrderOut, OrderStatus } from "@/types/orders";
 
 // ── Config de estados ─────────────────────────────────────────────────────────
@@ -99,14 +100,6 @@ function formatDate(iso: string): string {
     day: "numeric", month: "long", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
-}
-
-function formatScheduledDate(iso: string, time?: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const dateStr = new Date(y, m - 1, d).toLocaleDateString("es-PE", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric",
-  });
-  return time ? `${dateStr} a las ${time}` : dateStr;
 }
 
 function mapsUrl(lat: number, lng: number): string {
@@ -522,8 +515,7 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
   const paymentStatus = order.payment_status ?? "pending";
   const paymentConfig = paymentStatusInfo(paymentStatus);
   const baseItem = order.items_snapshot.find((i) => i.kind === "service_base");
-  const scheduledDate = baseItem?.meta?.scheduled_date;
-  const scheduledTime = baseItem?.meta?.scheduled_time;
+  const schedule = orderScheduleText(order.scheduled_at, baseItem?.meta?.scheduled_date);
   const currentStatusIdx = STATUS_FLOW.indexOf(order.status);
   const addr = order.delivery_address_snapshot;
   const isActiveOrder = ["on_the_way", "in_service"].includes(order.status);
@@ -679,15 +671,15 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
       )}
 
       {/* ── Fecha del servicio ── */}
-      {scheduledDate && (
+      {schedule && (
         <div className="flex items-center gap-3 rounded-xl bg-muted/50 px-4 py-3">
           <CalendarDays className="size-5 shrink-0 text-primary" />
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Fecha del servicio
             </p>
-            <p className="text-sm font-semibold capitalize">
-              {formatScheduledDate(scheduledDate, scheduledTime)}
+            <p className="text-sm font-semibold first-letter:uppercase">
+              {schedule}
             </p>
           </div>
         </div>

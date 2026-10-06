@@ -23,13 +23,11 @@ export const servicesService = {
     slug: string,
     params?: { pet_id?: string; species?: "dog" | "cat" },
   ): Promise<ServiceOut[]> {
-    const qs = new URLSearchParams();
-    if (params?.pet_id) qs.set("pet_id", params.pet_id);
-    if (params?.species) qs.set("species", params.species);
-    const query = qs.toString() ? `?${qs.toString()}` : "";
-    return apiClient.get<ServiceOut[]>(
-      `${ENDPOINTS.STORE.CATEGORY_PRODUCTS(slug)}${query}&species=dog`,
-    );
+    // Con pet_id el backend filtra por la especie y raza de la mascota y
+    // devuelve su precio (requiere token, C-05); species solo aplica sin mascota.
+    return apiClient.get<ServiceOut[]>(ENDPOINTS.STORE.CATEGORY_PRODUCTS(slug), {
+      params: params?.pet_id ? { pet_id: params.pet_id } : { species: params?.species ?? "dog" },
+    });
   },
 
   /**
@@ -40,9 +38,9 @@ export const servicesService = {
     id: string,
     params?: { pet_id?: string },
   ): Promise<ServiceOut & { available_addons: ServiceAddon[] }> {
-    const qs = params?.pet_id ? `?pet_id=${params.pet_id}` : "";
     return apiClient.get<ServiceOut & { available_addons: ServiceAddon[] }>(
-      `${ENDPOINTS.STORE.PRODUCT(id)}${qs}`,
+      ENDPOINTS.STORE.PRODUCT(id),
+      { params: params?.pet_id ? { pet_id: params.pet_id } : undefined },
     );
   },
 };
