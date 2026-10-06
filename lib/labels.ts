@@ -100,7 +100,7 @@ const PAYMENT_STATUS_INFO: Record<OrderPaymentStatus, StatusInfo> = {
   },
   failed: {
     label: "Pago fallido",
-    description: "El último intento de pago falló. Puedes reintentar desde el flujo de pago.",
+    description: "El último intento de pago fue rechazado. Puedes intentar de nuevo con otra tarjeta.",
     color: "text-red-700",
     bgColor: "bg-red-50 border-red-200",
   },

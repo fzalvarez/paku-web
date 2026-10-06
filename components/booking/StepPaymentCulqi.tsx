@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   CreditCard,
   Plus,
@@ -42,6 +42,8 @@ interface StepPaymentCulqiProps {
   currency?: "PEN" | "USD";
   onPaymentSuccess: (order: OrderOut) => void;
   onBack: () => void;
+  /** Estado de pago con que llega la orden (p. ej. "failed" al reintentar desde Mis pedidos) */
+  initialPaymentStatus?: OrderOut["payment_status"];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -84,7 +86,11 @@ export function StepPaymentCulqi({
   currency = "PEN",
   onPaymentSuccess,
   onBack,
+  initialPaymentStatus,
 }: StepPaymentCulqiProps) {
+  // Tras un rechazo la orden queda "failed": el siguiente intento debe pasar por
+  // retry-payment antes de /pay (ver usePayments.payOrder).
+  const needsRetryRef = useRef(initialPaymentStatus === "failed");
   const {
     savedCards,
     cardsLoading,
@@ -113,6 +119,7 @@ export function StepPaymentCulqi({
   const handlePaymentResult = useCallback(
     (order: OrderOut) => {
       if (order.payment_status === "failed") {
+        needsRetryRef.current = true;
         setLocalError("Tu pago fue rechazado. Intenta con otra tarjeta.");
         setPayStep("failed");
         return;
@@ -134,9 +141,10 @@ export function StepPaymentCulqi({
     setLocalError(null);
 
     try {
-      const order = await payOrder(orderId, selectedCard.payment_method_id);
+      const order = await payOrder(orderId, selectedCard.payment_method_id, needsRetryRef.current);
       handlePaymentResult(order);
     } catch (err) {
+      needsRetryRef.current = true;
       setLocalError(getPaymentErrorMessage(err));
       setPayStep("failed");
     }
@@ -151,9 +159,10 @@ export function StepPaymentCulqi({
         const token = await paymentsService.createToken(cardData);
 
         // 2. Cobrar la orden con el token (source_id = tkn_test_xxx)
-        const order = await payOrder(orderId, token.id);
+        const order = await payOrder(orderId, token.id, needsRetryRef.current);
         handlePaymentResult(order);
       } catch (err) {
+        needsRetryRef.current = true;
         setLocalError(getPaymentErrorMessage(err));
         setPayStep("failed");
       }

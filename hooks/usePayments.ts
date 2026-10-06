@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { paymentsService, getPaymentErrorMessage } from "@/lib/api/payments";
 import { ordersService } from "@/lib/api/orders";
+import { ApiCallError } from "@/lib/api/client";
 import type { SavedCard, CardData } from "@/types/payments";
 import type { OrderOut } from "@/types/orders";
 
@@ -48,12 +49,21 @@ export function usePayments() {
    * Reemplaza el chargeNewCard/chargeSavedCard + confirmPayment de dos
    * pasos — ver doc_fase1_paku-web_migracion_pago.md. Devuelve la orden
    * completa: revisar `payment_status` ("paid" | "failed" | "verifying").
+   *
+   * Con `retryFailed`, primero vuelve la orden de "failed" a "pending"
+   * (POST /orders/{id}/retry-payment): con "failed", /pay devuelve la orden
+   * tal cual sin cobrar. Si no estaba "failed" responde 409 y se sigue igual.
    */
   const payOrder = useCallback(
-    async (orderId: string, sourceId: string): Promise<OrderOut> => {
+    async (orderId: string, sourceId: string, retryFailed = false): Promise<OrderOut> => {
       setPaying(true);
       setPayError(null);
       try {
+        if (retryFailed) {
+          await ordersService.retryPayment(orderId).catch((err) => {
+            if (!(err instanceof ApiCallError && err.status === 409)) throw err;
+          });
+        }
         return await ordersService.pay(orderId, sourceId);
       } catch (err) {
         setPayError(getPaymentErrorMessage(err));

@@ -519,6 +519,10 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
   const currentStatusIdx = STATUS_FLOW.indexOf(order.status);
   const addr = order.delivery_address_snapshot;
   const isActiveOrder = ["on_the_way", "in_service"].includes(order.status);
+  // Se puede pagar (o reintentar tras un rechazo) mientras la orden siga en pie
+  const canPay =
+    (paymentStatus === "pending" || paymentStatus === "failed") &&
+    order.status !== "cancelled" && order.status !== "skipped";
 
   return (
     <div className="space-y-5">
@@ -564,13 +568,13 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
             </span>
           )}
         </div>
-        {paymentStatus === "pending" && (
+        {canPay && (
           <button
             onClick={() => setPayModalOpen(true)}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
           >
             <CreditCard className="size-4" />
-            Pagar S/ {order.total_snapshot.toFixed(2)}
+            {paymentStatus === "failed" ? "Reintentar pago" : "Pagar"} S/ {order.total_snapshot.toFixed(2)}
           </button>
         )}
       </div>
@@ -595,6 +599,7 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
               setPayModalOpen(false);
             }}
             onBack={() => setPayModalOpen(false)}
+            initialPaymentStatus={paymentStatus}
           />
         </DialogContent>
       </Dialog>
