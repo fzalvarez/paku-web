@@ -8,4 +8,4 @@
 
 | # | Feature | Estado |
 |---|---------|--------|
-| — | (ninguna todavía) | |
+| 0001 | [Seguimiento del servicio](features/0001-seguimiento-servicio/spec.md) — pasos, fotos, demoras, motivo del salto | done |

@@ -114,3 +114,37 @@ export function paymentStatusInfo(status?: string | null): StatusInfo {
     bgColor: "bg-muted border-border",
   };
 }
+
+// ── Proceso del servicio (C-11) ───────────────────────────────────────────────
+
+export const SERVICE_STEPS = ["reception", "bath", "drying", "finishing", "return"] as const;
+
+export const SERVICE_STEP_LABELS: Record<string, string> = {
+  reception: "Recepción y recojo",
+  bath: "Baño",
+  drying: "Secado",
+  finishing: "Corte y acabado",
+  return: "Devolución a casa",
+};
+
+// ── Parada saltada (C-13), contado al cliente ─────────────────────────────────
+
+export const SKIP_REASON_LABELS: Record<string, string> = {
+  pet_not_present: "No encontramos a tu mascota en el domicilio",
+  tutor_not_present: "No encontramos a nadie en el domicilio",
+  other: "Otro motivo",
+};
+
+// ── Fotos del servicio (C-12) ─────────────────────────────────────────────────
+
+export const PHOTO_KIND_LABELS: Record<string, string> = {
+  initial: "Al recoger",
+  final: "Al terminar",
+  incident: "Observación",
+};
+
+/** Texto de un valor; si el backend manda uno nuevo, se muestra tal cual. */
+export function label(map: Record<string, string>, value?: string | null): string {
+  if (!value) return "";
+  return map[value] ?? value;
+}

@@ -1,4 +1,4 @@
-import type { OrderOut, CreateOrderIn } from "@/types/orders";
+import type { OrderOut, CreateOrderIn, OrderPhotoOut, DelayReportOut } from "@/types/orders";
 import { apiClient } from "./client";
 import { ENDPOINTS } from "./endpoints";
 
@@ -17,6 +17,16 @@ export const ordersService = {
    */
   detail(id: string): Promise<OrderOut> {
     return apiClient.get<OrderOut>(ENDPOINTS.ORDERS.DETAIL(id));
+  },
+
+  /** GET /orders/{id}/photos — fotos del servicio (C-12), en orden de creación. */
+  photos(id: string): Promise<OrderPhotoOut[]> {
+    return apiClient.get<OrderPhotoOut[]>(ENDPOINTS.ORDERS.PHOTOS(id));
+  },
+
+  /** GET /orders/{id}/delay-reports — avisos de demora del groomer (C-14). */
+  delayReports(id: string): Promise<DelayReportOut[]> {
+    return apiClient.get<DelayReportOut[]>(ENDPOINTS.ORDERS.DELAY_REPORTS(id));
   },
 
   /**

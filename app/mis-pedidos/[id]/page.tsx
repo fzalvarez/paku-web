@@ -23,8 +23,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { orderStatusInfo, paymentStatusInfo } from "@/lib/labels";
-import { orderScheduleText } from "@/lib/utils/dates";
+import { orderStatusInfo, paymentStatusInfo, label, SKIP_REASON_LABELS } from "@/lib/labels";
+import { orderScheduleText, timeLima } from "@/lib/utils/dates";
+import { useOrderExtras } from "@/hooks/useOrderExtras";
+import { ServiceSteps } from "@/components/orders/ServiceSteps";
+import { OrderPhotos } from "@/components/orders/OrderPhotos";
+import { DelayNotice } from "@/components/orders/DelayNotice";
 import type { OrderOut, OrderStatus } from "@/types/orders";
 
 // ── Config de estados ─────────────────────────────────────────────────────────
@@ -523,6 +527,9 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
   const canPay =
     (paymentStatus === "pending" || paymentStatus === "failed") &&
     order.status !== "cancelled" && order.status !== "skipped";
+  // Fotos y demoras: se recargan al cambiar estado o paso, no en cada consulta de la orden
+  const { photos, delays } = useOrderExtras(order.id, `${order.status}|${order.service_step ?? ""}`);
+  const addonDoneAt = new Map((order.addons_done ?? []).map((a) => [a.addon_id, a.done_at]));
 
   return (
     <div className="space-y-5">
@@ -604,6 +611,9 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
         </DialogContent>
       </Dialog>
 
+      {/* ── Aviso de demora del especialista (antes de llegar) ── */}
+      <DelayNotice delays={delays} status={order.status} />
+
       {/* ── Panel de Tracking (estados on_the_way, in_service, done) ── */}
       {(["on_the_way", "in_service", "done"] as OrderStatus[]).includes(order.status) && (
         <TrackingPanel
@@ -617,6 +627,9 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
         />
       )}
 
+      {/* ── Pasos del servicio en la van (C-11) ── */}
+      <ServiceSteps order={order} />
+
       {/* ── Chat con el especialista (on_the_way | in_service) ── */}
       <ChatPanel
         orderId={order.id}
@@ -629,6 +642,15 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
         <div className={cn("rounded-2xl border px-4 py-3", statusConfig.bgColor)}>
           <p className={cn("text-sm font-bold", statusConfig.color)}>{statusConfig.label}</p>
           <p className="mt-0.5 text-sm text-muted-foreground">{statusConfig.description}</p>
+          {order.status === "skipped" && order.skip_reason && (
+            <div className="mt-2 border-t border-orange-200 pt-2 text-sm">
+              <p>
+                <span className="font-semibold">Motivo:</span> {label(SKIP_REASON_LABELS, order.skip_reason)}
+                {order.skipped_at && <span className="text-muted-foreground"> · {timeLima(order.skipped_at)}</span>}
+              </p>
+              {order.skip_note && <p className="mt-0.5 text-muted-foreground">“{order.skip_note}”</p>}
+            </div>
+          )}
         </div>
       )}
       {currentStatusIdx >= 0 && (
@@ -674,6 +696,11 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
           </p>
         </div>
       )}
+
+      {/* ── Fotos del servicio (C-12) ── */}
+
+      <OrderPhotos photos={photos} />
+
 
       {/* ── Fecha del servicio ── */}
       {schedule && (
@@ -729,6 +756,12 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
                   </span>
                 )}
                 <span className="text-sm">{item.name}</span>
+                {item.kind === "service_addon" && item.ref_id && addonDoneAt.has(item.ref_id) && (
+                  <span className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                    <CheckCircle2 className="size-3" />
+                    Realizado {timeLima(addonDoneAt.get(item.ref_id) as string)}
+                  </span>
+                )}
               </div>
               <span className="text-sm font-semibold">
                 S/ {(item.qty * item.unit_price).toFixed(2)}
@@ -761,6 +794,7 @@ export default function OrderDetailPage() {
     try {
       const data = await ordersService.detail(id);
       setOrder(data);
+      setError(null);
     } catch {
       setError("No se pudo cargar el pedido.");
     } finally {
@@ -807,7 +841,8 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      {order && !loading && (
+      {/* Las consultas periódicas no desmontan el detalle (mapa, chat y transmisión siguen montados) */}
+      {order && (
         <OrderDetailContent order={order} onOrderUpdated={setOrder} />
       )}
     </div>

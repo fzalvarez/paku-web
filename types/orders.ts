@@ -109,3 +109,26 @@ export interface CreateOrderIn {
   cart_id: string;
   address_id?: string;
 }
+
+// ── Seguimiento del servicio (C-12, C-14) ──────────────────────────────────────
+
+export type OrderPhotoKind = "initial" | "final" | "incident";
+
+/** GET /orders/{id}/photos — read_url es una URL firmada temporal */
+export interface OrderPhotoOut {
+  id: string;
+  kind: OrderPhotoKind;
+  read_url: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+/** GET /orders/{id}/delay-reports */
+export interface DelayReportOut {
+  id: string;
+  order_id: string;
+  groomer_id: string;
+  delay_minutes: number;
+  note: string | null;
+  created_at: string;
+}

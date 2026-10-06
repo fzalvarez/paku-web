@@ -57,6 +57,8 @@ export const ENDPOINTS = {
     CONFIRM_PAYMENT: (id: string) => `/orders/${id}/confirm-payment`,
     FAIL_PAYMENT: (id: string) => `/orders/${id}/fail-payment`,
     RETRY_PAYMENT: (id: string) => `/orders/${id}/retry-payment`,
+    PHOTOS: (id: string) => `/orders/${id}/photos`,
+    DELAY_REPORTS: (id: string) => `/orders/${id}/delay-reports`,
   },
   CHAT: {
     MESSAGES:     (orderId: string) => `/chat/orders/${orderId}/messages`,
