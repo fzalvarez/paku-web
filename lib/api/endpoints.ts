@@ -69,6 +69,17 @@ export const ENDPOINTS = {
     HOLDS: "/holds",
     HOLD_CANCEL: (id: string) => `/holds/${id}/cancel`,
   },
+  TRACKING: {
+    CURRENT: (orderId: string) => `/tracking/orders/${orderId}/current`,
+    ROUTE: (orderId: string) => `/tracking/orders/${orderId}/route`,
+  },
+  STREAMING: {
+    SESSION: (orderId: string) => `/streaming/orders/${orderId}/session`,
+  },
+  WALLET: {
+    CARDS: "/wallet/cards",
+    CARD: (id: string) => `/wallet/cards/${id}`,
+  },
   NOTIFICATIONS: {
     LIST: "/notifications",
     UNREAD_COUNT: "/notifications/unread-count",

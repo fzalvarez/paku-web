@@ -12,6 +12,14 @@ import type {
 } from "@/types/auth";
 
 /**
+ * Algunas respuestas antiguas venían envueltas en `{ data }`; el backend actual
+ * responde el objeto directo. Se aceptan ambas formas.
+ */
+function unwrap<T extends object>(res: T | { data: T }): T {
+  return "data" in res && res.data ? (res.data as T) : (res as T);
+}
+
+/**
  * Servicios de autenticación.
  * Todos los endpoints son públicos (no requieren token previo).
  */
@@ -22,7 +30,7 @@ export const authService = {
    */
   login: async (data: LoginEmailRequest) => {
     const res = await publicApiClient.post<LoginResponse | { data: LoginResponse }>(ENDPOINTS.AUTH.LOGIN, data);
-    return (res as any).data ?? res;
+    return unwrap(res);
   },
 
   /**
@@ -31,7 +39,7 @@ export const authService = {
    */
   register: async (data: RegisterRequest) => {
     const res = await publicApiClient.post<RegisterResponse | { data: RegisterResponse }>(ENDPOINTS.AUTH.REGISTER, data);
-    return (res as any).data ?? res;
+    return unwrap(res);
   },
 
   /**
@@ -40,7 +48,7 @@ export const authService = {
    */
   socialLogin: async (data: SocialLoginRequest) => {
     const res = await publicApiClient.post<SocialLoginResponse | { data: SocialLoginResponse }>(ENDPOINTS.AUTH.SOCIAL, data);
-    return (res as any).data ?? res;
+    return unwrap(res);
   },
 
   /**

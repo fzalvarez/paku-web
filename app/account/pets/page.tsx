@@ -32,7 +32,6 @@ import { usePets } from "@/hooks/usePets";
 import { useBreeds } from "@/hooks/useBreeds";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
-import { petsService } from "@/lib/api/pets";
 import { petRecordsService } from "@/lib/api/pet-records";
 import { safePhotoUrl } from "@/lib/utils/pets";
 import type {

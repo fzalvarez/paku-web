@@ -121,7 +121,6 @@ function ProductCard({ product, variantIdx }: { product: ProductOut; variantIdx:
 }
 
 export default function PakuSpaPage() {
-  const [categories, setCategories] = useState<CategoryOut[]>([]);
   const [products, setProducts] = useState<ProductOut[]>([]);
   const [loading, setLoading] = useState(true);
   const categorySlug = "paku-spa";
@@ -133,7 +132,6 @@ export default function PakuSpaPage() {
       try {
         const cats = await storeService.listCategories();
         if (!mounted) return;
-        setCategories(cats || []);
         const cat = (cats || []).find((c: CategoryOut) => c.slug === categorySlug);
         if (!cat) {
           setProducts([]);

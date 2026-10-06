@@ -1,4 +1,4 @@
-import { getAccessToken } from "@/lib/session";
+import { apiClient } from "./client";
 import { ENDPOINTS } from "./endpoints";
 
 export type MediaEntityType = "user" | "pet";
@@ -19,37 +19,6 @@ interface ConfirmPhotoResponse {
   expires_in: number;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:8000"
-).replace(/\/$/, "");
-
-async function mediaPost<T>(path: string, body: object): Promise<T> {
-  const token = getAccessToken();
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw Object.assign(new Error(`Media request failed: ${response.status}`), {
-      status: response.status,
-      data: err,
-    });
-  }
-
-  return response.json();
-}
-
 // ── Servicio ──────────────────────────────────────────────────────────────────
 
 export const mediaService = {
@@ -61,7 +30,7 @@ export const mediaService = {
     entityId: string,
     contentType: MediaContentType,
   ): Promise<SignedUploadResponse> {
-    return mediaPost<SignedUploadResponse>(ENDPOINTS.MEDIA.SIGNED_UPLOAD, {
+    return apiClient.post<SignedUploadResponse>(ENDPOINTS.MEDIA.SIGNED_UPLOAD, {
       entity_type: entityType,
       entity_id: entityId,
       content_type: contentType,
@@ -98,7 +67,7 @@ export const mediaService = {
     entityId: string,
     objectName: string,
   ): Promise<ConfirmPhotoResponse> {
-    return mediaPost<ConfirmPhotoResponse>(ENDPOINTS.MEDIA.CONFIRM_PHOTO, {
+    return apiClient.post<ConfirmPhotoResponse>(ENDPOINTS.MEDIA.CONFIRM_PHOTO, {
       entity_type: entityType,
       entity_id: entityId,
       object_name: objectName,

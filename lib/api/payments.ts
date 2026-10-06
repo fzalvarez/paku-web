@@ -17,6 +17,8 @@ import type {
   CreateCustomerPayload,
 } from "@/types/payments";
 import { getAccessToken } from "@/lib/session";
+import { apiClient } from "./client";
+import { ENDPOINTS } from "./endpoints";
 
 // ─── Error tipado del microservicio de pagos ─────────────────────────────────
 
@@ -73,11 +75,6 @@ const PAYMENT_API_KEY =
 const CULQI_PUBLIC_KEY =
   process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY ??
   "";
-const API_BASE = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "https://paku.dev-qa.site/paku/api/v1"
-).replace(/\/$/, "");
 
 // ─── Tokenización directa con Culqi ──────────────────────────────────────────
 
@@ -108,7 +105,7 @@ export async function createCulqiToken(card: CardData): Promise<CulqiToken> {
 
   const rawText = await response.text();
 
-  let data: any;
+  let data: unknown;
   try {
     data = JSON.parse(rawText);
   } catch {
@@ -162,7 +159,7 @@ async function paymentFetch<T>(
     return undefined as T;
   }
 
-  let data: any;
+  let data: unknown;
   try {
     data = JSON.parse(rawText);
   } catch {
@@ -172,13 +169,12 @@ async function paymentFetch<T>(
   }
 
   if (!response.ok) {
-    const detail = data?.detail;
+    const detail = (data as { detail?: unknown } | null)?.detail;
     let message = `Error ${response.status}`;
-    if (detail) {
-      if (typeof detail === "string") message = detail;
-      else if (detail.user_message) message = detail.user_message;
-      else if (detail.merchant_message) message = detail.merchant_message;
-      else if (detail.message) message = detail.message;
+    if (typeof detail === "string") message = detail;
+    else if (detail && typeof detail === "object") {
+      const d = detail as { user_message?: string; merchant_message?: string; message?: string };
+      message = d.user_message || d.merchant_message || d.message || message;
     }
     // PaymentApiError conserva el `detail` completo (incluye decline_code)
     // para poder mostrar mensajes más específicos — ver getPaymentErrorMessage.
@@ -188,60 +184,13 @@ async function paymentFetch<T>(
   return data as T;
 }
 
-// ─── Cliente HTTP para el backend principal de Paku (Bearer token) ────────────
-
-async function pakuFetch<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
-  // La sesión se guarda en cookies (lib/session.ts), no en localStorage —
-  // por eso el header Authorization nunca se mandaba y el backend
-  // respondía 401 "Not authenticated".
-  const accessToken = getAccessToken();
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...(options.headers as Record<string, string>),
-  };
-
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
-
-  const rawText = await response.text();
-
-  // 204 No Content (ej. DELETE /wallet/cards/{id}) — nada que parsear.
-  if (!rawText) {
-    if (!response.ok) throw new Error(`Error ${response.status}`);
-    return undefined as T;
-  }
-
-  let data: any;
-  try {
-    data = JSON.parse(rawText);
-  } catch {
-    throw new Error(
-      `Respuesta no válida del servidor (${response.status}): ${rawText.slice(0, 200)}`
-    );
-  }
-
-  if (!response.ok) {
-    const detail = data?.detail;
-    let message = `Error ${response.status}`;
-    if (detail) {
-      if (typeof detail === "string") message = detail;
-      else if (detail.message) message = detail.message;
-    }
-    throw new Error(message);
-  }
-
-  return data as T;
+/** Lo que se usa de la respuesta de culqi-python al guardar una tarjeta. */
+interface CulqiCardResponse {
+  id: string;
+  source?: { iin?: { card_brand?: string }; last_four?: string };
 }
 
 // ─── Servicio de pagos ────────────────────────────────────────────────────────
-
 export const paymentsService = {
   /**
    * Tokeniza una tarjeta directamente con Culqi.
@@ -275,7 +224,7 @@ export const paymentsService = {
     const token = await createCulqiToken(cardData);
 
     // Paso 2: guardar en Culqi via microservicio
-    const culqiCard = await paymentFetch<any>("/api/culqi/cards", {
+    const culqiCard = await paymentFetch<CulqiCardResponse>("/api/culqi/cards", {
       method: "POST",
       body: JSON.stringify({
         customer_id: culqiCustomerId,
@@ -292,18 +241,15 @@ export const paymentsService = {
       culqiCard?.source?.iin?.card_brand ?? token.iin?.card_brand ?? "Unknown";
     const last4 = culqiCard?.source?.last_four ?? token.last_four ?? "";
 
-    const savedCardResponse = await pakuFetch<SavedCard>("/wallet/cards", {
-      method: "POST",
-      body: JSON.stringify({
-        provider: "culqi",
-        payment_method_id: culqiCard.id,
-        brand,
-        last4,
-        exp_month: 0, // Culqi no retorna vencimiento
-        exp_year: 0,
-        culqi_customer_id: culqiCustomerId,
-        culqi_card_id: culqiCard.id,
-      }),
+    const savedCardResponse = await apiClient.post<SavedCard>(ENDPOINTS.WALLET.CARDS, {
+      provider: "culqi",
+      payment_method_id: culqiCard.id,
+      brand,
+      last4,
+      exp_month: 0, // Culqi no retorna vencimiento
+      exp_year: 0,
+      culqi_customer_id: culqiCustomerId,
+      culqi_card_id: culqiCard.id,
     });
 
     return savedCardResponse;
@@ -314,7 +260,7 @@ export const paymentsService = {
    * Lista las tarjetas guardadas del usuario autenticado.
    */
   async listSavedCards(): Promise<SavedCard[]> {
-    return pakuFetch<SavedCard[]>("/wallet/cards");
+    return apiClient.get<SavedCard[]>(ENDPOINTS.WALLET.CARDS);
   },
 
   /**
@@ -322,7 +268,7 @@ export const paymentsService = {
    * Elimina una tarjeta guardada del wallet del usuario.
    */
   async deleteCard(cardId: string): Promise<void> {
-    await pakuFetch<void>(`/wallet/cards/${cardId}`, { method: "DELETE" });
+    await apiClient.delete<void>(ENDPOINTS.WALLET.CARD(cardId));
   },
 
   // El cobro del checkout ya no pasa por este microservicio directo —

@@ -101,10 +101,10 @@ export function usePayments() {
 
   /**
    * Guardar una tarjeta nueva:
-   * 1. Tokenizar con Culqi
-   * 2. Crear o reutilizar Culqi Customer
-   * 3. Guardar en Culqi
-   * 4. Persistir en paku-backend
+   * 1. Crear o reutilizar Culqi Customer
+   * 2. Tokenizar, guardar en Culqi y persistir en paku-backend
+   *    (paymentsService.saveCard; antes se tokenizaba también aquí y ese
+   *    token no se usaba)
    */
   const saveCard = useCallback(
     async (params: {
@@ -118,10 +118,7 @@ export function usePayments() {
       setSaveCardError(null);
 
       try {
-        // Paso 1: tokenizar con Culqi
-        const token = await paymentsService.createToken(params.cardData);
-
-        // Paso 2: obtener o crear Culqi customer ID
+        // Paso 1: obtener o crear Culqi customer ID
         let culqiCustomerId: string | null = null;
 
         // Buscar en localStorage primero
@@ -149,7 +146,7 @@ export function usePayments() {
           }
         }
 
-        // Paso 3: guardar tarjeta
+        // Paso 2: tokenizar y guardar tarjeta
         const savedCard = await paymentsService.saveCard(
           culqiCustomerId,
           params.cardData
