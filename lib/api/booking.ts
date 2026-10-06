@@ -32,14 +32,6 @@ export const bookingService = {
     return apiClient.get<HoldOut[]>(ENDPOINTS.BOOKING.HOLDS);
   },
 
-  /**
-   * POST /holds/{id}/confirm
-   * @deprecated Desde C-15 no cambia nada: la reserva se confirma sola al crear la orden.
-   */
-  confirmHold(id: string): Promise<HoldOut> {
-    return apiClient.post<HoldOut>(ENDPOINTS.BOOKING.HOLD_CONFIRM(id), {});
-  },
-
   /** POST /holds/{id}/cancel — libera el cupo. Idempotente. */
   cancelHold(id: string): Promise<HoldOut> {
     return apiClient.post<HoldOut>(ENDPOINTS.BOOKING.HOLD_CANCEL(id), {});

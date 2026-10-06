@@ -65,7 +65,6 @@ export const ENDPOINTS = {
   BOOKING: {
     AVAILABILITY: "/availability",
     HOLDS: "/holds",
-    HOLD_CONFIRM: (id: string) => `/holds/${id}/confirm`,
     HOLD_CANCEL: (id: string) => `/holds/${id}/cancel`,
   },
   MEDIA: {
