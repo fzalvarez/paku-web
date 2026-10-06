@@ -13,8 +13,9 @@ import type { Pet } from "@/types/pets";
 import type { AddressOut } from "@/types/api";
 import type { HoldOut } from "@/types/booking";
 
-// El servicio se atiende por orden de ruta que define el admin; el backend
-// todavía exige meta.scheduled_time, así que se envía un valor fijo que no se muestra.
+// El servicio se atiende por orden de ruta que define el admin. Desde C-21
+// meta.scheduled_time es opcional, pero el backend desplegado (2026-10-05) aún lo
+// exige: se envía un valor fijo que no se muestra. Quitar cuando C-21 esté desplegado.
 const SCHEDULED_TIME = "09:00";
 
 /** Errores que obligan a volver a elegir la fecha (la reserva ya no sirve). */

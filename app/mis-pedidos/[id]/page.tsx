@@ -519,7 +519,7 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
   const paymentStatus = order.payment_status ?? "pending";
   const paymentConfig = paymentStatusInfo(paymentStatus);
   const baseItem = order.items_snapshot.find((i) => i.kind === "service_base");
-  const schedule = orderScheduleText(order.scheduled_at, baseItem?.meta?.scheduled_date);
+  const schedule = orderScheduleText(order.scheduled_at, order.reserved_date ?? baseItem?.meta?.scheduled_date);
   const currentStatusIdx = STATUS_FLOW.indexOf(order.status);
   const addr = order.delivery_address_snapshot;
   const isActiveOrder = ["on_the_way", "in_service"].includes(order.status);

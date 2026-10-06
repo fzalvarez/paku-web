@@ -28,7 +28,7 @@ interface StepOrderConfirmedProps {
 
 export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProps) {
   const baseItem = order.items_snapshot.find((i) => i.kind === "service_base");
-  const schedule = orderScheduleText(order.scheduled_at, baseItem?.meta?.scheduled_date);
+  const schedule = orderScheduleText(order.scheduled_at, order.reserved_date ?? baseItem?.meta?.scheduled_date);
 
   return (
     <div data-print-area className="flex flex-col items-center text-center">

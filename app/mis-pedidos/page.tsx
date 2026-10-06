@@ -67,7 +67,7 @@ export default function MisPedidosPage() {
               const status = orderStatusInfo(order.status);
               const payment = paymentStatusInfo(order.payment_status);
               const baseItem = order.items_snapshot.find((i) => i.kind === "service_base");
-              const schedule = orderScheduleText(order.scheduled_at, baseItem?.meta?.scheduled_date);
+              const schedule = orderScheduleText(order.scheduled_at, order.reserved_date ?? baseItem?.meta?.scheduled_date);
 
               return (
                 <Link

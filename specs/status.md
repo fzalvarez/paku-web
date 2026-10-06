@@ -1,6 +1,6 @@
 # Estado — Paku Web
 
-> Actualizado: 2026-10-05 · adaptado al backend de octubre (C-01 a C-19). Commits `8f88eb3` a `56e1521`,
+> Actualizado: 2026-10-05 · adaptado al backend de octubre (C-01 a C-21; C-20/C-21 aún sin desplegar). Commits `8f88eb3` a `56e1521`,
 > sin push.
 
 ## Qué funciona (según código; verificado con Playwright contra el API simulado)
@@ -21,9 +21,9 @@
 
 ## Pendiente para dar por cerrada la adaptación
 
-- [ ] **Desplegar C-19 en el backend.** Hasta entonces `POST /holds` guarda la reserva pero responde 500 y
-  la compra no funciona contra el servidor. Comprobar: en `/openapi.json`, `HoldOut.date` debe ser
-  `string`, no `null`.
+- [x] **C-19 desplegado** (comprobado en `/openapi.json` el 2026-10-05: `HoldOut.date` es `date`).
+- [ ] **Cuando se despliegue C-21:** dejar de enviar `meta.scheduled_time` (ya es opcional) en
+  `components/booking/StepReviewCart.tsx` (`SCHEDULED_TIME`). Hoy el servidor desplegado aún lo exige.
 - [ ] **Prueba real de punta a punta** con credenciales de prueba (cliente con perfil completo, mascota con
   peso, día con cupo, tarjeta de prueba Culqi): compra completa, reserva vencida, cambio de precio,
   reintento de pago, seguimiento y campana. Todo lo anterior se verificó solo contra el API simulado con
@@ -32,6 +32,8 @@
 
 ## Decisiones tomadas (2026-10-05)
 
+- Día del servicio mostrado: `scheduled_at` si el admin ya lo asignó; si no, `reserved_date` (C-21) o,
+  si el backend aún no lo envía, `meta.scheduled_date` del servicio base.
 - La reserva se crea al confirmar la fecha ("Reservar fecha"), no en el paso de revisión.
 - `meta.scheduled_time` se envía fijo ("09:00") porque el backend lo exige, pero no se muestra: la hora la
   asigna el admin (`scheduled_at`).
@@ -44,7 +46,7 @@
 ## Pedidos al backend
 
 - [x] **500 en las respuestas de reservas** (`HoldOut.date` tipado como `null`). Reportado 2026-10-05;
-  corregido en paku-backend `fd48bb5` (**C-19**). Pendiente de despliegue (ver arriba).
+  corregido en paku-backend `fd48bb5` (**C-19**) y desplegado.
 - [ ] *(ya pedido por paku-admin)* Endpoint para marcar todas las notificaciones como leídas; hoy se marcan
   de a una.
 

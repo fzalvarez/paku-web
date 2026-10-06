@@ -78,6 +78,8 @@ export interface OrderOut {
   /** Fecha y hora de la parada que asigna el admin (UTC). Null hasta la asignación. */
   scheduled_at: string | null;
   hold_id: string | null;
+  /** Día de la reserva de cupo vigente (C-21). Lo mueve el admin al reprogramar; null si el cupo se liberó. */
+  reserved_date?: string | null;
   payment_status?: OrderPaymentStatus;
   payment_method?: OrderPaymentMethod | null;
   culqi_charge_id?: string | null;
