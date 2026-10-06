@@ -1,6 +1,6 @@
 # Estado — Paku Web
 
-> Actualizado: 2026-10-05 · adaptado al backend de octubre (C-01 a C-21; C-20/C-21 aún sin desplegar). Commits `8f88eb3` a `56e1521`,
+> Actualizado: 2026-10-05 · adaptado al backend de octubre (C-01 a C-21; C-20/C-21 aún sin desplegar). Commits `8f88eb3` a `480150b`,
 > sin push.
 
 ## Qué funciona (según código; verificado con Playwright contra el API simulado)
