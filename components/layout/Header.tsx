@@ -131,7 +131,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
 
             <DropdownMenuItem asChild>
               <Link
-                href="/mis-pedidos"
+                href="/account/orders"
                 className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-primary/5 hover:text-primary focus:bg-primary/5 focus:text-primary"
               >
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -146,7 +146,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
 
             <DropdownMenuItem asChild>
               <Link
-                href="/account/orders"
+                href="/account/payments"
                 className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-secondary/5 hover:text-secondary focus:bg-secondary/5 focus:text-secondary"
               >
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
@@ -154,7 +154,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
                 </span>
                 <div>
                   <p className="font-semibold leading-none">Pagos</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Historial y métodos de pago</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Tus tarjetas guardadas</p>
                 </div>
               </Link>
             </DropdownMenuItem>
@@ -400,6 +400,16 @@ export function Header() {
                   </Link>
                   <Link
                     href="/account/orders"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-primary/5 hover:text-primary"
+                  >
+                    <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Package className="size-3.5" />
+                    </span>
+                    Mis pedidos
+                  </Link>
+                  <Link
+                    href="/account/payments"
                     onClick={() => setMobileOpen(false)}
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-secondary/5 hover:text-secondary"
                   >

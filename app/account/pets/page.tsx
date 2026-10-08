@@ -15,12 +15,14 @@ import {
   Mars,
   Venus,
   Calendar,
-  AlertCircle,
-  CheckCircle2,
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
+import { EmptyState } from "@/components/account/EmptyState";
+import { InlineAlert } from "@/components/account/InlineAlert";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,9 @@ import type {
   UpdatePetRequest,
 } from "@/types/pets";
 import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -197,9 +202,6 @@ function PetFormDialog({
     }
   }
 
-  const selectClass =
-    "h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -230,9 +232,9 @@ function PetFormDialog({
           {/* Nombre + Especie */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Label>
                 Nombre *
-              </label>
+              </Label>
               <Input
                 placeholder="Ej. Max"
                 value={form.name}
@@ -241,10 +243,10 @@ function PetFormDialog({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Label>
                 Especie *
-              </label>
-              <select
+              </Label>
+              <NativeSelect
                 value={form.species}
                 onChange={(e) =>
                   setForm((p) => ({
@@ -253,26 +255,24 @@ function PetFormDialog({
                     breed_id: "",
                   }))
                 }
-                className={selectClass}
               >
                 <option value="dog">Perro 🐶</option>
                 <option value="cat">Gato 🐱</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
 
           {/* Raza + Sexo */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Label>
                 Raza
                 {breedsLoading && (
                   <Loader2 className="ml-1 inline size-3 animate-spin" />
                 )}
-              </label>
+              </Label>
               {breeds.length > 0 ? (
-                <select
-                  className={selectClass}
+                <NativeSelect
                   value={form.breed_id}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, breed_id: e.target.value }))
@@ -284,7 +284,7 @@ function PetFormDialog({
                       {b.name}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               ) : (
                 <>
                   <Input
@@ -301,27 +301,26 @@ function PetFormDialog({
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Label>
                 Sexo
-              </label>
-              <select
+              </Label>
+              <NativeSelect
                 value={form.sex}
                 onChange={set("sex")}
-                className={selectClass}
               >
                 <option value="">Sin especificar</option>
                 <option value="male">Macho</option>
                 <option value="female">Hembra</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
 
           {/* Fecha nacimiento + Peso */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Label>
                 Fecha de nacimiento
-              </label>
+              </Label>
               <Input
                 type="date"
                 value={form.birth_date}
@@ -330,9 +329,9 @@ function PetFormDialog({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Label>
                 Peso (kg)
-              </label>
+              </Label>
               <Input
                 type="number"
                 step="0.1"
@@ -346,24 +345,18 @@ function PetFormDialog({
 
           {/* Notas */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <Label>
               Notas
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               placeholder="Alergias, condiciones especiales…"
               value={form.notes}
               onChange={set("notes")}
               rows={3}
-              className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
             />
           </div>
 
-          {error && (
-            <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              <AlertCircle className="size-4 shrink-0" />
-              {error}
-            </div>
-          )}
+          {error && <InlineAlert>{error}</InlineAlert>}
 
           <div className="flex justify-end gap-3 pt-1">
             <Button
@@ -464,9 +457,9 @@ function WeightDialog({
         <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Label>
                 Peso (kg) *
-              </label>
+              </Label>
               <Input
                 type="number"
                 step="0.1"
@@ -478,9 +471,9 @@ function WeightDialog({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Label>
                 Fecha
-              </label>
+              </Label>
               <Input
                 type="date"
                 value={date}
@@ -489,23 +482,7 @@ function WeightDialog({
               />
             </div>
           </div>
-          {feedback && (
-            <div
-              className={cn(
-                "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium border",
-                feedback.type === "success"
-                  ? "bg-green-50 text-green-700 border-green-200"
-                  : "bg-destructive/10 text-destructive border-destructive/20",
-              )}
-            >
-              {feedback.type === "success" ? (
-                <CheckCircle2 className="size-4" />
-              ) : (
-                <AlertCircle className="size-4" />
-              )}
-              {feedback.msg}
-            </div>
-          )}
+          {feedback && <InlineAlert type={feedback.type}>{feedback.msg}</InlineAlert>}
           <div className="flex justify-end gap-3">
             <Button
               type="button"
@@ -601,26 +578,9 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
 
             {/* Badges de info */}
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest",
-                  isDog
-                    ? "bg-primary/10 text-primary"
-                    : "bg-secondary/10 text-secondary",
-                )}
-              >
-                {isDog ? "Perro" : "Gato"}
-              </span>
-              {pet.sterilized && (
-                <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-green-700">
-                  Esterilizado
-                </span>
-              )}
-              {pet.vaccines_up_to_date && (
-                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-blue-700">
-                  Vacunas al día
-                </span>
-              )}
+              <Badge variant={isDog ? "default" : "secondary"}>{isDog ? "Perro" : "Gato"}</Badge>
+              {pet.sterilized && <Badge variant="success">Esterilizado</Badge>}
+              {pet.vaccines_up_to_date && <Badge variant="info">Vacunas al día</Badge>}
             </div>
 
             {pet.notes && (
@@ -636,7 +596,7 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
           <Button
             size="sm"
             variant="outline"
-            className="h-7 gap-1.5"
+            className="gap-1.5 text-xs"
             onClick={() => onWeight(pet)}
             disabled={mutating}
           >
@@ -645,29 +605,29 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
           </Button>
           <Button
             size="sm"
-            variant="edit"
-            className="h-7 gap-1.5"
+            variant="ghost"
+            className="gap-1.5 text-xs"
             onClick={() => onEdit(pet)}
             disabled={mutating}
           >
-            <Pencil className="size-3 shrink-0" />
+            <Pencil className="size-3" />
             Editar
           </Button>
-          <Link
-            href={`/account/pets/${pet.id}`}
-            className="ml-auto flex h-7 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-          >
-            Ver perfil
-            <ChevronRight className="size-3" />
-          </Link>
           <Button
             size="sm"
-            variant="delete"
-            className="gap-1.5"
+            variant="ghost"
+            className="gap-1.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={() => onDelete(pet)}
             disabled={mutating}
+            aria-label={`Eliminar a ${pet.name}`}
           >
-            <Trash2 className="size-3 shrink-0" />
+            <Trash2 className="size-3" />
+          </Button>
+          <Button asChild size="sm" variant="outline" className="ml-auto gap-1.5 text-xs">
+            <Link href={`/account/pets/${pet.id}`}>
+              Ver perfil
+              <ChevronRight className="size-3" />
+            </Link>
           </Button>
         </div>
       </div>
@@ -723,23 +683,17 @@ function ConfirmDeleteDialog({
 
 function EmptyPets({ onAdd }: { onAdd: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-border bg-muted/30 py-16 px-6 text-center">
-      <div className="flex size-20 items-center justify-center rounded-3xl bg-linear-to-br from-primary/10 via-secondary/5 to-tertiary/10">
-        <PawPrint className="size-10 text-primary/50" />
-      </div>
-      <div>
-        <p className="text-lg font-extrabold tracking-tight text-foreground">
-          Aún no tienes mascotas
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Agrega a tus compañeros para gestionar sus servicios fácilmente.
-        </p>
-      </div>
-      <Button onClick={onAdd} className="gap-2">
-        <Plus className="size-4" />
-        Agregar primera mascota
-      </Button>
-    </div>
+    <EmptyState
+      icon={PawPrint}
+      title="Aún no tienes mascotas"
+      description="Agrega a tus compañeros para gestionar sus servicios fácilmente."
+      action={
+        <Button onClick={onAdd} className="gap-2">
+          <Plus className="size-4" />
+          Agregar primera mascota
+        </Button>
+      }
+    />
   );
 }
 
@@ -797,30 +751,21 @@ export default function PetsPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Encabezado */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-            Mis mascotas
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gestiona la información de tus compañeros peludos.
-          </p>
-        </div>
-        {pets.length > 0 && (
-          <Button onClick={handleAddNew} className="shrink-0 gap-2">
-            <Plus className="size-4" />
-            <span className="hidden sm:inline">Agregar</span>
-          </Button>
-        )}
-      </div>
+      <AccountPageHeader
+        title="Mis mascotas"
+        description="Gestiona la información de tus compañeros peludos."
+        action={
+          pets.length > 0 && (
+            <Button onClick={handleAddNew} className="gap-2" aria-label="Agregar mascota">
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">Agregar mascota</span>
+            </Button>
+          )
+        }
+      />
 
       {/* Error global */}
-      {error && (
-        <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <AlertCircle className="size-4 shrink-0" />
-          {error}
-        </div>
-      )}
+      {error && <InlineAlert>{error}</InlineAlert>}
 
       {/* Loading */}
       {loading ? (

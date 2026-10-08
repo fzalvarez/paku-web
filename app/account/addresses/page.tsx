@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { Loader2, MapPin, Star, Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
+import { EmptyState } from "@/components/account/EmptyState";
+import { InlineAlert } from "@/components/account/InlineAlert";
 import { AddressFormDialog } from "@/components/common/AddressFormDialog";
 import { useAddresses } from "@/hooks/useAddresses";
 import { useDistricts } from "@/hooks/useDistricts";
@@ -39,10 +43,10 @@ function AddressCard({
       <div className="p-4">
         {/* Badge predeterminada */}
         {address.is_default && (
-          <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
-            <Star className="size-3 fill-primary" />
+          <Badge className="mb-3">
+            <Star className="fill-primary" />
             Predeterminada
-          </span>
+          </Badge>
         )}
 
         {/* Icono + datos */}
@@ -88,7 +92,7 @@ function AddressCard({
             <Button
               size="sm"
               variant="outline"
-              className="h-7 gap-1.5 text-xs"
+              className="gap-1.5 text-xs"
               onClick={() => onSetDefault(address.id)}
               disabled={busy}
             >
@@ -103,7 +107,7 @@ function AddressCard({
           <Button
             size="sm"
             variant="ghost"
-            className="h-7 gap-1.5 text-xs"
+            className="gap-1.5 text-xs"
             onClick={() => onEdit(address)}
             disabled={busy}
           >
@@ -113,7 +117,7 @@ function AddressCard({
           <Button
             size="sm"
             variant="ghost"
-            className="ml-auto h-7 gap-1.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="ml-auto gap-1.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={() => onDelete(address.id)}
             disabled={busy}
           >
@@ -211,30 +215,21 @@ export default function AddressesPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Cabecera */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-primary">
-            Direcciones
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground md:text-base">
-            Registra los lugares donde realizaremos el servicio.
-          </p>
-        </div>
-        {addresses.length > 0 && (
-          <Button onClick={openCreate} size="sm" className="shrink-0 gap-2">
-            <Plus className="size-4" />
-            <span className="hidden sm:inline">Nueva dirección</span>
-          </Button>
-        )}
-      </div>
+      <AccountPageHeader
+        title="Direcciones"
+        description="Registra los lugares donde realizaremos el servicio."
+        action={
+          addresses.length > 0 && (
+            <Button onClick={openCreate} className="gap-2" aria-label="Nueva dirección">
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">Nueva dirección</span>
+            </Button>
+          )
+        }
+      />
 
       {/* Error de acción */}
-      {actionError && (
-        <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <MapPin className="size-4 shrink-0" />
-          {actionError}
-        </div>
-      )}
+      {actionError && <InlineAlert>{actionError}</InlineAlert>}
 
       {/* Carga inicial */}
       {loading && (
@@ -257,31 +252,21 @@ export default function AddressesPage() {
       )}
 
       {/* Error de carga */}
-      {!loading && error && (
-        <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      {!loading && error && <InlineAlert>{error}</InlineAlert>}
 
       {/* Lista vacía */}
       {!loading && !error && addresses.length === 0 && (
-        <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
-          <div className="flex size-20 items-center justify-center rounded-3xl bg-linear-to-br from-primary/10 via-secondary/5 to-tertiary/10">
-            <MapPin className="size-10 text-primary/50" strokeWidth={1.5} />
-          </div>
-          <div>
-            <p className="text-lg font-extrabold tracking-tight text-foreground">
-              No tienes direcciones registradas
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Agrega una dirección para facilitar la reserva de servicios.
-            </p>
-          </div>
-          <Button onClick={openCreate} className="gap-2">
-            <Plus className="size-4" />
-            Agregar dirección
-          </Button>
-        </div>
+        <EmptyState
+          icon={MapPin}
+          title="No tienes direcciones registradas"
+          description="Agrega una dirección para facilitar la reserva de servicios."
+          action={
+            <Button onClick={openCreate} className="gap-2">
+              <Plus className="size-4" />
+              Agregar dirección
+            </Button>
+          }
+        />
       )}
 
       {/* Grid de tarjetas */}

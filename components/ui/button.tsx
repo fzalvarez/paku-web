@@ -19,9 +19,6 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
-        delete:
-          "bg-red-300/50 hover:bg-red-300 text-destructive cursor-pointer text-xs",
-        edit: "bg-purple-300/50 hover:bg-purple-300 text-purple-700 cursor-pointer text-xs",
       },
       size: {
         default:

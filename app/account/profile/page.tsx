@@ -1,39 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Loader2, User, Lock, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Loader2, User, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
+import { InlineAlert } from "@/components/account/InlineAlert";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { usersService } from "@/lib/api/users";
 import type { UpdateMeRequest, SetPasswordRequest } from "@/lib/api/users";
 import { cn } from "@/lib/utils";
-
-// Estilos de campo — deliberadamente discretos: el label y el valor no
-// deben competir en color/tamaño con los títulos de la página o sección.
-const FIELD_LABEL_CLASS = "text-sm font-medium text-muted-foreground";
-const FIELD_INPUT_CLASS = "h-11";
-
-// ── Helper: banner de feedback ─────────────────────────────────────────────────
-function Feedback({ type, msg }: { type: "success" | "error"; msg: string }) {
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium",
-        type === "success"
-          ? "border border-green-200 bg-green-50 text-green-700"
-          : "border border-destructive/20 bg-destructive/10 text-destructive"
-      )}
-    >
-      {type === "success" ? (
-        <CheckCircle2 className="size-4 shrink-0" />
-      ) : (
-        <AlertCircle className="size-4 shrink-0" />
-      )}
-      {msg}
-    </div>
-  );
-}
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 
 // ── Sección reutilizable ───────────────────────────────────────────────────────
 
@@ -41,12 +19,10 @@ const ACCENT_CLASSES = {
   primary: {
     text: "text-primary",
     blobBg: "bg-primary/10",
-    button: "bg-primary text-primary-foreground hover:bg-primary/90",
   },
   secondary: {
     text: "text-secondary",
     blobBg: "bg-secondary/10",
-    button: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
   },
 } as const;
 
@@ -121,57 +97,56 @@ function PersonalDataForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {/* Email (solo lectura) */}
       <div className="flex flex-col gap-1.5">
-        <label className={FIELD_LABEL_CLASS}>
+        <Label>
           Correo electrónico
-        </label>
-        <Input value={user?.email ?? ""} disabled className={cn(FIELD_INPUT_CLASS, "disabled:opacity-70")} />
+        </Label>
+        <Input value={user?.email ?? ""} disabled className="disabled:opacity-70" />
         <p className="text-xs text-muted-foreground">El correo no se puede modificar.</p>
       </div>
 
       {/* Nombre + Apellido */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label className={FIELD_LABEL_CLASS}>Nombre</label>
-          <Input className={FIELD_INPUT_CLASS} placeholder="Nombre" value={form.first_name} onChange={set("first_name")} required />
+          <Label>Nombre</Label>
+          <Input placeholder="Nombre" value={form.first_name} onChange={set("first_name")} required />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className={FIELD_LABEL_CLASS}>Apellido</label>
-          <Input className={FIELD_INPUT_CLASS} placeholder="Apellido" value={form.last_name} onChange={set("last_name")} />
+          <Label>Apellido</Label>
+          <Input placeholder="Apellido" value={form.last_name} onChange={set("last_name")} />
         </div>
       </div>
 
       {/* Teléfono + DNI */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label className={FIELD_LABEL_CLASS}>Teléfono</label>
-          <Input className={FIELD_INPUT_CLASS} type="tel" placeholder="123 456 789" value={form.phone} onChange={set("phone")} />
+          <Label>Teléfono</Label>
+          <Input type="tel" placeholder="123 456 789" value={form.phone} onChange={set("phone")} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className={FIELD_LABEL_CLASS}>DNI</label>
-          <Input className={FIELD_INPUT_CLASS} placeholder="12345678" value={form.dni} onChange={set("dni")} />
+          <Label>DNI</Label>
+          <Input placeholder="12345678" value={form.dni} onChange={set("dni")} />
         </div>
       </div>
 
       {/* Fecha nacimiento + Sexo */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label className={FIELD_LABEL_CLASS}>Fecha de nacimiento</label>
-          <Input className={FIELD_INPUT_CLASS} type="date" value={form.birth_date} onChange={set("birth_date")} />
+          <Label>Fecha de nacimiento</Label>
+          <Input type="date" value={form.birth_date} onChange={set("birth_date")} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className={FIELD_LABEL_CLASS}>Género</label>
-          <select
+          <Label>Género</Label>
+          <NativeSelect
             value={form.sex}
             onChange={set("sex")}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="male">Masculino</option>
             <option value="female">Femenino</option>
-          </select>
+          </NativeSelect>
         </div>
       </div>
 
-      {feedback && <Feedback type={feedback.type} msg={feedback.msg} />}
+      {feedback && <InlineAlert type={feedback.type}>{feedback.msg}</InlineAlert>}
 
       <div className="flex justify-end pt-1">
         <Button type="submit" disabled={loading} className="gap-2">
@@ -229,14 +204,14 @@ function PasswordForm() {
   }) {
     return (
       <div className="flex flex-col gap-1.5">
-        <label className={FIELD_LABEL_CLASS}>{label}</label>
+        <Label>{label}</Label>
         <div className="relative">
           <Input
             type={show ? "text" : "password"}
             placeholder={placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className={cn(FIELD_INPUT_CLASS, "pr-10")}
+            className="pr-10"
             required
           />
           <button
@@ -279,14 +254,10 @@ function PasswordForm() {
         placeholder="Repite la nueva contraseña"
       />
 
-      {feedback && <Feedback type={feedback.type} msg={feedback.msg} />}
+      {feedback && <InlineAlert type={feedback.type}>{feedback.msg}</InlineAlert>}
 
       <div className="flex justify-end pt-1">
-        <Button
-          type="submit"
-          disabled={loading}
-          className="gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90"
-        >
+        <Button type="submit" disabled={loading} className="gap-2">
           {loading && <Loader2 className="size-4 animate-spin" />}
           Cambiar contraseña
         </Button>
@@ -301,14 +272,12 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       {/* Encabezado de página */}
-      <div>
-        <h1 className="text-3xl font-black tracking-tight text-primary md:text-4xl">Mi perfil</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground md:text-base">
-          Administra tu información personal y seguridad de la cuenta.
-        </p>
-      </div>
+      <AccountPageHeader
+        title="Mi perfil"
+        description="Administra tu información personal y seguridad de la cuenta."
+      />
 
       {/* Datos personales */}
       <SectionCard

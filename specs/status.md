@@ -50,6 +50,23 @@
 - [ ] *(ya pedido por paku-admin)* Endpoint para marcar todas las notificaciones como leídas; hoy se marcan
   de a una.
 
+## Sección "Mi cuenta" unificada (2026-10-08)
+
+- "Mis pedidos" pasó de `/mis-pedidos` a `/account/orders` (y `/account/orders/[id]`), dentro del layout de
+  cuenta. `/mis-pedidos` y `/mis-pedidos/:id` redirigen (301) desde `next.config.ts`.
+- Componentes comunes en `components/account/`: `AccountPageHeader` (título de página), `EmptyState`,
+  `InlineAlert` (error/éxito con "Reintentar").
+- `components/ui` (shadcn) nuevos: `Badge` (etiquetas y chips de estado), `NativeSelect` (select nativo con
+  aspecto de `Input`; se usa porque los campos de mascota necesitan la opción vacía "Sin especificar"),
+  `Textarea`. `Label` ahora es atenuado por defecto y es la única etiqueta de formulario.
+- Botones: solo `Button` con variantes estándar; se quitaron las variantes propias `edit` y `delete`.
+  `CardDataForm` (también usado en el checkout de `/booking`) pasó a `Input`/`NativeSelect`/`Button`.
+- Header: "Pagos" apuntaba a `/account/orders`; ahora a `/account/payments`. Menú móvil con "Mis pedidos".
+- Verificado: eslint y `tsc` sin errores; `next build` OK con variables de Firebase de relleno (sin `.env`
+  el build falla en el prerender, también sin estos cambios). **Falta revisión visual con sesión real**
+  (cuenta y checkout de `/booking`).
+- Fuera de alcance: los botones del reproductor de transmisión (sobre fondo oscuro) y el resto de la web.
+
 ## Pendientes heredados
 
 - [ ] `home-v2` vs `page.tsx` actual (`HeroSectionV2` es la home en uso).

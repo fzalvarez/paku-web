@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
         destination: "/politicas/terminos-y-condiciones",
         permanent: true,
       },
+      // "Mis pedidos" vive dentro de /account desde 2026-10; se mantienen los enlaces viejos
+      { source: "/mis-pedidos", destination: "/account/orders", permanent: true },
+      { source: "/mis-pedidos/:id", destination: "/account/orders/:id", permanent: true },
     ];
   },
   images: {

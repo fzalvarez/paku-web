@@ -49,7 +49,7 @@ export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProp
       {order.payment_status === "verifying" && (
         <div className="mt-4 w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-800">
           Estamos confirmando tu pago con el banco 🏦, te avisaremos en cuanto se confirme. Puedes revisar el estado más tarde en{" "}
-          <Link href="/mis-pedidos" className="font-semibold underline">mis pedidos</Link>.
+          <Link href="/account/orders" className="font-semibold underline">mis pedidos</Link>.
         </div>
       )}
 
@@ -125,7 +125,7 @@ export function StepOrderConfirmed({ order, onNewOrder }: StepOrderConfirmedProp
           Imprimir / Descargar PDF
         </button>
         <Link
-          href="/mis-pedidos"
+          href="/account/orders"
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90"
         >
           Ver mis pedidos

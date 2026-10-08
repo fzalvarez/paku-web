@@ -28,5 +28,5 @@ export const notificationsService = {
 /** A dónde lleva un aviso: al detalle del pedido si trae order_id. */
 export function notificationTarget(n: NotificationOut): string | null {
   const orderId = n.data?.order_id;
-  return typeof orderId === "string" && orderId ? `/mis-pedidos/${orderId}` : null;
+  return typeof orderId === "string" && orderId ? `/account/orders/${orderId}` : null;
 }

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { User, MapPin, ShoppingBag, PawPrint, CreditCard, ChevronRight } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -13,7 +14,7 @@ const NAV_LINKS = [
   { href: "/account/pets",      label: "Mis mascotas",        icon: PawPrint,    color: "text-secondary", bg: "bg-secondary/10" },
   { href: "/account/addresses", label: "Direcciones",         icon: MapPin,      color: "text-tertiary",  bg: "bg-tertiary/10" },
   { href: "/account/payments",  label: "Métodos de pago",     icon: CreditCard,  color: "text-primary",   bg: "bg-primary/10" },
-  { href: "/account/orders",    label: "Mis órdenes",         icon: ShoppingBag, color: "text-secondary", bg: "bg-secondary/10" },
+  { href: "/account/orders",    label: "Mis pedidos",          icon: ShoppingBag, color: "text-secondary", bg: "bg-secondary/10" },
 ];
 
 function getUserInitials(firstName?: string | null, lastName?: string | null, email?: string | null) {
@@ -46,6 +47,10 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   }
   if (!isAuthenticated) return null;
 
+  // Activo también en subrutas (detalle de pedido o de mascota)
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const currentSection = NAV_LINKS.find((l) => isActive(l.href));
+
   const displayName = user?.first_name
     ? `${user.first_name}${user.last_name ? ` ${user.last_name}` : ""}`.trim()
     : user?.email ?? "Usuario";
@@ -57,9 +62,17 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
         <nav className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href="/" className="transition-colors hover:text-primary">Home</Link>
           <ChevronRight className="size-3" />
-          <span className="font-semibold text-primary">
-            {NAV_LINKS.find((l) => l.href === pathname)?.label ?? "Mi cuenta"}
-          </span>
+          {currentSection ? (
+            <>
+              <span>Mi cuenta</span>
+              <ChevronRight className="size-3" />
+              <Link href={currentSection.href} className="font-semibold text-primary">
+                {currentSection.label}
+              </Link>
+            </>
+          ) : (
+            <span className="font-semibold text-primary">Mi cuenta</span>
+          )}
         </nav>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
@@ -88,9 +101,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                   {user?.email && (
                     <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                   )}
-                  <span className="mt-1.5 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
-                    Cuenta Paku
-                  </span>
+                  <Badge className="mt-1.5">Cuenta Paku</Badge>
                 </div>
               </div>
             </div>
@@ -98,7 +109,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             {/* Nav links */}
             <nav className="flex flex-col gap-2 rounded-[1.75rem] bg-transparent p-0">
               {NAV_LINKS.map(({ href, label, icon: Icon, color, bg }) => {
-                const active = pathname === href;
+                const active = isActive(href);
                 return (
                   <Link
                     key={href}

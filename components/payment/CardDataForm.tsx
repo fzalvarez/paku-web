@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { AlertCircle, Lock, X } from "lucide-react";
+import { AlertCircle, Loader2, Lock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { CardData } from "@/types/payments";
 
 interface CardDataFormProps {
@@ -81,41 +85,38 @@ export function CardDataForm({
   }, [cardNumber, cvv, expiryMonth, expiryYear, email, isFormValid, onSubmit]);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
+    <div className="space-y-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
       {/* Error */}
       {error && (
         <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <AlertCircle className="size-4 shrink-0" />
           <span className="flex-1">{error}</span>
-          <button
+          <Button
+            size="icon-xs"
+            variant="ghost"
             onClick={onErrorDismiss}
             aria-label="Cerrar error"
-            className="shrink-0"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
-            <X className="size-4" />
-          </button>
+            <X />
+          </Button>
         </div>
       )}
 
       {/* Número de tarjeta */}
-      <div>
-        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          Número de tarjeta
-        </label>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="card-number">Número de tarjeta</Label>
         <div className="relative">
-          <input
+          <Input
+            id="card-number"
             type="text"
             inputMode="numeric"
+            autoComplete="cc-number"
             placeholder="1234 5678 9012 3456"
             value={cardNumber}
             onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
             disabled={isLoading}
-            className={cn(
-              "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-mono",
-              "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
-              "disabled:bg-muted disabled:text-muted-foreground",
-              brand && "border-primary/40"
-            )}
+            className={cn("font-mono", brand && "border-primary/40 pr-24")}
             maxLength={19}
           />
           {brand && (
@@ -127,41 +128,28 @@ export function CardDataForm({
       </div>
 
       {/* Titular */}
-      <div>
-        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          Titular de la tarjeta
-        </label>
-        <input
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="card-holder">Titular de la tarjeta</Label>
+        <Input
+          id="card-holder"
           type="text"
+          autoComplete="cc-name"
           placeholder="Nombre Apellido"
           value={cardHolder}
-          onChange={(e) =>
-            setCardHolder(e.target.value.toUpperCase())
-          }
+          onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
           disabled={isLoading}
-          className={cn(
-            "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm",
-            "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
-            "disabled:bg-muted disabled:text-muted-foreground"
-          )}
         />
       </div>
 
       {/* Vencimiento y CVV */}
       <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Mes
-          </label>
-          <select
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="card-exp-month">Mes</Label>
+          <NativeSelect
+            id="card-exp-month"
             value={expiryMonth}
             onChange={(e) => setExpiryMonth(e.target.value)}
             disabled={isLoading}
-            className={cn(
-              "w-full rounded-xl border border-border bg-background px-3 py-3 text-sm",
-              "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
-              "disabled:bg-muted disabled:text-muted-foreground"
-            )}
           >
             <option value="">MM</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -169,22 +157,16 @@ export function CardDataForm({
                 {String(m).padStart(2, "0")}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
 
-        <div>
-          <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Año
-          </label>
-          <select
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="card-exp-year">Año</Label>
+          <NativeSelect
+            id="card-exp-year"
             value={expiryYear}
             onChange={(e) => setExpiryYear(e.target.value)}
             disabled={isLoading}
-            className={cn(
-              "w-full rounded-xl border border-border bg-background px-3 py-3 text-sm",
-              "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
-              "disabled:bg-muted disabled:text-muted-foreground"
-            )}
           >
             <option value="">YY</option>
             {Array.from({ length: 20 }, (_, i) => {
@@ -197,48 +179,39 @@ export function CardDataForm({
                 </option>
               );
             })}
-          </select>
+          </NativeSelect>
         </div>
 
-        <div>
-          <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            CVV
-          </label>
-          <input
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="card-cvv">CVV</Label>
+          <Input
+            id="card-cvv"
             type="password"
             inputMode="numeric"
+            autoComplete="cc-csc"
             placeholder="123"
             value={cvv}
             onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
             disabled={isLoading}
-            className={cn(
-              "w-full rounded-xl border border-border bg-background px-3 py-3 text-sm font-mono",
-              "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
-              "disabled:bg-muted disabled:text-muted-foreground"
-            )}
+            className="font-mono"
             maxLength={4}
           />
         </div>
       </div>
 
       {/* Email */}
-      <div>
-        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          Correo electrónico
-        </label>
-        <input
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="card-email">Correo electrónico</Label>
+        <Input
+          id="card-email"
           type="email"
+          autoComplete="email"
           placeholder="correo@ejemplo.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={isLoading}
-          className={cn(
-            "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm",
-            "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
-            "disabled:bg-muted disabled:text-muted-foreground"
-          )}
         />
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Se usa para el recibo y confirmación del pago
         </p>
       </div>
@@ -247,30 +220,19 @@ export function CardDataForm({
       <div className="flex items-start gap-3 rounded-xl bg-primary/5 px-3 py-3">
         <Lock className="mt-0.5 size-4 shrink-0 text-primary" />
         <p className="text-xs text-primary">
-          Tus datos de tarjeta se envían directamente a Culqi y se tokenizar de forma segura. Nunca almacenamos el PAN ni CVV en nuestros servidores.
+          Tus datos de tarjeta se envían directamente a Culqi y se tokenizan de forma segura. Nunca almacenamos el PAN ni CVV en nuestros servidores.
         </p>
       </div>
 
       {/* Botones */}
-      <div className="flex items-center justify-between gap-3 pt-4">
-        <button
-          onClick={onCancel}
-          disabled={isLoading}
-          className="flex items-center gap-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
-        >
+      <div className="flex items-center justify-between gap-3 pt-2">
+        <Button variant="ghost" onClick={onCancel} disabled={isLoading}>
           Cancelar
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={!isFormValid || isLoading}
-          className={cn(
-            "flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all",
-            "disabled:cursor-not-allowed disabled:opacity-50 hover:bg-primary/90"
-          )}
-        >
+        </Button>
+        <Button onClick={handleSubmit} disabled={!isFormValid || isLoading} className="gap-2">
           {isLoading ? (
             <>
-              <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+              <Loader2 className="size-4 animate-spin" />
               Procesando…
             </>
           ) : (
@@ -279,7 +241,7 @@ export function CardDataForm({
               {submitLabel ?? (amountDisplay ? `Pagar ${amountDisplay}` : "Guardar tarjeta")}
             </>
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );

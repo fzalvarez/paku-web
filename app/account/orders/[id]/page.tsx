@@ -15,10 +15,13 @@ import { useWebRTCViewer } from "@/hooks/useWebRTCViewer";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { StepPaymentCulqi } from "@/components/booking/StepPaymentCulqi";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { InlineAlert } from "@/components/account/InlineAlert";
 import {
   Loader2, AlertCircle, MapPin, CalendarDays, Package,
   ArrowLeft, CheckCircle2, Clock, Truck, Scissors,
-  Navigation, Wifi, WifiOff, RefreshCw, ExternalLink,
+  Navigation, Wifi, WifiOff, ExternalLink,
   Video, VideoOff, Signal, CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -320,13 +323,10 @@ function StreamingViewer({ orderId }: StreamingViewerProps) {
           <p className="text-xs text-muted-foreground">
             {STREAMING_STATE_LABELS[connectionState] ?? connectionState}
           </p>
-          <button
-            onClick={handleStop}
-            className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors"
-          >
+          <Button size="sm" variant="outline" onClick={handleStop} className="gap-1.5 text-xs">
             <VideoOff className="size-3.5" />
             Salir
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -536,20 +536,20 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
       {/* ── Header ── */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold">
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">
             Pedido #{order.id.slice(0, 8).toUpperCase()}
           </h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Creado el {formatDate(order.created_at)}
           </p>
         </div>
-        <span className={cn(
-          "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold shrink-0",
-          statusConfig.bgColor, statusConfig.color
-        )}>
+        <Badge
+          size="md"
+          className={cn("gap-1.5 px-3 py-1 [&>svg]:size-4", statusConfig.bgColor, statusConfig.color)}
+        >
           {statusIcon(order.status)}
           {statusConfig.label}
-        </span>
+        </Badge>
       </div>
 
       <div className={cn("rounded-2xl border px-4 py-3", paymentConfig.bgColor)}>
@@ -576,13 +576,10 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
           )}
         </div>
         {canPay && (
-          <button
-            onClick={() => setPayModalOpen(true)}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
-          >
+          <Button size="lg" onClick={() => setPayModalOpen(true)} className="mt-3 w-full gap-2">
             <CreditCard className="size-4" />
             {paymentStatus === "failed" ? "Reintentar pago" : "Pagar"} S/ {order.total_snapshot.toFixed(2)}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -817,12 +814,12 @@ export default function OrderDetailPage() {
   }, [order?.status, loadOrder]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="max-w-3xl">
       <Link
-        href="/mis-pedidos"
-        className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        href="/account/orders"
+        className="mb-6 flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
       >
-        <ArrowLeft className="size-4" /> Volver a mis pedidos
+        <ArrowLeft className="size-3.5" /> Mis pedidos
       </Link>
 
       {loading && !order && (
@@ -831,15 +828,7 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <AlertCircle className="size-4 shrink-0" />
-          {error}
-          <button onClick={loadOrder} className="ml-auto flex items-center gap-1 underline text-xs">
-            <RefreshCw className="size-3" /> Reintentar
-          </button>
-        </div>
-      )}
+      {error && <InlineAlert onRetry={loadOrder}>{error}</InlineAlert>}
 
       {/* Las consultas periódicas no desmontan el detalle (mapa, chat y transmisión siguen montados) */}
       {order && (

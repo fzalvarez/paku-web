@@ -58,6 +58,11 @@ import type {
   PetAntiparasiticInterval,
 } from "@/types/pets";
 import type { PetRecordOut } from "@/types/pet-records";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { InlineAlert } from "@/components/account/InlineAlert";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -185,8 +190,6 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: 
     }
   }, [open, pet]);
 
-  const selectCls = "h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) { setError("El nombre es obligatorio."); return; }
@@ -243,27 +246,27 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: 
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nombre *</label>
+              <Label>Nombre *</Label>
               <Input value={form.name} onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))} required />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sexo</label>
-              <select value={form.sex} onChange={(e) => setForm(p => ({ ...p, sex: e.target.value as "male" | "female" | "" }))} className={selectCls}>
+              <Label>Sexo</Label>
+              <NativeSelect value={form.sex} onChange={(e) => setForm(p => ({ ...p, sex: e.target.value as "male" | "female" | "" }))}>
                 <option value="">Sin especificar</option>
                 <option value="male">Macho</option>
                 <option value="female">Hembra</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <Label>
               Raza {breedsLoading && <Loader2 className="ml-1 inline size-3 animate-spin" />}
-            </label>
+            </Label>
             {breeds.length > 0 ? (
-              <select value={form.breed_id} onChange={(e) => setForm(p => ({ ...p, breed_id: e.target.value }))} className={selectCls}>
+              <NativeSelect value={form.breed_id} onChange={(e) => setForm(p => ({ ...p, breed_id: e.target.value }))}>
                 <option value="">Sin especificar</option>
                 {breeds.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
+              </NativeSelect>
             ) : (
               <>
                 <Input
@@ -281,25 +284,20 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: 
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fecha de nacimiento</label>
+              <Label>Fecha de nacimiento</Label>
               <Input type="date" value={form.birth_date} onChange={(e) => setForm(p => ({ ...p, birth_date: e.target.value }))} max={new Date().toISOString().split("T")[0]} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notas</label>
-            <textarea
+            <Label>Notas</Label>
+            <Textarea
               placeholder="Alergias, condiciones especiales…"
               value={form.notes}
               onChange={(e) => setForm(p => ({ ...p, notes: e.target.value }))}
               rows={3}
-              className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
             />
           </div>
-          {error && (
-            <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              <AlertCircle className="size-4 shrink-0" />{error}
-            </div>
-          )}
+          {error && <InlineAlert>{error}</InlineAlert>}
           <div className="flex justify-end gap-3 pt-1">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
             <Button type="submit" disabled={loading || isUploading} className="gap-2">
@@ -348,26 +346,24 @@ function EditGroomingDialog({ open, onOpenChange, pet, onSaved }: EditGroomingDi
     }
   }, [open, pet]);
 
-  const selectCls = "h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
-
   function BoolSelect({ label, fieldKey }: { label: string; fieldKey: keyof PatchPetOptionalRequest }) {
     const val = form[fieldKey];
     const strVal = val === true ? "true" : val === false ? "false" : "";
     return (
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</label>
-        <select
+        <Label>{label}</Label>
+        <NativeSelect
           value={strVal}
           onChange={(e) => setForm(p => ({
             ...p,
             [fieldKey]: e.target.value === "" ? undefined : e.target.value === "true",
           }))}
-          className={selectCls}
+         
         >
           <option value="">Sin especificar</option>
           <option value="true">Sí</option>
           <option value="false">No</option>
-        </select>
+        </NativeSelect>
       </div>
     );
   }
@@ -406,37 +402,37 @@ function EditGroomingDialog({ open, onOpenChange, pet, onSaved }: EditGroomingDi
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">Físico</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Peso (kg)</label>
+                <Label>Peso (kg)</Label>
                 <p className="flex h-9 items-center rounded-md border border-dashed border-input px-2.5 text-sm text-muted-foreground">
                   Usa el botón &quot;Peso&quot; del perfil para registrarlo
                 </p>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tamaño</label>
-                <select value={form.size ?? ""} onChange={(e) => setForm(p => ({ ...p, size: (e.target.value || undefined) as PetSize | undefined }))} className={selectCls}>
+                <Label>Tamaño</Label>
+                <NativeSelect value={form.size ?? ""} onChange={(e) => setForm(p => ({ ...p, size: (e.target.value || undefined) as PetSize | undefined }))}>
                   <option value="">Sin especificar</option>
                   <option value="small">Pequeño</option>
                   <option value="medium">Mediano</option>
                   <option value="large">Grande</option>
-                </select>
+                </NativeSelect>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo de pelo</label>
-                <select value={form.coat_type ?? ""} onChange={(e) => setForm(p => ({ ...p, coat_type: (e.target.value || undefined) as PetCoatType | undefined }))} className={selectCls}>
+                <Label>Tipo de pelo</Label>
+                <NativeSelect value={form.coat_type ?? ""} onChange={(e) => setForm(p => ({ ...p, coat_type: (e.target.value || undefined) as PetCoatType | undefined }))}>
                   <option value="">Sin especificar</option>
                   <option value="short">Corto</option>
                   <option value="medium">Medio</option>
                   <option value="long">Largo</option>
-                </select>
+                </NativeSelect>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nivel de actividad</label>
-                <select value={form.activity_level ?? ""} onChange={(e) => setForm(p => ({ ...p, activity_level: (e.target.value || undefined) as PetActivityLevel | undefined }))} className={selectCls}>
+                <Label>Nivel de actividad</Label>
+                <NativeSelect value={form.activity_level ?? ""} onChange={(e) => setForm(p => ({ ...p, activity_level: (e.target.value || undefined) as PetActivityLevel | undefined }))}>
                   <option value="">Sin especificar</option>
                   <option value="low">Baja</option>
                   <option value="medium">Media</option>
                   <option value="high">Alta</option>
-                </select>
+                </NativeSelect>
               </div>
             </div>
           </div>
@@ -449,12 +445,12 @@ function EditGroomingDialog({ open, onOpenChange, pet, onSaved }: EditGroomingDi
               <BoolSelect label="Vacunas al día" fieldKey="vaccines_up_to_date" />
               <BoolSelect label="Antiparasitario" fieldKey="antiparasitic" />
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Frecuencia antiparasitario</label>
-                <select value={form.antiparasitic_interval ?? ""} onChange={(e) => setForm(p => ({ ...p, antiparasitic_interval: (e.target.value || undefined) as PetAntiparasiticInterval | undefined }))} className={selectCls}>
+                <Label>Frecuencia antiparasitario</Label>
+                <NativeSelect value={form.antiparasitic_interval ?? ""} onChange={(e) => setForm(p => ({ ...p, antiparasitic_interval: (e.target.value || undefined) as PetAntiparasiticInterval | undefined }))}>
                   <option value="">Sin especificar</option>
                   <option value="monthly">Mensual</option>
                   <option value="trimestral">Trimestral</option>
-                </select>
+                </NativeSelect>
               </div>
               <BoolSelect label="Piel sensible" fieldKey="skin_sensitivity" />
               <BoolSelect label="Shampoo especial" fieldKey="special_shampoo" />
@@ -466,13 +462,13 @@ function EditGroomingDialog({ open, onOpenChange, pet, onSaved }: EditGroomingDi
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">Comportamiento en grooming</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Comportamiento en el baño</label>
-                <select value={form.bath_behavior ?? ""} onChange={(e) => setForm(p => ({ ...p, bath_behavior: (e.target.value || undefined) as PetBathBehavior | undefined }))} className={selectCls}>
+                <Label>Comportamiento en el baño</Label>
+                <NativeSelect value={form.bath_behavior ?? ""} onChange={(e) => setForm(p => ({ ...p, bath_behavior: (e.target.value || undefined) as PetBathBehavior | undefined }))}>
                   <option value="">Sin especificar</option>
                   <option value="calm">Tranquilo</option>
                   <option value="fearful">Miedoso</option>
                   <option value="anxious">Ansioso</option>
-                </select>
+                </NativeSelect>
               </div>
               <BoolSelect label="Tolera el secado" fieldKey="tolerates_drying" />
               <BoolSelect label="Tolera corte de uñas" fieldKey="tolerates_nail_clipping" />
@@ -487,11 +483,7 @@ function EditGroomingDialog({ open, onOpenChange, pet, onSaved }: EditGroomingDi
             </div>
           </div>
 
-          {error && (
-            <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              <AlertCircle className="size-4 shrink-0" />{error}
-            </div>
-          )}
+          {error && <InlineAlert>{error}</InlineAlert>}
           <div className="flex justify-end gap-3 pt-1">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
             <Button type="submit" disabled={loading} className="gap-2">
@@ -549,20 +541,15 @@ function WeightDialog({ open, onOpenChange, pet, onSuccess }: { open: boolean; o
         <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Peso (kg) *</label>
+              <Label>Peso (kg) *</Label>
               <Input type="number" step="0.1" min="0" placeholder="8.5" value={weight} onChange={(e) => setWeight(e.target.value)} required />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fecha</label>
+              <Label>Fecha</Label>
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={new Date().toISOString().split("T")[0]} />
             </div>
           </div>
-          {feedback && (
-            <div className={cn("flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium border", feedback.type === "success" ? "bg-green-50 text-green-700 border-green-200" : "bg-destructive/10 text-destructive border-destructive/20")}>
-              {feedback.type === "success" ? <CheckCircle2 className="size-4" /> : <AlertCircle className="size-4" />}
-              {feedback.msg}
-            </div>
-          )}
+          {feedback && <InlineAlert type={feedback.type}>{feedback.msg}</InlineAlert>}
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
             <Button type="submit" disabled={loading} className="gap-2">
@@ -693,11 +680,9 @@ export default function PetProfilePage() {
               <h1 className="text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">{pet.name}</h1>
               {pet.sex === "male" && <Mars className="size-5 text-blue-500" />}
               {pet.sex === "female" && <Venus className="size-5 text-pink-500" />}
-              <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest", isDog ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary")}>
-                {isDog ? "Perro" : "Gato"}
-              </span>
-              {pet.sterilized && <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-green-700">Esterilizado/a</span>}
-              {pet.vaccines_up_to_date && <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-blue-700">Vacunas al día</span>}
+              <Badge variant={isDog ? "default" : "secondary"}>{isDog ? "Perro" : "Gato"}</Badge>
+              {pet.sterilized && <Badge variant="success">Esterilizado</Badge>}
+              {pet.vaccines_up_to_date && <Badge variant="info">Vacunas al día</Badge>}
             </div>
 
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">

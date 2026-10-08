@@ -23,6 +23,7 @@ import { useDistricts } from "@/hooks/useDistricts";
 import { LocationPickerMap } from "@/components/common/LocationPickerMap";
 import { getDistrictCenter } from "@/lib/data/lima-districts-geo";
 import type { AddressOut, AddressCreateIn } from "@/types/api";
+import { Label } from "@/components/ui/label";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -161,9 +162,9 @@ export function AddressFormDialog({
           {/* ── Distrito + Etiqueta ── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">
+              <Label>
                 Distrito *
-              </label>
+              </Label>
               <Select
                 value={form.district_id}
                 onValueChange={(value) => setField("district_id", value)}
@@ -187,9 +188,9 @@ export function AddressFormDialog({
               </Select>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">
+              <Label>
                 Etiqueta
-              </label>
+              </Label>
               <Input
                 placeholder="Casa, Trabajo…"
                 value={form.label}
@@ -200,9 +201,9 @@ export function AddressFormDialog({
 
           {/* ── Mapa ── */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
+            <Label>
               Ubicación en el mapa *
-            </label>
+            </Label>
             <div className="relative h-56 w-full overflow-hidden rounded-md border border-input bg-muted">
               {open && (
                 <LocationPickerMap
@@ -229,9 +230,9 @@ export function AddressFormDialog({
 
           {/* ── Línea de dirección ── */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">
+            <Label>
               Dirección *
-            </label>
+            </Label>
             <Input
               placeholder="Av. Principal 123"
               value={form.address_line}
@@ -242,9 +243,9 @@ export function AddressFormDialog({
 
           {/* ── Referencia ── */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-muted-foreground">
+            <Label>
               Referencia
-            </label>
+            </Label>
             <Input
               placeholder="Frente al parque, edificio azul…"
               value={form.reference}
@@ -255,9 +256,9 @@ export function AddressFormDialog({
           {/* ── Edificio + Dpto ── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">
+              <Label>
                 N° edificio
-              </label>
+              </Label>
               <Input
                 placeholder="Torre A"
                 value={form.building_number}
@@ -265,9 +266,9 @@ export function AddressFormDialog({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">
+              <Label>
                 N° departamento
-              </label>
+              </Label>
               <Input
                 placeholder="Piso 3, Dpto 302"
                 value={form.apartment_number}
