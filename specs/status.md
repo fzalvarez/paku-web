@@ -105,6 +105,19 @@ Tomando ideas de `referencias/nuevo home 2026.html` (no es copia):
 - Verificado con `next build` + `next start`: códigos 200/404, etiquetas SEO, JSON-LD, RSS válido
   (`xmllint`), sitemap con 14 URLs de blog, anclas del índice.
 
+## Panel de la mascota — spec 0003 (2026-10-08, sin commit)
+
+- Sección **adicional** `/account/pets/{id}/panel` (no reemplaza la ficha): edad, etapa y edad humana;
+  peso con gráfico; próximo baño estimado con "Reservar su baño"; salud preventiva; historia en Paku;
+  lecturas del blog; "completa su perfil". Acceso desde la tarjeta ("📊 Panel") y la ficha ("Ver panel").
+- Lógica en el frontend por decisión del owner, ordenada en `lib/pet-insights/` (un archivo por tema;
+  umbrales en `rules.ts`, **pendientes de confirmar**; datos de 85 razas en `breeds.ts` con las claves del
+  catálogo del backend). Bloques en `components/pets/panel/`.
+- Con la raza: esperanza de vida, peso frente a su raza, energía y actividad, alimentación orientativa, y
+  el manto del catálogo para el próximo baño si falta el tipo de pelo.
+- `/booking?pet=<id>` preselecciona la mascota en un inicio limpio; el paso 1 sigue validando el peso.
+- Verificado: eslint, `tsc`, `next build` y aserciones de las reglas. Falta revisión visual con sesión.
+
 ## Pendientes heredados
 
 - [ ] `home-v2` vs `page.tsx` actual (`HeroSectionV2` es la home en uso).

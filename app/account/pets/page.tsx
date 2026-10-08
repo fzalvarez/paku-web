@@ -592,7 +592,7 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
         </div>
 
         {/* Acciones */}
-        <div className="mt-4 flex items-center gap-2 border-t border-border/60 pt-3">
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
           <Button
             size="sm"
             variant="outline"
@@ -624,6 +624,9 @@ function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
             <Trash2 className="size-3" />
           </Button>
           <Button asChild size="sm" variant="outline" className="ml-auto gap-1.5 text-xs">
+            <Link href={`/account/pets/${pet.id}/panel`}>📊 Panel</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline" className="gap-1.5 text-xs">
             <Link href={`/account/pets/${pet.id}`}>
               Ver perfil
               <ChevronRight className="size-3" />

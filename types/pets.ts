@@ -56,10 +56,23 @@ export interface CreatePetRequest {
 
 // ── Catálogo de razas ─────────────────────────────────────────────────────────
 
+/** Manto según el catálogo de razas del backend (`breeds_data.py`). */
+export type BreedCoatGroup = "single" | "double";
+export type BreedCoatType =
+  | "simple_short"
+  | "simple_medium_long"
+  | "curly_no_undercoat"
+  | "double_short"
+  | "double_long"
+  | "mixed_curly_undercoat";
+
 export interface Breed {
   id: string;
   name: string;
   species: PetSpecies;
+  /** null en mestizos y gatos (aún sin clasificar en el backend). */
+  coat_group?: BreedCoatGroup | null;
+  coat_type?: BreedCoatType | null;
   breeds?: Breed[];
 }
 

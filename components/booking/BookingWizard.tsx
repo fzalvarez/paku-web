@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CalendarCheck } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { servicesService } from "@/lib/api/services";
+import { petsService } from "@/lib/api/pets";
 import { bookingService } from "@/lib/api/booking";
 import { ordersService } from "@/lib/api/orders";
 import { timeLima } from "@/lib/utils/dates";
@@ -98,6 +99,7 @@ export function BookingWizard() {
   const { isAuthenticated } = useAuthContext();
   const searchParams = useSearchParams();
   const preselectServiceId = searchParams.get("service");
+  const preselectPetId = searchParams.get("pet");
 
   // useState con lazy initializer — se ejecuta solo en cliente, evita mismatch SSR
   const [restored] = useState(() => loadSnapshot());
@@ -136,6 +138,24 @@ export function BookingWizard() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Preseleccionar mascota cuando se llega desde /booking?pet=<id> (ej. panel de
+  // la mascota). Mismo criterio que ?service=: solo en un inicio limpio. El
+  // usuario sigue en el paso 1, así que pasa por todas sus validaciones (peso).
+  useEffect(() => {
+    if (savedOnce || !preselectPetId || !isAuthenticated) return;
+    let cancelled = false;
+    petsService
+      .detail(preselectPetId)
+      .then((pet) => {
+        if (cancelled) return;
+        setSelectedPetId(pet.id);
+        setSelectedPet(pet);
+      })
+      .catch(() => { /* si falla, la elige a mano */ });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // Persistir en sessionStorage cada vez que cambie cualquier dato relevante
   useEffect(() => {

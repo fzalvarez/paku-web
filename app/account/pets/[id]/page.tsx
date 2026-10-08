@@ -697,7 +697,10 @@ export default function PetProfilePage() {
           </div>
 
           {/* Acciones */}
-          <div className="flex shrink-0 gap-2">
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button asChild size="sm" variant="outline" className="gap-1.5">
+              <Link href={`/account/pets/${pet.id}/panel`}>📊 Ver panel</Link>
+            </Button>
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setWeightOpen(true)}>
               <Weight className="size-3.5" /> Peso
             </Button>
