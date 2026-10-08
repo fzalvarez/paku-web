@@ -5,6 +5,8 @@ import type { CategoryOut, ProductOut } from "@/types/api";
 import { storeService } from "@/lib/api/store";
 import Link from "next/link";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { FinalCtaSection } from "@/components/sections/home/FinalCtaSection";
+import { HowItWorksSection } from "@/components/sections/home/HowItWorksSection";
 
 // ── Íconos por categoría de producto (ciclo por índice — el catálogo es
 // dinámico desde el backend, sin campo de imagen, así que esto escala a
@@ -151,30 +153,37 @@ export default function PakuSpaPage() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="max-w-3xl mx-auto mb-10 text-center">
-        <h1 className="text-3xl font-black tracking-tight text-primary md:text-4xl">Paku Spa</h1>
-        <p className="mt-2 text-sm text-muted-foreground md:text-base">
-          Productos y servicios de spa para tu mascota.
-        </p>
-      </div>
+    <>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-3xl mx-auto mb-10 flex flex-col items-center gap-3 text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+            🛁 Menú de mimos
+          </span>
+          <h1 className="text-3xl font-black tracking-tight text-primary md:text-4xl">Paku Spa</h1>
+          <p className="text-sm text-muted-foreground md:text-base">
+            Elige el servicio ideal para tu peludo. Lo atendemos en nuestra van, frente a tu casa. 🚐
+          </p>
+        </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-          <Loader2 className="size-5 animate-spin" />
-          Cargando…
-        </div>
-      ) : products.length === 0 ? (
-        <div className="max-w-3xl mx-auto text-center text-sm text-muted-foreground py-16">
-          No se encontraron productos para la categoría Paku Spa.
-        </div>
-      ) : (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((p, i) => (
-            <ProductCard key={p.id} product={p} variantIdx={i} />
-          ))}
-        </ul>
-      )}
-    </div>
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+            <Loader2 className="size-5 animate-spin" />
+            Cargando…
+          </div>
+        ) : products.length === 0 ? (
+          <div className="max-w-3xl mx-auto text-center text-sm text-muted-foreground py-16">
+            No se encontraron productos para la categoría Paku Spa.
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((p, i) => (
+              <ProductCard key={p.id} product={p} variantIdx={i} />
+            ))}
+          </ul>
+        )}
+      </div>
+      <HowItWorksSection />
+      <FinalCtaSection />
+    </>
   );
 }

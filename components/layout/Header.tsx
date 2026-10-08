@@ -25,8 +25,9 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 const NAV_LINKS = [
   { label: "Servicios", href: ROUTES.PAKU_SPA },
-  { label: "Como funciona", href: ROUTES.BOOKING },
-  { label: "¿Quiénes somos?", href: "/#quienes-somos" },
+  { label: "¿Cómo funciona?", href: "/#como-funciona" },
+  { label: "Tips y chismes", href: ROUTES.BLOG },
+  { label: "Nosotros", href: ROUTES.NOSOTROS },
 ] as const;
 
 // ── Helper: iniciales del usuario ─────────────────────────────────────────────

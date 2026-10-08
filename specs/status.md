@@ -67,6 +67,26 @@
   (cuenta y checkout de `/booking`).
 - Fuera de alcance: los botones del reproductor de transmisión (sobre fondo oscuro) y el resto de la web.
 
+## Home renovado (2026-10-08, sin commit)
+
+Tomando ideas de `referencias/nuevo home 2026.html` (no es copia):
+- Listón azul sobre el header (`components/layout/TopRibbon.tsx`), oculto en `/booking` y `/account`.
+- Home: hero con CTA "Agenda su baño" (las insignias de tiendas apuntaban a `#`; las apps no están
+  publicadas) → ¿Por qué los peludos aman Paku? → ¿Cómo llega la felicidad a tu puerta? (`#como-funciona`)
+  → ¿Cómo es por dentro la furgoneta? (`#la-van`, fotos `home-2/3.png`) → Tips y chismes → Historias de
+  colitas contentas → ¡Dale a tu peludo el spa que se merece!
+- Textos en `lib/data/home.ts`. Datos de la van confirmados por el owner (2026-10-08): tina de acero con
+  agua tibia, mesa de secado elevable, agua y luz propias, una mascota a la vez.
+- Quitado del home por no tener respaldo: "+95% de satisfacción", "Recomendaciones IA".
+- "¿Quiénes somos?" pasó a `/nosotros` (con la van y el cierre). `/paku-spa` suma "Cómo funciona" y cierre.
+- Menú: Servicios · ¿Cómo funciona? · Tips y chismes · Nosotros.
+- [ ] **Testimonios: hoy son texto de ejemplo (lorem ipsum).** Reemplazar en `lib/data/home.ts` por
+  reseñas reales (con permiso) antes de publicar.
+- [ ] **`/paku-spa` exige sesión** (`proxy.ts` la protege): "Servicios" del menú manda al login a quien no
+  ha iniciado sesión. Decidir si el catálogo debe ser público (owner).
+- Verificado: eslint, `tsc`, `next build` (variables de Firebase de relleno) y HTML servido por `next dev`
+  con todas las secciones. Sin capturas: no hay navegador headless que funcione en este equipo.
+
 ## Pendientes heredados
 
 - [ ] `home-v2` vs `page.tsx` actual (`HeroSectionV2` es la home en uso).

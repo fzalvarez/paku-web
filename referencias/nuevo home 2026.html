@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_standard" name="shell-type"/>
+<title>Paku Spa Móvil | ¡El baño más feliz para tu perrito!</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base { 
+      html, body { margin: 0; padding: 0; } 
+      body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FFFFFF; color: #0F172A; }
+    }
+    .font-bubbly { font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif; }
+    ::-webkit-scrollbar { display: none; }
+    
+    @keyframes float-slow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+    @keyframes tail-wag {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(14deg); }
+      75% { transform: rotate(-12deg); }
+    }
+    .animate-float { animation: float-slow 4s ease-in-out infinite; }
+    .animate-wag { display: inline-block; transform-origin: bottom center; animation: tail-wag 1.2s ease-in-out infinite; }
+    
+    .blob-bg {
+      border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            paku: {
+              blue: "#0052FF",
+              blueHover: "#0043D6",
+              blueDark: "#0032A0",
+              blueLight: "#EEF4FF",
+              blueSoft: "#F4F7FF",
+              sky: "#38BDF8",
+              skyLight: "#E0F2FE",
+              dark: "#0F172A",
+              slate: "#334155",
+              muted: "#64748B",
+              border: "#E2E8F0"
+            }
+          },
+          borderRadius: {
+            '2xl': '1.25rem',
+            '3xl': '1.75rem',
+            '4xl': '2.5rem'
+          },
+          boxShadow: {
+            'subtle': '0 10px 30px -5px rgba(0, 82, 255, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04)',
+            'subtle-hover': '0 20px 40px -8px rgba(0, 82, 255, 0.16), 0 8px 20px -4px rgba(15, 23, 42, 0.06)',
+            'pill': '0 4px 14px rgba(0, 82, 255, 0.12)'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-white text-paku-dark antialiased selection:bg-paku-blue selection:text-white">
+<!-- TOP TICKER BANNER -->
+<div class="bg-gradient-to-r from-paku-blue via-[#0047FF] to-paku-blue text-white font-bubbly font-semibold text-xs sm:text-sm py-2 px-4 flex items-center justify-center gap-2 text-center shadow-sm">
+<span class="animate-bounce inline-block">🚐 ✨</span>
+<span>¡Cero jaulas, cero estrés! La van spa favorita de +15,000 peluditos en Lima</span>
+<span class="hidden md:inline font-normal text-blue-100">• Agua tibia ozonizada &amp; cariñitos ilimitados</span>
+<span class="inline-flex items-center ml-1 px-2.5 py-0.5 rounded-full bg-white text-[11px] font-bold text-paku-blue shadow-xs">¡Agenda en 1 min!</span>
+</div>
+<!-- HEADER / NAVIGATION -->
+<header class="sticky top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-paku-border shadow-xs"><div class="max-w-[1240px] mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4"><a class="flex items-center gap-2.5 group" href="#"><div class="w-11 h-11 rounded-2xl bg-paku-blue flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform"><span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">pets</span></div><div class="flex flex-col"><div class="flex items-center"><span class="font-bubbly text-3xl font-extrabold text-paku-blue tracking-tight">paku</span><span class="text-paku-blue text-2xl font-bold ml-0.5">🐾</span></div><span class="text-[10px] font-bold tracking-wider text-paku-muted uppercase -mt-1 font-bubbly">Spa Móvil Perruno</span></div></a><nav class="hidden lg:flex items-center gap-6"><a class="font-bubbly font-semibold text-sm text-paku-slate hover:text-paku-blue transition-colors" href="#servicios">Menú de Mimos</a><a class="font-bubbly font-semibold text-sm text-paku-slate hover:text-paku-blue transition-colors" href="#como-funciona">¿Cómo funciona?</a><a class="font-bubbly font-semibold text-sm text-paku-slate hover:text-paku-blue transition-colors" href="#spa-van">La Van Spa</a><a class="font-bubbly font-semibold text-sm text-paku-slate hover:text-paku-blue transition-colors" href="#blog">El Rincón Perruno</a><a class="font-bubbly font-semibold text-sm text-paku-slate hover:text-paku-blue transition-colors" href="#testimonios">Historias Felices</a></nav><div class="flex items-center gap-3"><a class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-bubbly font-semibold text-xs text-paku-slate hover:text-paku-blue hover:bg-paku-blueSoft transition-colors" href="https://wa.me/51987654321?text=Hola%20Paku%21%20Quiero%20pedir%20la%20van%20para%20mi%20perrito" rel="noopener noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px] text-emerald-600">chat</span><span>WhatsApp</span></a><a class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-bubbly font-bold text-sm bg-paku-blue text-white hover:bg-paku-blueHover shadow-sm hover:scale-102 active:scale-95 transition-all" href="#booking-widget"><span class="animate-wag">🐶</span><span>¡Agendar Baño!</span></a></div></div></header>
+<main class="w-full">
+<!-- HERO SECTION -->
+<section class="relative w-full bg-white pt-10 pb-16 sm:pb-20 overflow-hidden"><div class="max-w-[1240px] mx-auto px-4 sm:px-6 relative z-10"><div class="flex flex-col items-center text-center max-w-3xl mx-auto mb-10"><span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-paku-blueLight text-paku-blue font-bubbly text-xs font-bold uppercase tracking-wider mb-4 border border-blue-100">✨ Descubre Paku Spa Móvil</span><h1 class="font-bubbly text-4xl sm:text-5xl lg:text-6xl font-black text-paku-dark leading-tight tracking-tight mb-3">El baño de tu perrito sin estrés, <span class="text-paku-blue">directo a tu puerta</span></h1><p class="text-base sm:text-lg text-paku-muted max-w-2xl font-normal leading-relaxed">Olvídate del tráfico y las jaulas ruidosas. Llevamos nuestro spa rodante autónomo con agua tibia ozonizada, secado silencioso y groomers que lo tratan como a un rey.</p></div><div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"><div class="lg:col-span-5 relative flex justify-center order-2 lg:order-1"><div class="relative z-10 w-full max-w-[420px] bg-paku-blueSoft/60 p-4 rounded-4xl border border-paku-blueLight"><div class="relative overflow-hidden rounded-3xl"><img alt="Perritos consentidos felices y limpios en Paku Spa" class="w-full h-[400px] sm:h-[440px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCt_XTbZ9rkdRzuKI-l8vCDBlFTAUz1fC6ytDNvBpMQU77Tr0LWDBFgTe4U7YOzoFLQ6w4nUQSjmgwOWqRr793LGepKg10p0bRBhUY44lSVo8aVYsqkO1RvJL4EDnk7PrfdThtt-tlHJHoQT37BX-p3zXUmLKDvKgnadXHz15riFmbKLGSnQk6jyIQhllhAOqQWrNvH0SDtFV4O30D1k6YTApntfQg55gyqa7ehyyvZkcgepr2pE_mE"/><div class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-xs border border-paku-border flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span><span class="text-[11px] font-bold text-paku-dark font-bubbly">Cámara en vivo</span></div><div class="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-subtle border border-paku-border flex items-center justify-between"><div class="flex items-center gap-2"><span class="text-2xl">🚐</span><div><p class="font-bubbly font-bold text-xs text-paku-dark">Spa Rodante Autónomo</p><p class="text-[10px] text-paku-muted font-medium">Agua tibia ozonizada a 36°C</p></div></div><span class="font-bubbly text-xs font-bold text-paku-blue bg-paku-blueLight px-2.5 py-1 rounded-full">Cero Jaulas</span></div></div></div></div><div class="lg:col-span-7 flex flex-col gap-6 order-1 lg:order-2"><div class="bg-white p-6 sm:p-8 rounded-4xl shadow-subtle border border-slate-200/80 flex flex-col gap-5" id="booking-widget"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div><h2 class="font-bubbly text-xl font-bold text-paku-dark">Calcula y agenda en 60 segundos</h2><p class="text-xs text-paku-muted mt-0.5">Precios fijos transparentes sin costo de transporte</p></div><span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">✓ Transporte gratis</span></div><div class="flex flex-col gap-2"><div class="flex items-center justify-between text-xs sm:text-sm font-bubbly"><span class="font-bold text-paku-slate">1. Selecciona el tamaño de tu perro:</span><span class="text-paku-blue font-bold bg-paku-blueLight px-2.5 py-0.5 rounded-full border border-blue-100" id="selected-size-label">Mediano (10 - 20 kg)</span></div><div class="grid grid-cols-5 gap-2" id="pet-size-selector"><button class="size-btn flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-paku-blue transition-all text-center cursor-pointer" data-factor="0.85" data-label="Mini / Toy (&lt; 5 kg)" data-size="toy" type="button"><span class="text-xl">🐾</span><span class="font-bubbly text-xs font-bold text-paku-slate mt-1">Mini</span><span class="text-[10px] text-paku-muted font-semibold">&lt;5 kg</span></button><button class="size-btn flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-paku-blue transition-all text-center cursor-pointer" data-factor="0.95" data-label="Pequeño (5 - 10 kg)" data-size="pequeno" type="button"><span class="text-xl">🐶</span><span class="font-bubbly text-xs font-bold text-paku-slate mt-1">Peque</span><span class="text-[10px] text-paku-muted font-semibold">5-10 kg</span></button><button class="size-btn active-size flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl bg-paku-blueLight border-2 border-paku-blue shadow-xs font-bold transition-all text-center cursor-pointer" data-factor="1.0" data-label="Mediano (10 - 20 kg)" data-size="mediano" type="button"><span class="text-xl">🐕</span><span class="font-bubbly text-xs font-extrabold text-paku-blue mt-1">Mediano</span><span class="text-[10px] text-paku-blueDark font-bold">10-20 kg</span></button><button class="size-btn flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-paku-blue transition-all text-center cursor-pointer" data-factor="1.25" data-label="Grandulón (20 - 35 kg)" data-size="grande" type="button"><span class="text-xl">🦮</span><span class="font-bubbly text-xs font-bold text-paku-slate mt-1">Grandulón</span><span class="text-[10px] text-paku-muted font-semibold">20-35 kg</span></button><button class="size-btn flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl bg-slate-50 border-2 border-slate-200 hover:border-paku-blue transition-all text-center cursor-pointer" data-factor="1.45" data-label="Osito Gigante (&gt; 35 kg)" data-size="gigante" type="button"><span class="text-xl">🐻</span><span class="font-bubbly text-xs font-bold text-paku-slate mt-1">Osito</span><span class="text-[10px] text-paku-muted font-semibold">&gt;35 kg</span></button></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div class="flex flex-col gap-1"><label class="font-bubbly text-xs font-bold text-paku-slate" for="hero-service-select">2. Tipo de servicio:</label><div class="relative"><select class="w-full appearance-none bg-slate-50 border border-slate-200 text-paku-dark font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-2xl focus:ring-2 focus:ring-paku-blue focus:outline-none transition-all pr-8" id="hero-service-select"><option selected="" value="45">Baño Relajante &amp; Esponjado (Desde S/ 45)</option><option value="65">Día de Spa Consentido (Desde S/ 65)</option><option value="75">Baño Piel Sensible / Derm (Desde S/ 75)</option></select><span class="material-symbols-outlined absolute right-2.5 top-2.5 text-paku-muted pointer-events-none text-[20px]">expand_more</span></div></div><div class="flex flex-col gap-1"><label class="font-bubbly text-xs font-bold text-paku-slate" for="hero-district-input">3. Distrito en Lima:</label><div class="relative"><input class="w-full bg-slate-50 border border-slate-200 text-paku-dark font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-2xl focus:ring-2 focus:ring-paku-blue focus:outline-none transition-all pr-8" id="hero-district-input" placeholder="Tu distrito..." type="text" value="Miraflores, San Borja, Surco..."/><span class="material-symbols-outlined absolute right-2.5 top-2.5 text-paku-blue pointer-events-none text-[20px]">location_on</span></div></div></div><div class="bg-paku-blueSoft p-4 rounded-3xl border border-paku-blueLight flex flex-col sm:flex-row items-center justify-between gap-3"><div class="flex items-baseline gap-2 text-center sm:text-left"><span class="text-xs font-bubbly font-bold text-paku-slate">Total estimado:</span><span class="font-bubbly text-3xl font-black text-paku-blue" id="calculated-price">S/ 45.00</span><span class="text-xs text-paku-muted line-through" id="original-price">S/ 55.00</span></div><a class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-bubbly font-bold text-sm sm:text-base bg-paku-blue text-white hover:bg-paku-blueHover shadow-sm hover:scale-102 transition-all" href="https://wa.me/51987654321?text=Hola%20Paku%21%20Quiero%20agendar%20mi%20baño" target="_blank"><span>¡Pedir mi Van Spa!</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span></a></div><div class="flex items-center justify-between text-xs text-paku-muted font-medium pt-1 px-1"><span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>Pagas al terminar el baño</span><span class="hidden sm:flex items-center gap-1.5"><span class="material-symbols-outlined text-paku-blue text-[18px]">verified</span>+15,000 peludos felices</span></div></div></div></div></div></section>
+<!-- BENEFICIOS RÁPIDOS BANNER (Paku Blue Identity matching Image 9) -->
+<section class="w-full bg-slate-50 border-y border-slate-200 py-6"><div class="max-w-[1240px] mx-auto px-4 sm:px-6"><div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-left"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-2xl bg-paku-blueLight text-paku-blue flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[20px]">home</span></div><div><h4 class="font-bubbly font-bold text-xs sm:text-sm text-paku-dark">Frente a tu puerta</h4><p class="text-[11px] text-paku-muted">Bajas en zapatillas y listo</p></div></div><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-2xl bg-paku-blueLight text-paku-blue flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[20px]">water_drop</span></div><div><h4 class="font-bubbly font-bold text-xs sm:text-sm text-paku-dark">Agua tibia a 36°C</h4><p class="text-[11px] text-paku-muted">Ozonizada y relajante</p></div></div><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-2xl bg-paku-blueLight text-paku-blue flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[20px]">timer</span></div><div><h4 class="font-bubbly font-bold text-xs sm:text-sm text-paku-dark">Puntualidad total</h4><p class="text-[11px] text-paku-muted">En ~45 min te lo entregamos</p></div></div><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-2xl bg-paku-blueLight text-paku-blue flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[20px]">favorite</span></div><div><h4 class="font-bubbly font-bold text-xs sm:text-sm text-paku-dark">Mimos &amp; Galletitas</h4><p class="text-[11px] text-paku-muted">Snacks 100% naturales</p></div></div></div></div></section>
+<!-- ¿POR QUÉ LOS PERRITOS AMAN PAKU? -->
+<section class="w-full py-16 sm:py-20 bg-white" id="como-funciona"><div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col gap-12"><div class="text-center max-w-2xl mx-auto space-y-2"><span class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-paku-blueLight text-paku-blue font-bubbly text-xs font-bold uppercase tracking-wider">¿Por qué elegir Paku?</span><h2 class="font-bubbly text-3xl sm:text-4xl lg:text-5xl font-extrabold text-paku-dark">Una experiencia pensada para su bienestar</h2><p class="text-base text-paku-muted">Cuidamos a tu mascota con el mismo amor y paciencia que tú, sin jaulas ni estrés innecesario.</p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"><div class="bg-white p-7 rounded-3xl border border-slate-200 hover:border-paku-blue shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col gap-4"><div class="w-12 h-12 rounded-2xl bg-paku-blueLight text-paku-blue flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[24px]">lock_open_right</span></div><div class="space-y-1.5"><h3 class="font-bubbly text-lg font-bold text-paku-dark">Cero Jaulas, Cero Esperas</h3><p class="text-xs sm:text-sm text-paku-muted leading-relaxed">Tu engreído es el único consentido en la furgoneta durante toda su cita. Sin contacto con otros perros ni estrés de encierro.</p></div></div><div class="bg-white p-7 rounded-3xl border border-slate-200 hover:border-paku-blue shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col gap-4"><div class="w-12 h-12 rounded-2xl bg-paku-blueLight text-paku-blue flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[24px]">shower</span></div><div class="space-y-1.5"><h3 class="font-bubbly text-lg font-bold text-paku-dark">Agua Ozonizada &amp; Tibia</h3><p class="text-xs sm:text-sm text-paku-muted leading-relaxed">El ozono calma alergias, elimina bacterias de forma natural y deja su manto suave, brillante y oliendo rico por más tiempo.</p></div></div><div class="bg-white p-7 rounded-3xl border border-slate-200 hover:border-paku-blue shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col gap-4"><div class="w-12 h-12 rounded-2xl bg-paku-blueLight text-paku-blue flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[24px]">videocam</span></div><div class="space-y-1.5"><h3 class="font-bubbly text-lg font-bold text-paku-dark">Fotos y Videos en Vivo</h3><p class="text-xs sm:text-sm text-paku-muted leading-relaxed">Te enviamos reportes fotográficos por WhatsApp mientras disfruta de su baño o puedes asomarte a la ventana cuando quieras.</p></div></div><div class="bg-white p-7 rounded-3xl border border-slate-200 hover:border-paku-blue shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col gap-4"><div class="w-12 h-12 rounded-2xl bg-paku-blueLight text-paku-blue flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[24px]">pets</span></div><div class="space-y-1.5"><h3 class="font-bubbly text-lg font-bold text-paku-dark">Groomers con Paciencia de Oro</h3><p class="text-xs sm:text-sm text-paku-muted leading-relaxed">Especialistas en manejo respetuoso y sin tirones. Premiamos cada avance con snacks saludables y cariñitos.</p></div></div></div></div></section>
+<!-- MENÚ DE MIMOS Y SERVICIOS -->
+<section class="w-full py-16 sm:py-20 bg-[#F8FAFD] border-y border-paku-border" id="servicios">
+<div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col gap-10">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-2 max-w-xl">
+<span class="inline-block px-3 py-1 rounded-full bg-paku-blueLight text-paku-blue font-bubbly text-xs font-bold uppercase tracking-wider">
+Carta de Mimos &amp; Cuidados
+</span>
+<h2 class="font-bubbly text-3xl sm:text-4xl lg:text-5xl font-extrabold text-paku-dark">
+Elige el festín de burbujas perfecto
+</h2>
+<p class="text-sm sm:text-base text-paku-muted">
+Todos los paquetes incluyen traslado hasta tu puerta, agua tibia ozonizada continua y toallitas de algodón ultra suavecitas.
+</p>
+</div>
+<div class="bg-white px-4 py-2 rounded-full border border-paku-border text-xs font-bubbly font-bold text-paku-slate shadow-xs flex items-center gap-1.5 self-start md:self-auto">
+<span>🎁</span> ¡Incluye pañoleta o corbatita de regalo!
+</div>
+</div>
+<!-- 3 Salon Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+<!-- Package 1: Basic Spa -->
+<div class="bg-white rounded-4xl p-6 sm:p-7 border border-paku-border shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col justify-between">
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="px-3 py-1 rounded-full bg-slate-100 text-paku-slate font-bubbly text-xs font-bold">
+Básico &amp; Fresquito
+</span>
+<span class="text-xs font-bold text-paku-muted font-bubbly">⏱️ ~40 min</span>
+</div>
+<div>
+<h3 class="font-bubbly text-2xl font-bold text-paku-dark">Baño Relajante &amp; Esponjado</h3>
+<p class="text-xs sm:text-sm text-paku-muted mt-1">El mantenimiento ideal para peluditos que aman pasear en el parque y necesitan volver a oler riquísimo.</p>
+</div>
+<div class="flex items-baseline gap-1 py-1 border-b border-slate-100">
+<span class="text-xs text-paku-muted font-bold">Desde</span>
+<span class="font-bubbly text-4xl font-black text-paku-blue">S/ 45</span>
+<span class="text-xs text-paku-muted">/ sesión</span>
+</div>
+<!-- Perks -->
+<ul class="space-y-2.5 text-xs sm:text-sm text-paku-slate pt-1 font-medium">
+<li class="flex items-center gap-2">
+<span class="text-emerald-500 font-bold">✓</span>
+<span>Agua tibia ozonizada a 36°C</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-emerald-500 font-bold">✓</span>
+<span>Doble champú orgánico desenredante</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-emerald-500 font-bold">✓</span>
+<span>Secado tibio con secador silencioso</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-emerald-500 font-bold">✓</span>
+<span>Limpieza de orejitas &amp; perfume delicado</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-emerald-500 font-bold">✓</span>
+<span>Cepillado suave y pañoleta linda</span>
+</li>
+</ul>
+</div>
+<div class="pt-6">
+<a class="w-full py-3 rounded-full font-bubbly font-bold text-sm bg-slate-50 hover:bg-paku-blue hover:text-white text-paku-slate border border-slate-200 transition-colors flex items-center justify-center gap-1.5 shadow-xs" href="#booking-widget">
+<span>Elegir Baño Relajante</span>
+<span>🐾</span>
+</a>
+</div>
+</div>
+<!-- Package 2: Deluxe Spa (Featured) -->
+<div class="relative bg-white rounded-4xl p-6 sm:p-7 border-2 border-paku-blue shadow-subtle-hover transition-all flex flex-col justify-between -translate-y-2 lg:-translate-y-3">
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-paku-blue text-white font-bubbly text-xs font-black px-4 py-1 rounded-full shadow-sm flex items-center gap-1 whitespace-nowrap">
+<span>👑</span> ¡EL FAVORITO DE LOS CONSENTIDOS!
+</div>
+<div class="space-y-4 pt-1">
+<div class="flex items-center justify-between">
+<span class="px-3 py-1 rounded-full bg-paku-blueLight text-paku-blue border border-blue-200 font-bubbly text-xs font-bold">Spa VIP Completo</span>
+<span class="text-xs font-bold text-paku-muted font-bubbly">⏱️ ~60 min</span>
+</div>
+<div>
+<h3 class="font-bubbly text-2xl font-bold text-paku-dark">Día de Spa Consentido</h3>
+<p class="text-xs sm:text-sm text-paku-muted mt-1">El tratamiento de mimos totales: corte higiénico, cuidado dental fresco, limado de uñitas y masaje relajante.</p>
+</div>
+<div class="flex items-baseline gap-1 py-1 border-b border-slate-100">
+<span class="text-xs text-paku-muted font-bold">Desde</span>
+<span class="font-bubbly text-4xl font-black text-paku-blue">S/ 65</span>
+<span class="text-xs text-paku-muted">/ sesión</span>
+</div>
+<ul class="space-y-2.5 text-xs sm:text-sm text-paku-slate pt-1 font-medium">
+<li class="flex items-center gap-2 font-bold text-paku-blue">
+<span>✨</span><span>¡Todo lo del Baño Relajante + Extras!</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-paku-blue font-bold">✓</span><span>Corte y limado de uñas sin pellizcos</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-paku-blue font-bold">✓</span><span>Corte higiénico (zona perianal y patitas)</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-paku-blue font-bold">✓</span><span>Limpieza bucal enzimática con menta pet</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-paku-blue font-bold">✓</span><span>Masajito anti-estrés + Bandana exclusiva Paku</span>
+</li>
+</ul>
+</div>
+<div class="pt-6">
+<a class="w-full py-3.5 rounded-full font-bubbly font-bold text-base bg-paku-blue text-white hover:bg-paku-blueHover shadow-md transition-all flex items-center justify-center gap-2" href="#booking-widget">
+<span>¡Agendar Spa Consentido!</span>
+<span class="animate-bounce">❤️</span>
+</a>
+</div>
+</div>
+<!-- Package 3: Medicated & Sensitive Skin -->
+<div class="bg-white rounded-4xl p-6 sm:p-7 border border-paku-border shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col justify-between">
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="px-3 py-1 rounded-full bg-sky-100 text-sky-900 font-bubbly text-xs font-bold">
+Salud Dermatológica
+</span>
+<span class="text-xs font-bold text-paku-muted font-bubbly">⏱️ ~55 min</span>
+</div>
+<div>
+<h3 class="font-bubbly text-2xl font-bold text-paku-dark">Baño Piel Sensible &amp; Derm</h3>
+<p class="text-xs sm:text-sm text-paku-muted mt-1">Especial para perritos con alergias, piel atópica o pulguitas. Aplicamos tu champú medicado con reposo cronometrado.</p>
+</div>
+<div class="flex items-baseline gap-1 py-1 border-b border-slate-100">
+<span class="text-xs text-paku-muted font-bold">Desde</span>
+<span class="font-bubbly text-4xl font-black text-paku-blue">S/ 75</span>
+<span class="text-xs text-paku-muted">/ sesión</span>
+</div>
+<!-- Perks -->
+<ul class="space-y-2.5 text-xs sm:text-sm text-paku-slate pt-1 font-medium">
+<li class="flex items-center gap-2">
+<span class="text-sky-600 font-bold">✓</span>
+<span>Aplicación de producto medicado con reposo</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-sky-600 font-bold">✓</span>
+<span>Tratamiento antipulgas o dermatológico</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-sky-600 font-bold">✓</span>
+<span>Secado suave a temperatura controlada</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="text-sky-600 font-bold">✓</span>
+<span>Reporte del estado de su piel a tu WhatsApp</span>
+</li>
+</ul>
+</div>
+<div class="pt-6">
+<a class="w-full py-3 rounded-full font-bubbly font-bold text-sm bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200 transition-colors flex items-center justify-center gap-1.5 shadow-xs" href="#booking-widget">
+<span>Elegir Baño Piel Sensible</span>
+<span>🩺</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CÓMO LLEGA LA FELICIDAD EN 3 PASOS -->
+<section class="w-full py-16 sm:py-20 bg-white" id="pasos">
+<div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col gap-12">
+<div class="text-center max-w-xl mx-auto space-y-2">
+<span class="inline-block px-3 py-1 rounded-full bg-paku-blueLight text-paku-blue font-bubbly text-xs font-bold uppercase tracking-wider">
+¡Más fácil que pedir delivery!
+</span>
+<h2 class="font-bubbly text-3xl sm:text-4xl font-extrabold text-paku-dark">
+¿Cómo llega la felicidad a tu puerta?
+</h2>
+<p class="text-base text-paku-muted">Sin colas, sin limpiar tu ducha y sin ensuciar tu auto.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+<!-- Step 1 -->
+<div class="bg-white p-7 rounded-4xl border border-paku-border shadow-subtle flex flex-col items-center text-center gap-3 relative hover:border-paku-blue transition-colors">
+<div class="w-16 h-16 rounded-full bg-paku-blue text-white font-bubbly text-2xl font-black flex items-center justify-center shadow-md">
+1 🐾
+</div>
+<h3 class="font-bubbly text-xl font-bold text-paku-dark">Pides tu cita en 1 min</h3>
+<p class="text-sm text-paku-muted">Eliges el tamaño de tu perro, el baño que necesita y el horario que mejor te acomode por web o WhatsApp.</p>
+<span class="text-xs font-bubbly font-bold text-paku-blue bg-paku-blueLight px-3 py-1 rounded-full mt-auto">Rápido y flexible</span>
+</div>
+<!-- Step 2 -->
+<div class="bg-white p-7 rounded-4xl border border-paku-border shadow-subtle flex flex-col items-center text-center gap-3 relative hover:border-paku-blue transition-colors">
+<div class="w-16 h-16 rounded-full bg-[#0047FF] text-white font-bubbly text-2xl font-black flex items-center justify-center shadow-md">
+2 🚐
+</div>
+<h3 class="font-bubbly text-xl font-bold text-paku-dark">La Van Spa se estaciona</h3>
+<p class="text-sm text-paku-muted">Llegamos frente a tu edificio o casa. No te pedimos luz ni agua: la van es 100% autónoma y acogedora.</p>
+<span class="text-xs font-bubbly font-bold text-paku-blue bg-paku-blueLight px-3 py-1 rounded-full mt-auto">Cero cables a tu casa</span>
+</div>
+<!-- Step 3 -->
+<div class="bg-white p-7 rounded-4xl border border-paku-border shadow-subtle flex flex-col items-center text-center gap-3 relative hover:border-paku-blue transition-colors">
+<div class="w-16 h-16 rounded-full bg-emerald-500 text-white font-bubbly text-2xl font-black flex items-center justify-center shadow-md">
+3 ✨
+</div>
+<h3 class="font-bubbly text-xl font-bold text-paku-dark">¡Peludo limpio y mimado!</h3>
+<p class="text-sm text-paku-muted">En menos de 1 hora te lo entregamos sequito, oliendo a gloria, relajado y con su bandana para fotos.</p>
+<span class="text-xs font-bubbly font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full mt-auto">¡Puro amor garantizado!</span>
+</div>
+</div>
+</div>
+</section>
+<!-- LA VAN SPA RODANTE -->
+<section class="w-full py-12 sm:py-16 bg-[#F8FAFD]" id="spa-van">
+<div class="max-w-[1240px] mx-auto px-4 sm:px-6">
+<div class="bg-white rounded-4xl p-6 sm:p-10 lg:p-12 border border-paku-border shadow-subtle flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+<div class="space-y-4 max-w-xl">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-paku-blue font-bubbly text-xs font-bold text-white">
+🚐 Un spa sobre ruedas
+</span>
+<h3 class="font-bubbly text-3xl sm:text-4xl font-extrabold text-paku-dark leading-tight">
+¿Cómo es por dentro la furgoneta de Paku?
+</h3>
+<p class="text-sm sm:text-base text-paku-muted leading-relaxed">
+Imagina un salón de belleza acogedor, pero en una van: tina ergonómica de acero inoxidable pulido, agua tibia con presión suave regulable, música relajante y mesita hidráulica para que perritos mayores no tengan que saltar.
+</p>
+<div class="grid grid-cols-2 gap-3 pt-2">
+<div class="flex items-center gap-2 text-xs sm:text-sm font-bubbly font-bold text-paku-slate bg-paku-blueSoft p-2.5 rounded-2xl border border-blue-100">
+<span class="text-paku-blue text-lg">✓</span> Insonorización acústica
+</div>
+<div class="flex items-center gap-2 text-xs sm:text-sm font-bubbly font-bold text-paku-slate bg-paku-blueSoft p-2.5 rounded-2xl border border-blue-100">
+<span class="text-paku-blue text-lg">✓</span> Clima templado 24°C
+</div>
+<div class="flex items-center gap-2 text-xs sm:text-sm font-bubbly font-bold text-paku-slate bg-paku-blueSoft p-2.5 rounded-2xl border border-blue-100">
+<span class="text-paku-blue text-lg">✓</span> Desinfección UV post-baño
+</div>
+<div class="flex items-center gap-2 text-xs sm:text-sm font-bubbly font-bold text-paku-slate bg-paku-blueSoft p-2.5 rounded-2xl border border-blue-100">
+<span class="text-paku-blue text-lg">✓</span> Tanque propio de agua
+</div>
+</div>
+</div>
+<div class="w-full lg:w-[420px] rounded-3xl overflow-hidden shadow-subtle border-4 border-white rotate-1 hover:rotate-0 transition-all">
+<img alt="Interior del spa móvil Paku, limpio, agua tibia y groomer cariñosa con perrito consentido" class="w-full h-72 sm:h-80 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBScyjM3mqO-k4oQQGFYkMjgquXHEQOt0Bqrk6tl2Ex8bjP57_FfEfRtcoYz3Rv5IOfkLYhCAo-8rR0wqE9iuhaLnhXaYf5GKx-MgsDKhIozPEUiLA-c5_JU2zIV3r0iABfGc2X6aqLMn1Qgv0zin2a9f5p_Gb2JQReIw0wFeEQVPiQNhw_ZbzD2iPvpjDHsQqh2GzZuFTiBumOd9tWtFkaBjK6Bqco1n9f1v14NTCnKTweroA0TSOp"/>
+</div>
+</div>
+</div>
+</section>
+<!-- EL RINCÓN PERRUNO (Matches Image 8 Blog Layout & Real Paku Tags) -->
+<section class="w-full py-16 sm:py-20 bg-white" id="blog">
+<div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col gap-10">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-2 max-w-xl">
+<span class="inline-block px-3 py-1 rounded-full bg-paku-blueLight text-paku-blue font-bubbly text-xs font-bold uppercase tracking-wider">
+📖 El Rincón Perruno
+</span>
+<h2 class="font-bubbly text-3xl sm:text-4xl font-extrabold text-paku-dark">
+Tips &amp; Chismes Caninos 🐾
+</h2>
+<p class="text-sm sm:text-base text-paku-muted">
+Consejos, tips y guías de expertos para que tu mascota viva su mejor vida.
+</p>
+</div>
+<a class="inline-flex items-center gap-1.5 font-bubbly font-bold text-sm text-paku-blue hover:underline" href="#">
+<span>Ver todos los artículos</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</div>
+<!-- Category Filter Pills (Exact replica of Image 8) -->
+<div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="blog-category-filter">
+<span class="material-symbols-outlined text-paku-muted text-sm -mr-0.5">sell</span>
+<button class="category-btn px-4 py-1.5 rounded-full font-bubbly text-xs font-bold bg-paku-blue text-white shadow-xs" type="button">
+TODOS
+</button>
+<button class="category-btn px-4 py-1.5 rounded-full font-bubbly text-xs font-bold bg-slate-100 text-paku-slate hover:bg-slate-200 transition-colors uppercase" type="button">
+CUIDADO
+</button>
+<button class="category-btn px-4 py-1.5 rounded-full font-bubbly text-xs font-bold bg-slate-100 text-paku-slate hover:bg-slate-200 transition-colors uppercase" type="button">
+TIPS
+</button>
+<button class="category-btn px-4 py-1.5 rounded-full font-bubbly text-xs font-bold bg-slate-100 text-paku-slate hover:bg-slate-200 transition-colors uppercase" type="button">
+INVIERNO
+</button>
+</div>
+<!-- 3 Blog Cards (Matching Image 8 & 9) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Article 1 -->
+<article class="bg-white rounded-3xl overflow-hidden border border-paku-border shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col group">
+<div class="relative h-48 overflow-hidden">
+<span class="absolute top-3 left-3 z-10 px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-md text-paku-blue font-bubbly text-[11px] font-bold uppercase shadow-xs">
+Cuidado
+</span>
+<img alt="Perro feliz en pasto verde con pelaje suave y limpio" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyRCFwtU468z0qSLE4wE53YkkvxefGN59iO-plPHwrBLvVDgTcbQRCFE2zrwjhwLKfvJu2bWnjNH9XCq1H5WfEvKxBQTjNgOUnu_RbzVocNC4nIhE-6Bn1-3GDB6bydmQns_M5IUjivGkpMoT8XkRWhND8Vn0adFSKU5AaY7aSipLXkbI9JriZLBM2u2NyYdRlVwFNL0LaUFfyf1Yf7E0PABreAjnNFnWXHZ4O-5kwwDTd18hXdY_Q"/>
+</div>
+<div class="p-5 flex flex-col justify-between flex-1 gap-3">
+<div class="space-y-1.5">
+<span class="text-[11px] text-paku-muted font-medium">⏱️ 4 min de lectura • 12 Oct 2024</span>
+<h3 class="font-bubbly text-base font-bold text-paku-dark group-hover:text-paku-blue transition-colors">
+Cómo cuidar la piel de perros y gatos
+</h3>
+<p class="text-xs text-paku-muted line-clamp-2">
+El mantenimiento de la barrera cutánea es fundamental para prevenir alergias y dermatitis estacionales.
+</p>
+</div>
+<a class="font-bubbly text-xs font-bold text-paku-blue hover:underline inline-flex items-center gap-1 pt-1" href="#">
+<span>Leer más</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+</article>
+<!-- Article 2 -->
+<article class="bg-white rounded-3xl overflow-hidden border border-paku-border shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col group">
+<div class="relative h-48 overflow-hidden">
+<span class="absolute top-3 left-3 z-10 px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-md text-emerald-700 font-bubbly text-[11px] font-bold uppercase shadow-xs">
+Tips
+</span>
+<img alt="Cachorros alegres jugando juntos al atardecer" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDn9ryUUzYnbDB83-OLcqzQj0vRgVjdJ96y7PevU8sBQxqtsuSN1Za-cXyTofqXbmpUZGVIqcGcPT2MKp_Is-0-P1CuXpsFYg77t5IZp1ZKSzCFIfU4ma28b_-2ZVUsxLqAB5na1HntmebZhOJ3qhNRP4RxPd6WPkqJ0i9w72FNdhEgwwbPJ4iM1cGV4hytgEP7LKUNYgjgkOBzudtDlxMgq_bp54goXZF1FHSpRUBl6gcJ0R1540J-"/>
+</div>
+<div class="p-5 flex flex-col justify-between flex-1 gap-3">
+<div class="space-y-1.5">
+<span class="text-[11px] text-paku-muted font-medium">⏱️ 4 min de lectura • 10 Oct 2024</span>
+<h3 class="font-bubbly text-base font-bold text-paku-dark group-hover:text-paku-blue transition-colors">
+Beneficios del baño regular en casa
+</h3>
+<p class="text-xs text-paku-muted line-clamp-2">
+Mantener una higiene constante entre servicios profesionales ayuda a fortalecer el vínculo afectivo con tu mascota.
+</p>
+</div>
+<a class="font-bubbly text-xs font-bold text-paku-blue hover:underline inline-flex items-center gap-1 pt-1" href="#">
+<span>Leer más</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+</article>
+<!-- Article 3 -->
+<article class="bg-white rounded-3xl overflow-hidden border border-paku-border shadow-subtle hover:shadow-subtle-hover transition-all flex flex-col group">
+<div class="relative h-48 overflow-hidden">
+<span class="absolute top-3 left-3 z-10 px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-md text-sky-800 font-bubbly text-[11px] font-bold uppercase shadow-xs">
+Invierno
+</span>
+<img alt="Golden Retriever limpio y feliz con su juguete en un parque" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8hHsgW-BJ3Bp5dEra5H-kDgTnUu2VWQwATxPksNy9SOSufyuRGC08OdOwJisMEZcWv2Q5UWg0Jj4OgrU9R0yBt6AKQ7wfmr40dcecJ_d6HiqtEq-cLb2r98JRqobJUjmerin4TRt_02SfQHIZNGN9SGf8oySj_NgaofN7FfLkXXl7K1ZD9-JHhHMX3mAoSE1qEyZ4mpquGnUhdMTggdkuKdYOdTVX6WreRlDFR4nymTW46MLevlfU"/>
+</div>
+<div class="p-5 flex flex-col justify-between flex-1 gap-3">
+<div class="space-y-1.5">
+<span class="text-[11px] text-paku-muted font-medium">⏱️ 7 min de lectura • 05 Oct 2024</span>
+<h3 class="font-bubbly text-base font-bold text-paku-dark group-hover:text-paku-blue transition-colors">
+Protección para el frío: Guía completa
+</h3>
+<p class="text-xs text-paku-muted line-clamp-2">
+No todas las razas necesitan abrigo; descubre cómo identificar si tu mascota requiere protección extra en Lima.
+</p>
+</div>
+<a class="font-bubbly text-xs font-bold text-paku-blue hover:underline inline-flex items-center gap-1 pt-1" href="#">
+<span>Leer más</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+</article>
+</div>
+</div>
+</section>
+<!-- TESTIMONIOS: HISTORIAS DE COLITAS CONTENTAS -->
+<section class="w-full py-16 sm:py-20 bg-[#F8FAFD] border-y border-paku-border" id="testimonios">
+<div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col gap-10">
+<div class="text-center max-w-xl mx-auto space-y-2">
+<span class="inline-block px-3 py-1 rounded-full bg-paku-blueLight text-paku-blue font-bubbly text-xs font-bold uppercase tracking-wider">
+⭐ Amor Comprobado
+</span>
+<h2 class="font-bubbly text-3xl sm:text-4xl font-extrabold text-paku-dark">
+Historias de colitas contentas
+</h2>
+<p class="text-sm sm:text-base text-paku-muted">
+Lo que dicen mamás y papás perrunos que ya no cambian Paku por nada del mundo.
+</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Testimonial 1 -->
+<div class="bg-white p-6 sm:p-7 rounded-4xl border border-paku-border shadow-subtle flex flex-col justify-between gap-4 relative">
+<div class="text-amber-400 text-sm flex gap-0.5">
+★★★★★
+</div>
+<p class="text-sm text-paku-slate italic leading-relaxed">
+“Luna solía temblar solo de ver la correa del auto porque sabía que iba a la veterinaria. Con Paku baja feliz a la van, la tratan como una princesita y me la devuelven en 40 minutos perfumada y moviendo la cola.”
+</p>
+<div class="flex items-center gap-3 pt-2 border-t border-slate-100">
+<div class="w-11 h-11 rounded-full bg-paku-blueLight font-bubbly font-bold text-paku-blue flex items-center justify-center text-sm shadow-xs">
+CM
+</div>
+<div class="flex flex-col">
+<span class="font-bubbly font-bold text-sm text-paku-dark">Camila Morales</span>
+<span class="text-xs text-paku-muted">Mamá de Luna (Schnauzer) • Miraflores</span>
+</div>
+</div>
+</div>
+<!-- Testimonial 2 -->
+<div class="bg-white p-6 sm:p-7 rounded-4xl border border-paku-border shadow-subtle flex flex-col justify-between gap-4 relative">
+<div class="text-amber-400 text-sm flex gap-0.5">
+★★★★★
+</div>
+<p class="text-sm text-paku-slate italic leading-relaxed">
+“Trabajo remoto todo el día y no tengo tiempo de llevar a Rocky a ningún lado. Paku es una bendición: tocan el intercomunicador, lo suben a la van y sigo en mis llamadas de Zoom. Las fotos que mandan me alegran la tarde.”
+</p>
+<div class="flex items-center gap-3 pt-2 border-t border-slate-100">
+<div class="w-11 h-11 rounded-full bg-sky-100 font-bubbly font-bold text-sky-800 flex items-center justify-center text-sm shadow-xs">
+DR
+</div>
+<div class="flex flex-col">
+<span class="font-bubbly font-bold text-sm text-paku-dark">Diego Rodríguez</span>
+<span class="text-xs text-paku-muted">Papá de Rocky (Golden) • San Isidro</span>
+</div>
+</div>
+</div>
+<!-- Testimonial 3 -->
+<div class="bg-white p-6 sm:p-7 rounded-4xl border border-paku-border shadow-subtle flex flex-col justify-between gap-4 relative">
+<div class="text-amber-400 text-sm flex gap-0.5">
+★★★★★
+</div>
+<p class="text-sm text-paku-slate italic leading-relaxed">
+“Boby tiene dermatitis severa. Pedí el baño especial con champú medicado de ketoconazol que nos recetó el doctor. Respetaron los 10 minutos de reposo al pie de la letra y le dejaron el pelito sin una sola ronchita. 10/10.”
+</p>
+<div class="flex items-center gap-3 pt-2 border-t border-slate-100">
+<div class="w-11 h-11 rounded-full bg-blue-100 font-bubbly font-bold text-paku-blue flex items-center justify-center text-sm shadow-xs">
+AV
+</div>
+<div class="flex flex-col">
+<span class="font-bubbly font-bold text-sm text-paku-dark">Andrea Valdivia</span>
+<span class="text-xs text-paku-muted">Mamá de Boby (Bulldog Francés) • Surco</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- BIG CLEAN PAKU BLUE FINAL CTA -->
+<section class="w-full py-16 sm:py-24 bg-white" id="agendar"><div class="max-w-[1100px] mx-auto px-4 sm:px-6"><div class="relative bg-paku-blue text-white rounded-4xl p-8 sm:p-12 lg:p-16 shadow-subtle-hover text-center flex flex-col items-center gap-6 overflow-hidden"><span class="inline-block px-4 py-1.5 rounded-full bg-white/15 text-white font-bubbly text-xs font-bold uppercase tracking-wider backdrop-blur-md">Atención en todo Lima Metropolitana</span><div class="space-y-3 max-w-2xl relative z-10"><h2 class="font-bubbly text-3xl sm:text-5xl font-black leading-tight tracking-tight">¡Dale a tu perrito el spa que se merece hoy!</h2><p class="text-base sm:text-lg text-blue-100 font-normal">Sin jaulas, sin estrés y en la puerta de tu hogar. Reserva en 60 segundos y nosotros nos encargamos de todo.</p></div><div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto relative z-10 pt-2"><a class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bubbly font-black text-base bg-white text-paku-blue hover:bg-blue-50 transition-all shadow-md hover:scale-102 active:scale-95" href="#booking-widget"><span>¡Pedir mi van spa ahora!</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span></a><a class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full font-bubbly font-bold text-base bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 transition-all" href="https://wa.me/51987654321?text=Hola%20Paku%21%20Quiero%20agendar%20un%20ba%C3%B1o%20para%20mi%20perrito" rel="noopener noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px]">chat</span><span>Hablar por WhatsApp</span></a></div><div class="flex flex-wrap items-center justify-center gap-6 text-xs font-bubbly text-blue-100 pt-3 relative z-10 font-semibold"><span>✓ Sin costo de transporte</span><span>✓ Cancela sin penalidad</span><span>✓ Pago al terminar el servicio</span></div></div></div></section>
+</main>
+<!-- FOOTER -->
+<footer class="w-full bg-[#F8FAFD] border-t border-paku-border pt-12 pb-8">
+<div class="max-w-[1240px] mx-auto px-4 sm:px-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-10">
+<!-- Brand Info -->
+<div class="lg:col-span-2 space-y-3">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-2xl bg-paku-blue flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">pets</span>
+</div>
+<span class="font-bubbly text-2xl font-black text-paku-blue">paku<span class="text-paku-blue">🐾</span></span>
+</div>
+<p class="text-xs sm:text-sm text-paku-muted max-w-sm leading-relaxed">
+Hacemos que el baño de tu peludo sea una fiesta sin estrés directo en tu puerta. Agua calientita, masajitos, premios y mucho amor perruno en cada visita.
+</p>
+<div class="flex flex-wrap gap-2 pt-1">
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bubbly font-bold">
+✓ Groomers con paciencia infinita
+</span>
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-paku-blueLight text-paku-blue border border-blue-200 text-xs font-bubbly font-bold">
+💙 100% Cero Jaulas
+</span>
+</div>
+</div>
+<!-- Col 2: Servicios -->
+<div class="space-y-2">
+<span class="font-bubbly font-bold text-sm text-paku-dark">Menú de Mimos</span>
+<ul class="space-y-1.5 text-xs sm:text-sm text-paku-muted font-medium">
+<li><a class="hover:text-paku-blue transition-colors" href="#servicios">Baño Relajante &amp; Esponjado</a></li>
+<li><a class="hover:text-paku-blue transition-colors" href="#servicios">Día de Spa Consentido</a></li>
+<li><a class="hover:text-paku-blue transition-colors" href="#servicios">Baño Piel Sensible / Derm</a></li>
+<li><a class="hover:text-paku-blue transition-colors" href="#servicios">Corte de Uñitas &amp; Oídos</a></li>
+<li><a class="hover:text-paku-blue transition-colors" href="#servicios">Tratamiento Desenredante</a></li>
+</ul>
+</div>
+<!-- Col 3: El Rincón Perruno -->
+<div class="space-y-2">
+<span class="font-bubbly font-bold text-sm text-paku-dark">El Rincón Perruno</span>
+<ul class="space-y-1.5 text-xs sm:text-sm text-paku-muted font-medium">
+<li><a class="hover:text-paku-blue transition-colors" href="#blog">¿Cómo evitar la ansiedad al bañar?</a></li>
+<li><a class="hover:text-paku-blue transition-colors" href="#blog">Cuidado del pelaje en Lima</a></li>
+<li><a class="hover:text-paku-blue transition-colors" href="#blog">Mitos del secado canino</a></li>
+<li><a class="hover:text-paku-blue transition-colors" href="#blog">Premios saludables para perritos</a></li>
+</ul>
+</div>
+<!-- Col 4: Horarios & Contacto -->
+<div class="space-y-2">
+<span class="font-bubbly font-bold text-sm text-paku-dark">Horarios &amp; Contacto</span>
+<p class="text-xs text-paku-muted">Lunes a Domingo: 7:30 am - 7:00 pm</p>
+<div class="space-y-1 pt-1">
+<a class="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-emerald-700 hover:text-emerald-800" href="https://wa.me/51987654321" target="_blank">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+<span>WhatsApp: +51 987 654 321</span>
+</a>
+<div class="flex items-center gap-1.5 text-xs text-paku-muted">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+<span>Lima Metropolitana</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-6 border-t border-paku-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-paku-muted font-medium">
+<p>© 2024 Paku Spa Móvil S.A.C. Amor, agua tibia y muchas galletitas garantizadas.</p>
+<div class="flex items-center gap-3">
+<a aria-label="Instagram" class="w-8 h-8 rounded-full bg-white border border-paku-border flex items-center justify-center text-paku-slate hover:bg-paku-blue hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">photo_camera</span>
+</a>
+<a aria-label="Comunidad" class="w-8 h-8 rounded-full bg-white border border-paku-border flex items-center justify-center text-paku-slate hover:bg-paku-blue hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">forum</span>
+</a>
+<a aria-label="Videos" class="w-8 h-8 rounded-full bg-white border border-paku-border flex items-center justify-center text-paku-slate hover:bg-paku-blue hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">smart_display</span>
+</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- SCRIPT FOR PLAYFUL MICRO-INTERACTIONS -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const sizeButtons = document.querySelectorAll('.size-btn');
+      const serviceSelect = document.getElementById('hero-service-select');
+      const calculatedPriceEl = document.getElementById('calculated-price');
+      const originalPriceEl = document.getElementById('original-price');
+      const selectedSizeLabel = document.getElementById('selected-size-label');
+
+      let currentFactor = 1.0;
+
+      function updatePrice() {
+        const basePrice = parseFloat(serviceSelect.value) || 45;
+        const finalPrice = Math.round(basePrice * currentFactor);
+        const originalPrice = Math.round(finalPrice * 1.25);
+
+        if (calculatedPriceEl) {
+          calculatedPriceEl.textContent = `S/ ${finalPrice}.00`;
+        }
+        if (originalPriceEl) {
+          originalPriceEl.textContent = `S/ ${originalPrice}.00`;
+        }
+      }
+
+      sizeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          sizeButtons.forEach(b => {
+            b.classList.remove('bg-paku-blueLight', 'border-paku-blue', 'shadow-sm', 'active-size');
+            b.classList.add('bg-slate-50', 'border-slate-200');
+            const titleSpan = b.querySelector('.font-bubbly');
+            if (titleSpan) {
+              titleSpan.classList.remove('text-paku-blue', 'font-extrabold');
+              titleSpan.classList.add('text-paku-slate', 'font-bold');
+            }
+          });
+
+          btn.classList.add('bg-paku-blueLight', 'border-paku-blue', 'shadow-sm', 'active-size');
+          btn.classList.remove('bg-slate-50', 'border-slate-200');
+          
+          const titleSpan = btn.querySelector('.font-bubbly');
+          if (titleSpan) {
+            titleSpan.classList.remove('text-paku-slate');
+            titleSpan.classList.add('text-paku-blue', 'font-extrabold');
+          }
+
+          currentFactor = parseFloat(btn.dataset.factor) || 1.0;
+          if (selectedSizeLabel) {
+            selectedSizeLabel.textContent = btn.dataset.label;
+          }
+
+          updatePrice();
+        });
+      });
+
+      if (serviceSelect) {
+        serviceSelect.addEventListener('change', updatePrice);
+      }
+
+      // Blog Category Buttons toggle
+      const catButtons = document.querySelectorAll('.category-btn');
+      catButtons.forEach(catBtn => {
+        catBtn.addEventListener('click', () => {
+          catButtons.forEach(c => {
+            c.classList.remove('bg-paku-blue', 'text-white', 'shadow-xs');
+            c.classList.add('bg-slate-100', 'text-paku-slate');
+          });
+          catBtn.classList.add('bg-paku-blue', 'text-white', 'shadow-xs');
+          catBtn.classList.remove('bg-slate-100', 'text-paku-slate');
+        });
+      });
+    });
+</script>
+</body></html>

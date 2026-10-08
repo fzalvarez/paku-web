@@ -43,9 +43,13 @@ export function AboutSection() {
     <section id="quienes-somos" aria-labelledby="about-heading" className="py-16 md:py-24 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-card rounded-[3rem] p-8 md:p-12 border-b-4 border-primary shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)]">
-          <h2 id="about-heading" className="text-3xl md:text-4xl font-black text-primary mb-4">
+          <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+            🐾 Nosotros
+          </span>
+          {/* Es el título de /nosotros, por eso h1 */}
+          <h1 id="about-heading" className="text-3xl md:text-4xl font-black text-primary mb-4">
             ¿Quiénes somos?
-          </h2>
+          </h1>
           <p className="max-w-4xl mb-12 text-base font-medium leading-relaxed text-muted-foreground md:text-lg md:font-semibold xl:text-xl">
             PAKU es un ecosistema inteligente que combina tecnología y servicio
             para transformar el cuidado de tu mascota. Una experiencia más

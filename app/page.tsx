@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import {
   HeroSectionV2,
-  FeaturesBentoSection,
-  SocialProofSection,
-  ProcessSection,
-  BannerStripe,
+  WhyPakuSection,
+  HowItWorksSection,
+  VanSection,
   ArticlesSection,
-  AboutSection,
+  TestimonialsSection,
+  FinalCtaSection,
 } from "@/components/sections/home";
 
 export const metadata: Metadata = {
@@ -70,12 +70,12 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HeroSectionV2 />
-      <FeaturesBentoSection />
-      <SocialProofSection />
-      <BannerStripe />
-      <ProcessSection />
+      <WhyPakuSection />
+      <HowItWorksSection />
+      <VanSection />
       <ArticlesSection />
-      <AboutSection />
+      <TestimonialsSection />
+      <FinalCtaSection />
     </>
   );
 }

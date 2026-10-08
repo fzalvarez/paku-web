@@ -58,7 +58,8 @@ const NAV_COLUMNS = [
     links: [
       { label: "Inicio", href: ROUTES.HOME },
       { label: "Paku Spa", href: ROUTES.PAKU_SPA },
-      { label: "Blog", href: ROUTES.BLOG },
+      { label: "Tips y chismes", href: ROUTES.BLOG },
+      { label: "Nosotros", href: ROUTES.NOSOTROS },
     ],
   },
   {

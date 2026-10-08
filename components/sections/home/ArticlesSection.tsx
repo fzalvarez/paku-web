@@ -3,9 +3,10 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ARTICLES, type Article } from "@/lib/data/articles";
+import { SectionHeading } from "./SectionHeading";
 
 // Ciclo de acentos de marca por card, para que el badge, el borde inferior
-// y el CTA "Leer más" varíen (mismo lenguaje visual que FeaturesBentoSection).
+// y el CTA "Leer más" varíen.
 const ACCENTS = [
   { border: "border-tertiary", text: "text-tertiary", badgeText: "text-tertiary" },
   { border: "border-secondary", text: "text-secondary", badgeText: "text-secondary" },
@@ -68,27 +69,24 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
 
 export function ArticlesSection() {
   return (
-    <section className="py-24">
+    <section aria-labelledby="articles-heading" className="py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Encabezado */}
-        <div className="mb-16 flex flex-col items-start justify-between gap-5 md:flex-row md:items-end">
-          <div>
-            <h2 className="mb-3 text-3xl font-black tracking-tight text-primary md:text-4xl">
-              Consejos de Santuario
-            </h2>
-            <p className="text-base font-medium leading-relaxed text-muted-foreground md:text-lg md:font-semibold">
-              Aprende a cuidar el bienestar de tu mascota con nuestros expertos.
-            </p>
-          </div>
-
-          <Link
-            href="/blog"
-            className="group flex shrink-0 items-center gap-2 rounded-full bg-primary/8 px-5 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/12"
-          >
-            Ver todos los artículos
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        </div>
+        <SectionHeading
+          id="articles-heading"
+          align="left"
+          eyebrow="📖 El rincón perruno"
+          title="Tips y chismes caninos 🐾"
+          description="Consejos de nuestros groomers para que tu mascota viva su mejor vida."
+          action={
+            <Link
+              href="/blog"
+              className="group flex w-fit shrink-0 items-center gap-2 rounded-full bg-primary/8 px-5 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/12"
+            >
+              Ver todos los artículos
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          }
+        />
 
         {/* Grid de artículos */}
         <div className="grid gap-8 md:grid-cols-3">

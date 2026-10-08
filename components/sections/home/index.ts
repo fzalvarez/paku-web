@@ -3,14 +3,15 @@
 export { PetManagementSection } from "./PetManagementSection";
 export { BookingSection } from "./BookingSection";
 
-// ── Componentes actuales (usado en home principal) ──
+// ── Home (app/page.tsx) ──
 export { HeroSectionV2 } from "./HeroSectionV2";
-export { FeaturesBentoSection } from "./FeaturesBentoSection";
-export { SocialProofSection } from "./SocialProofSection";
-export { BannerStripe } from "./BannerStripe";
-export { ProcessSection } from "./ProcessSection";
-export { AboutSection } from "./AboutSection";
+export { WhyPakuSection } from "./WhyPakuSection";
+export { HowItWorksSection } from "./HowItWorksSection";
+export { VanSection } from "./VanSection";
+export { TestimonialsSection } from "./TestimonialsSection";
+export { FinalCtaSection } from "./FinalCtaSection";
 
-// ── Componentes compartidos ──
+// ── Compartidos con páginas internas ──
 export { ArticlesSection } from "./ArticlesSection";
+export { AboutSection } from "./AboutSection"; // /nosotros
 export { ContactSection } from "./ContactSection";

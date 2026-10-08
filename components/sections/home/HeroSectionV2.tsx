@@ -1,65 +1,79 @@
-import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/constants/routes";
 
-const APP_STORE_BUTTONS = [
-  {
-    id: "google-play",
-    href: "#",
-    src: "/assets/android-play-store.png",
-    alt: "Disponible en Google Play",
-  },
-  {
-    id: "app-store",
-    href: "#",
-    src: "/assets/apple-app-store.png",
-    alt: "Consíguelo en el App Store",
-  },
-] as const;
+const TRUST_CHIPS = ["🛁 Una mascota a la vez", "🔌 Agua y luz propias", "📍 Síguelo en vivo"] as const;
 
 export function HeroSectionV2() {
   return (
-    <section aria-label="Inicio — El futuro del grooming es móvil" className="relative min-h-125 sm:min-h-150 md:min-h-200 flex items-center overflow-hidden">
-      {/* Imagen de fondo */}
+    <section
+      aria-labelledby="hero-heading"
+      className="relative flex min-h-130 items-center overflow-hidden sm:min-h-150 md:min-h-180"
+    >
+      {/* Imagen de fondo (fondo celeste claro: el texto va oscuro) */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/home-perro-paku.png"
           alt=""
-          aria-hidden="true"
           loading="eager"
           fetchPriority="high"
-          className="w-full h-full object-cover object-[60%_center] md:object-center"
+          className="h-full w-full object-cover object-[70%_center] md:object-center"
         />
-        {/* Overlay: degradado vertical solo en la mitad inferior */}
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/60 via-black/25 to-transparent" />
+        {/* Velo claro a la izquierda para que el texto se lea sobre el perro en mobile */}
+        <div className="absolute inset-0 bg-linear-to-r from-white/75 via-white/40 to-transparent md:from-white/50 md:via-white/10" />
       </div>
 
       {/* Contenido */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="w-full md:w-3/5 flex flex-col gap-4 sm:gap-6 text-white">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-8xl font-extrabold leading-tight xl:leading-[1.05] tracking-tight drop-shadow-lg">
-            El futuro del grooming es{" "}
-            <span className="italic">móvil</span>
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="flex w-full flex-col items-start gap-5 md:w-3/5 lg:w-1/2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary shadow-xs">
+            ✨ Spa móvil para tu mascota
+          </span>
+
+          <h1
+            id="hero-heading"
+            className="text-4xl font-black leading-[1.05] tracking-tight text-[#171954] sm:text-5xl md:text-6xl"
+          >
+            El spa de tu peludo, <span className="text-primary">directo a tu puerta</span>
           </h1>
-          <p className="text-lg md:text-xl max-w-lg leading-relaxed drop-shadow-md text-white/90">
-            Sigue en tiempo real el cuidado de tu mascota, con total seguridad
-            y tranquilidad.
+
+          <p className="max-w-lg text-lg font-medium leading-relaxed text-[#171954]/80 md:text-xl">
+            Lo bañamos y engreímos en nuestra van, frente a tu casa. Y tú lo sigues en vivo desde
+            el celular.
           </p>
 
-          {/* Botones de descarga */}
-          <div className="flex flex-col items-start sm:flex-row sm:flex-wrap gap-2 sm:gap-3 mt-1 sm:mt-2">
-            {APP_STORE_BUTTONS.map((btn) => (
-              <Link key={btn.id} href={btn.href} className="hover:opacity-90 hover:scale-105 transition-all">
-                <Image
-                  src={btn.src}
-                  alt={btn.alt}
-                  width={180}
-                  height={53}
-                  className="h-11 sm:h-14 md:h-16 w-auto object-contain"
-                />
+          <div className="mt-1 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <Button asChild size="lg" className="h-12 gap-2 rounded-full px-7 text-base font-bold shadow-md">
+              <Link href={ROUTES.BOOKING}>
+                <span aria-hidden="true" className="inline-block origin-bottom motion-safe:animate-wag">🐶</span>
+                Agenda su baño
               </Link>
-            ))}
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 gap-2 rounded-full border-primary/20 bg-white/80 px-6 text-base font-bold text-primary hover:bg-white"
+            >
+              <Link href="/#como-funciona">
+                ¿Cómo funciona?
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
           </div>
+
+          <ul className="mt-1 flex flex-wrap gap-2">
+            {TRUST_CHIPS.map((chip) => (
+              <li
+                key={chip}
+                className="rounded-full bg-white/85 px-3 py-1 text-xs font-bold text-[#171954] shadow-xs sm:text-sm"
+              >
+                {chip}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

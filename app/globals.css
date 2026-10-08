@@ -177,3 +177,13 @@
     display: none !important;
   }
 }
+/* Colita que se mueve: emoji del CTA de reserva (usar con motion-safe:) */
+@theme {
+  --animate-wag: wag 1.2s ease-in-out infinite;
+
+  @keyframes wag {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(14deg); }
+    75% { transform: rotate(-12deg); }
+  }
+}
