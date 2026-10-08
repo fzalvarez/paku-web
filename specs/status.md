@@ -118,6 +118,17 @@ Tomando ideas de `referencias/nuevo home 2026.html` (no es copia):
 - `/booking?pet=<id>` preselecciona la mascota en un inicio limpio; el paso 1 sigue validando el peso.
 - Verificado: eslint, `tsc`, `next build` y aserciones de las reglas. Falta revisión visual con sesión.
 
+## Mascotas y direcciones (2026-10-08, sin commit)
+
+- **Fecha de nacimiento de mascotas:** máximo 20 años y nunca futura (decisión del owner). Regla única en
+  `lib/utils/pets.ts` (`petBirthDateBounds`, `petBirthDateError`): `min`/`max` en el input y validación al
+  guardar en los 4 formularios (Mis mascotas, ficha, alta rápida de la reserva, dashboard). "Hoy" en hora
+  de Lima (antes UTC: después de las 7 p. m. permitía mañana). Hoy aplica también a gatos (a confirmar).
+  [ ] El backend debería validar lo mismo.
+- Tarjeta de mascota rediseñada (`components/pets/PetCard.tsx`).
+- Tarjeta de dirección con mapa de solo lectura (`components/common/AddressMiniMap.tsx`) y enlace a Google
+  Maps; las direcciones sin coordenadas no muestran mapa.
+
 ## Pendientes heredados
 
 - [ ] `home-v2` vs `page.tsx` actual (`HeroSectionV2` es la home en uso).

@@ -1,25 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import {
   Loader2,
   Plus,
   PawPrint,
-  Pencil,
-  Trash2,
-  Weight,
-  Dog,
-  Cat,
-  Mars,
-  Venus,
-  Calendar,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { PetCard } from "@/components/pets/PetCard";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import { EmptyState } from "@/components/account/EmptyState";
 import { InlineAlert } from "@/components/account/InlineAlert";
@@ -35,47 +24,18 @@ import { useBreeds } from "@/hooks/useBreeds";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
 import { petRecordsService } from "@/lib/api/pet-records";
-import { safePhotoUrl } from "@/lib/utils/pets";
+import { petBirthDateBounds, petBirthDateError } from "@/lib/utils/pets";
+import { todayLima } from "@/lib/utils/dates";
 import type {
   Pet,
   CreatePetRequest,
   UpdatePetRequest,
 } from "@/types/pets";
-import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-
-function calcAge(birthDate?: string | null): string {
-  if (!birthDate) return "";
-  const diff = Date.now() - new Date(birthDate).getTime();
-  const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-  if (years >= 1) return `${years} ${years === 1 ? "año" : "años"}`;
-  const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
-  return `${months} ${months === 1 ? "mes" : "meses"}`;
-}
-
-function SpeciesIcon({
-  species,
-  className,
-}: {
-  species: string;
-  className?: string;
-}) {
-  return species === "cat" ? (
-    <Cat className={className} />
-  ) : (
-    <Dog className={className} />
-  );
-}
-
-function SexIcon({ sex }: { sex?: string | null }) {
-  if (sex === "male") return <Mars className="size-3 text-blue-500" />;
-  if (sex === "female") return <Venus className="size-3 text-pink-500" />;
-  return null;
-}
 
 // ── Formulario de mascota ──────────────────────────────────────────────────────
 
@@ -166,6 +126,11 @@ function PetFormDialog({
     e.preventDefault();
     if (!form.name.trim()) {
       setError("El nombre es obligatorio.");
+      return;
+    }
+    const birthDateError = petBirthDateError(form.birth_date);
+    if (birthDateError) {
+      setError(birthDateError);
       return;
     }
     setError(null);
@@ -325,7 +290,7 @@ function PetFormDialog({
                 type="date"
                 value={form.birth_date}
                 onChange={set("birth_date")}
-                max={new Date().toISOString().split("T")[0]}
+                {...petBirthDateBounds()}
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -400,7 +365,7 @@ function WeightDialog({
   onSuccess,
 }: WeightDialogProps) {
   const [weight, setWeight] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(todayLima());
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
@@ -410,7 +375,7 @@ function WeightDialog({
   React.useEffect(() => {
     if (open) {
       setWeight("");
-      setDate(new Date().toISOString().split("T")[0]);
+      setDate(todayLima());
       setFeedback(null);
     }
   }, [open]);
@@ -478,7 +443,7 @@ function WeightDialog({
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                max={new Date().toISOString().split("T")[0]}
+                max={todayLima()}
               />
             </div>
           </div>
@@ -500,141 +465,6 @@ function WeightDialog({
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-// ── Tarjeta de mascota ─────────────────────────────────────────────────────────
-
-interface PetCardProps {
-  pet: Pet;
-  onEdit: (pet: Pet) => void;
-  onDelete: (pet: Pet) => void;
-  onWeight: (pet: Pet) => void;
-  mutating: boolean;
-}
-
-function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
-  const age = calcAge(pet.birth_date);
-  const isDog = pet.species !== "cat";
-  const photoUrl = safePhotoUrl(pet.photo_url);
-
-  return (
-    <div
-      className={cn(
-        "group relative overflow-hidden rounded-2xl border bg-background shadow-sm transition-shadow hover:shadow-md",
-        isDog ? "border-primary/20" : "border-secondary/20",
-      )}
-    >
-      <div className="p-4">
-        {/* Avatar + info básica */}
-        <div className="flex items-start gap-4">
-          {/* Avatar en blob orgánico */}
-          <div className="relative size-14 shrink-0 overflow-hidden rounded-[46%_54%_58%_42%/48%_42%_58%_52%] shadow-sm">
-            {photoUrl ? (
-              <Image src={photoUrl} alt={pet.name} fill sizes="56px" className="object-cover" />
-            ) : (
-              <>
-                <div className={cn("absolute inset-0", isDog ? "bg-primary/10" : "bg-secondary/10")} />
-                <div
-                  className={cn(
-                    "absolute inset-0 flex items-center justify-center",
-                    isDog ? "text-primary" : "text-secondary",
-                  )}
-                >
-                  <SpeciesIcon species={pet.species} className="size-7" />
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="truncate text-base font-extrabold tracking-tight text-foreground">
-                {pet.name}
-              </h3>
-              <SexIcon sex={pet.sex} />
-            </div>
-
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              {pet.breed_name && (
-                <span className="text-xs text-muted-foreground">
-                  {pet.breed_name}
-                </span>
-              )}
-              {age && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="size-3" />
-                  {age}
-                </span>
-              )}
-              {pet.weight_kg != null && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Weight className="size-3" />
-                  {pet.weight_kg} kg
-                </span>
-              )}
-            </div>
-
-            {/* Badges de info */}
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <Badge variant={isDog ? "default" : "secondary"}>{isDog ? "Perro" : "Gato"}</Badge>
-              {pet.sterilized && <Badge variant="success">Esterilizado</Badge>}
-              {pet.vaccines_up_to_date && <Badge variant="info">Vacunas al día</Badge>}
-            </div>
-
-            {pet.notes && (
-              <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
-                {pet.notes}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Acciones */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1.5 text-xs"
-            onClick={() => onWeight(pet)}
-            disabled={mutating}
-          >
-            <Weight className="size-3" />
-            Peso
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="gap-1.5 text-xs"
-            onClick={() => onEdit(pet)}
-            disabled={mutating}
-          >
-            <Pencil className="size-3" />
-            Editar
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="gap-1.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => onDelete(pet)}
-            disabled={mutating}
-            aria-label={`Eliminar a ${pet.name}`}
-          >
-            <Trash2 className="size-3" />
-          </Button>
-          <Button asChild size="sm" variant="outline" className="ml-auto gap-1.5 text-xs">
-            <Link href={`/account/pets/${pet.id}/panel`}>📊 Panel</Link>
-          </Button>
-          <Button asChild size="sm" variant="outline" className="gap-1.5 text-xs">
-            <Link href={`/account/pets/${pet.id}`}>
-              Ver perfil
-              <ChevronRight className="size-3" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </div>
   );
 }
 

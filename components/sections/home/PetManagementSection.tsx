@@ -18,7 +18,7 @@ import { useBreeds } from "@/hooks/useBreeds";
 import { petsService } from "@/lib/api/pets";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
-import { calcPetAge, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
+import { calcPetAge, petBirthDateBounds, petBirthDateError, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
 import type { Pet, CreatePetRequest, PetSpecies, PetSex } from "@/types/pets";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/common/AuthDialog";
@@ -54,6 +54,11 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
     setError(null);
     if (!form.name.trim()) {
       setError("El nombre es requerido");
+      return;
+    }
+    const birthDateError = petBirthDateError(form.birth_date);
+    if (birthDateError) {
+      setError(birthDateError);
       return;
     }
     setSubmitting(true);
@@ -220,6 +225,7 @@ function AddPetModal({ onClose, onSuccess }: AddPetModalProps) {
               className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               value={form.birth_date ?? ""}
               onChange={(e) => setForm({ ...form, birth_date: e.target.value })}
+              {...petBirthDateBounds()}
             />
           </div>
           <div className="col-span-2">

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, MapPin, Star, Pencil, Trash2, Plus } from "lucide-react";
+import { ExternalLink, Loader2, MapPin, Star, Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import { EmptyState } from "@/components/account/EmptyState";
 import { InlineAlert } from "@/components/account/InlineAlert";
+import { AddressMiniMap } from "@/components/common/AddressMiniMap";
 import { AddressFormDialog } from "@/components/common/AddressFormDialog";
 import { useAddresses } from "@/hooks/useAddresses";
 import { useDistricts } from "@/hooks/useDistricts";
@@ -33,14 +34,30 @@ function AddressCard({
   actionLoading,
 }: AddressCardProps) {
   const busy = actionLoading === address.id;
+  // Las direcciones antiguas pueden no tener coordenadas (0,0)
+  const hasLocation = Boolean(address.lat && address.lng);
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border bg-background shadow-sm transition-shadow hover:shadow-md ${
+      className={`relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card shadow-sm transition-shadow hover:shadow-md ${
         address.is_default ? "border-primary/30" : "border-border/60"
       }`}
     >
-      <div className="p-4">
+      {hasLocation && (
+        <div className="relative">
+          <AddressMiniMap lat={address.lat} lng={address.lng} label={address.address_line} className="h-36 w-full" />
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${address.lat},${address.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute right-2 top-2 z-[400] inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-primary shadow-sm transition-colors hover:bg-white"
+          >
+            <ExternalLink className="size-3" />
+            Ver en Google Maps
+          </a>
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-4">
         {/* Badge predeterminada */}
         {address.is_default && (
           <Badge className="mb-3">
@@ -50,7 +67,7 @@ function AddressCard({
         )}
 
         {/* Icono + datos */}
-        <div className="flex items-start gap-3">
+        <div className="mb-3 flex items-start gap-3">
           <div className="relative size-11 shrink-0">
             <div
               className={`absolute inset-0 rounded-[46%_54%_58%_42%/48%_42%_58%_52%] ${address.is_default ? "bg-primary/10" : "bg-muted"}`}
@@ -87,7 +104,7 @@ function AddressCard({
         </div>
 
         {/* Acciones */}
-        <div className="mt-3 flex items-center gap-2 border-t border-border/60 pt-3">
+        <div className="mt-auto flex items-center gap-2 border-t border-border/60 pt-3">
           {!address.is_default && (
             <Button
               size="sm"

@@ -45,7 +45,8 @@ import { petRecordsService } from "@/lib/api/pet-records";
 import { useBreeds } from "@/hooks/useBreeds";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
-import { safePhotoUrl } from "@/lib/utils/pets";
+import { petBirthDateBounds, petBirthDateError, safePhotoUrl } from "@/lib/utils/pets";
+import { todayLima } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
 import type {
   Pet,
@@ -193,6 +194,8 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) { setError("El nombre es obligatorio."); return; }
+    const birthDateError = petBirthDateError(form.birth_date);
+    if (birthDateError) { setError(birthDateError); return; }
     setError(null);
     setLoading(true);
     try {
@@ -285,7 +288,7 @@ function EditBasicDialog({ open, onOpenChange, pet, onSaved, onPhotoUploaded }: 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Fecha de nacimiento</Label>
-              <Input type="date" value={form.birth_date} onChange={(e) => setForm(p => ({ ...p, birth_date: e.target.value }))} max={new Date().toISOString().split("T")[0]} />
+              <Input type="date" value={form.birth_date} onChange={(e) => setForm(p => ({ ...p, birth_date: e.target.value }))} {...petBirthDateBounds()} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -501,12 +504,12 @@ function EditGroomingDialog({ open, onOpenChange, pet, onSaved }: EditGroomingDi
 
 function WeightDialog({ open, onOpenChange, pet, onSuccess }: { open: boolean; onOpenChange: (v: boolean) => void; pet: Pet; onSuccess: () => void }) {
   const [weight, setWeight] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(todayLima());
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   useEffect(() => {
-    if (open) { setWeight(""); setDate(new Date().toISOString().split("T")[0]); setFeedback(null); }
+    if (open) { setWeight(""); setDate(todayLima()); setFeedback(null); }
   }, [open]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -546,7 +549,7 @@ function WeightDialog({ open, onOpenChange, pet, onSuccess }: { open: boolean; o
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Fecha</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={new Date().toISOString().split("T")[0]} />
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={todayLima()} />
             </div>
           </div>
           {feedback && <InlineAlert type={feedback.type}>{feedback.msg}</InlineAlert>}

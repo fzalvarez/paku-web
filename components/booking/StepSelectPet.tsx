@@ -10,7 +10,7 @@ import { petsService } from "@/lib/api/pets";
 import { petRecordsService } from "@/lib/api/pet-records";
 import { useUploadPhoto } from "@/hooks/useUploadPhoto";
 import { AvatarUploader } from "@/components/common/AvatarUploader";
-import { calcPetAge, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
+import { calcPetAge, petBirthDateBounds, petBirthDateError, speciesLabel, safePhotoUrl } from "@/lib/utils/pets";
 import { WizardNavButtons } from "./WizardLayout";
 import type { Pet, CreatePetRequest, PetSpecies, PetSex } from "@/types/pets";
 
@@ -46,6 +46,11 @@ function AddPetModal({
   async function handleSubmit() {
     if (!form.name.trim()) {
       setError("El nombre es requerido");
+      return;
+    }
+    const birthDateError = petBirthDateError(form.birth_date);
+    if (birthDateError) {
+      setError(birthDateError);
       return;
     }
     // Sin peso el backend no puede cotizar el servicio (C-07)
@@ -216,6 +221,7 @@ function AddPetModal({
               className={inputCls}
               value={form.birth_date ?? ""}
               onChange={(e) => setForm({ ...form, birth_date: e.target.value })}
+              {...petBirthDateBounds()}
             />
           </div>
         </div>
