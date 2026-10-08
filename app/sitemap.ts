@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { ROUTES, SITE_CONFIG } from "@/constants";
+import { articleUrl, categoryUrl, getAllArticles, getCategoriesWithCount } from "@/lib/blog";
 
 /**
  * Sitemap dinámico generado por Next.js.
@@ -8,8 +9,27 @@ import { ROUTES, SITE_CONFIG } from "@/constants";
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = SITE_CONFIG.url;
+  const articles = getAllArticles();
+
+  // Blog: cada artículo con su fecha real, y cada categoría con la de su artículo más reciente
+  const blogEntries: MetadataRoute.Sitemap = [
+    ...articles.map((a) => ({
+      url: `${baseUrl}${articleUrl(a.slug)}`,
+      lastModified: new Date(a.updatedAt ?? a.publishedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+      images: [a.image],
+    })),
+    ...getCategoriesWithCount().map((c) => ({
+      url: `${baseUrl}${categoryUrl(c.slug)}`,
+      lastModified: new Date(articles.find((a) => a.category === c.slug)!.publishedAt),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
+  ];
 
   return [
+    ...blogEntries,
     {
       url: `${baseUrl}${ROUTES.HOME}`,
       lastModified: new Date(),

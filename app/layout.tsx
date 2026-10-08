@@ -70,6 +70,9 @@ export const metadata: Metadata = {
       "Agenda el grooming de tu mascota en segundos. Seguimiento en tiempo real y atención en la puerta de tu hogar.",
     images: ["/assets/og-image.png"],
   },
+  alternates: {
+    types: { "application/rss+xml": [{ url: "/blog/rss.xml", title: "Paku — Tips y chismes caninos" }] },
+  },
   icons: {
     icon: "/assets/favicon.png",
     shortcut: "/assets/favicon.png",

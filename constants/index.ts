@@ -8,6 +8,12 @@ export const SITE_CONFIG = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://paku.com.pe",
 } as const;
 
+/** Enlaces de las apps. TODO: reemplazar "#" cuando las apps estén publicadas. */
+export const APP_STORE_LINKS = {
+  googlePlay: "#",
+  appStore: "#",
+} as const;
+
 /** Canales de contacto (mismos datos que el footer y /contacto). */
 export const CONTACT = {
   whatsappUrl: "https://wa.me/51993019869",

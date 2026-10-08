@@ -1,5 +1,6 @@
 import { HOW_IT_WORKS } from "@/lib/data/home";
 import { SectionHeading } from "./SectionHeading";
+import { AppStoreButtons } from "@/components/common/AppStoreButtons";
 
 /** "¿Cómo llega la felicidad a tu puerta?": los 3 pasos del servicio. */
 export function HowItWorksSection() {
@@ -34,6 +35,11 @@ export function HowItWorksSection() {
             </li>
           ))}
         </ol>
+
+        <div className="mt-10 flex flex-col items-center gap-3 text-center">
+          <p className="text-sm font-bold text-muted-foreground">📲 También desde la app</p>
+          <AppStoreButtons className="justify-center" />
+        </div>
       </div>
     </section>
   );

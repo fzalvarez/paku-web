@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
+import { AppStoreButtons } from "@/components/common/AppStoreButtons";
 
 const TRUST_CHIPS = ["🛁 Una mascota a la vez", "🔌 Agua y luz propias", "📍 Síguelo en vivo"] as const;
 
@@ -63,6 +64,9 @@ export function HeroSectionV2() {
               </Link>
             </Button>
           </div>
+
+          {/* Insignias de las apps */}
+          <AppStoreButtons className="mt-1" />
 
           <ul className="mt-1 flex flex-wrap gap-2">
             {TRUST_CHIPS.map((chip) => (

@@ -71,8 +71,9 @@
 
 Tomando ideas de `referencias/nuevo home 2026.html` (no es copia):
 - Listón azul sobre el header (`components/layout/TopRibbon.tsx`), oculto en `/booking` y `/account`.
-- Home: hero con CTA "Agenda su baño" (las insignias de tiendas apuntaban a `#`; las apps no están
-  publicadas) → ¿Por qué los peludos aman Paku? → ¿Cómo llega la felicidad a tu puerta? (`#como-funciona`)
+- Home: hero con CTA "Agenda su baño" + insignias de Google Play/App Store (`components/common/AppStoreButtons`,
+  también en "¿Cómo funciona?"; enlaces en `APP_STORE_LINKS` de `constants/index.ts`, hoy `#` hasta que se
+  publiquen las apps) → ¿Por qué los peludos aman Paku? → ¿Cómo llega la felicidad a tu puerta? (`#como-funciona`)
   → ¿Cómo es por dentro la furgoneta? (`#la-van`, fotos `home-2/3.png`) → Tips y chismes → Historias de
   colitas contentas → ¡Dale a tu peludo el spa que se merece!
 - Textos en `lib/data/home.ts`. Datos de la van confirmados por el owner (2026-10-08): tina de acero con
@@ -86,6 +87,23 @@ Tomando ideas de `referencias/nuevo home 2026.html` (no es copia):
   ha iniciado sesión. Decidir si el catálogo debe ser público (owner).
 - Verificado: eslint, `tsc`, `next build` (variables de Firebase de relleno) y HTML servido por `next dev`
   con todas las secciones. Sin capturas: no hay navegador headless que funcione en este equipo.
+
+## Blog (2026-10-08, sin commit)
+
+- Antes: solo existía la ruta de 1 de los 3 artículos (los otros 2 daban 404 desde el home), las categorías
+  eran etiquetas sin acción, el tiempo de lectura estaba escrito a mano y no había artículos en el sitemap,
+  canonical, datos estructurados ni RSS.
+- Ahora: artículos en `lib/data/articles.ts` (bloques: párrafo, subtítulo, lista, tip) y lógica en
+  `lib/blog.ts`. Ruta dinámica `/blog/[slug]` y `/blog/categoria/[categoria]`, estáticas en build; slugs
+  desconocidos dan 404. Por artículo: canonical, Open Graph `article`, Twitter card, JSON-LD `BlogPosting` +
+  `BreadcrumbList`, migas, índice, resumen, aviso veterinario, etiquetas, compartir (WhatsApp/Facebook),
+  relacionados y CTA. `/blog` con JSON-LD `Blog`. RSS en `/blog/rss.xml`. Sitemap con artículos y categorías.
+- 9 artículos (6 nuevos: edad, sueño, sentido de manada, lenguaje del gato, dientes, frecuencia de baño).
+  Categorías: Cuidado e higiene, Salud, Comportamiento, Temporadas.
+- [ ] **Revisión veterinaria** de los artículos de salud antes de publicar (texto informativo general).
+- [ ] Imágenes de Unsplash por URL: idealmente descargarlas a `public/` o usar fotos propias de Paku.
+- Verificado con `next build` + `next start`: códigos 200/404, etiquetas SEO, JSON-LD, RSS válido
+  (`xmllint`), sitemap con 14 URLs de blog, anclas del índice.
 
 ## Pendientes heredados
 

@@ -1,73 +1,13 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ARTICLES, type Article } from "@/lib/data/articles";
+import { ArticleCard } from "@/components/blog/ArticleCard";
+import { getAllArticles } from "@/lib/blog";
 import { SectionHeading } from "./SectionHeading";
 
-// Ciclo de acentos de marca por card, para que el badge, el borde inferior
-// y el CTA "Leer más" varíen.
-const ACCENTS = [
-  { border: "border-tertiary", text: "text-tertiary", badgeText: "text-tertiary" },
-  { border: "border-secondary", text: "text-secondary", badgeText: "text-secondary" },
-  { border: "border-primary", text: "text-primary", badgeText: "text-primary" },
-] as const;
+/** Últimos artículos del blog (home y dashboard). */
+export function ArticlesSection({ limit = 3 }: { limit?: number }) {
+  const articles = getAllArticles().slice(0, limit);
 
-function ArticleCard({ article, index }: { article: Article; index: number }) {
-  const accent = ACCENTS[index % ACCENTS.length];
-
-  return (
-    <Link
-      href={`/blog/${article.slug}`}
-      className={cn(
-        "group flex flex-col overflow-hidden rounded-[1.625rem] bg-card border-b-4 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.10)] transition-shadow hover:shadow-lg",
-        accent.border
-      )}
-    >
-      {/* Imagen */}
-      <div className="relative aspect-4/3 overflow-hidden">
-        <Image
-          src={article.image}
-          alt={article.imageAlt}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
-        {/* Badge categoría */}
-        <div className="absolute left-4 top-4">
-          <span className={cn("rounded-full bg-background/95 px-3 py-1 text-xs font-bold uppercase tracking-wide", accent.badgeText)}>
-            {article.category}
-          </span>
-        </div>
-      </div>
-
-      {/* Contenido */}
-      <div className="flex flex-1 flex-col px-6 py-5">
-        <h3 className="mb-2 text-xl font-extrabold leading-snug text-foreground md:text-2xl">
-          {article.title}
-        </h3>
-        <p className="mb-4 flex-1 text-sm font-medium leading-relaxed text-muted-foreground md:text-base md:font-semibold">
-          {article.excerpt}
-        </p>
-
-        {/* Meta + CTA */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <span>{article.readingTime}</span>
-            <span className="size-1 rounded-full bg-border" />
-            <span>{article.date}</span>
-          </div>
-          <span className={cn("flex shrink-0 items-center gap-1 text-sm font-extrabold transition-all group-hover:gap-1.5", accent.text)}>
-            Leer más
-            <ArrowRight className="size-3.5" />
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-export function ArticlesSection() {
   return (
     <section aria-labelledby="articles-heading" className="py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -76,7 +16,7 @@ export function ArticlesSection() {
           align="left"
           eyebrow="📖 El rincón perruno"
           title="Tips y chismes caninos 🐾"
-          description="Consejos de nuestros groomers para que tu mascota viva su mejor vida."
+          description="Consejos para que tu mascota viva su mejor vida."
           action={
             <Link
               href="/blog"
@@ -88,12 +28,13 @@ export function ArticlesSection() {
           }
         />
 
-        {/* Grid de artículos */}
-        <div className="grid gap-8 md:grid-cols-3">
-          {ARTICLES.map((article, index) => (
-            <ArticleCard key={article.id} article={article} index={index} />
+        <ul className="grid gap-8 md:grid-cols-3">
+          {articles.map((article) => (
+            <li key={article.slug}>
+              <ArticleCard article={article} />
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
