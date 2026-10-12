@@ -14,6 +14,7 @@ import type {
 } from "@/types/payments";
 import { apiClient } from "./client";
 import { ENDPOINTS } from "./endpoints";
+import { buildSaveCardPayload } from "@/lib/payments/card-expiration";
 
 /** Traduce un error de pago a un mensaje apto para mostrar al usuario. */
 export function getPaymentErrorMessage(err: unknown): string {
@@ -72,31 +73,17 @@ export const paymentsService = {
 
   /**
    * POST /wallet/cards
-   * Envía el token y su vencimiento; PAN y CVV permanecen fuera de Paku.
+   * Envía el token y el vencimiento original del formulario; PAN y CVV permanecen fuera de Paku.
    */
-  saveCard(token: CulqiToken): Promise<SavedCard> {
-     const expirationMonthText = String(token.expiration_month ?? "");
-     const expirationYearText = String(token.expiration_year ?? "");
-     const expirationMonth = Number(expirationMonthText);
-     const expirationYear = Number(expirationYearText);
-     if (
-       !/^\d{1,2}$/.test(expirationMonthText) ||
-       !Number.isInteger(expirationMonth) ||
-       expirationMonth < 1 ||
-       expirationMonth > 12 ||
-       !/^\d{4}$/.test(expirationYearText) ||
-       !Number.isInteger(expirationYear) ||
-       expirationYear < 1000 ||
-      expirationYear > 9999
-    ) {
-      throw new Error("Culqi no devolvió un vencimiento válido para la tarjeta.");
-    }
-
-    const payload: SaveCardIn = {
-      token_id: token.id,
-      expiration_month: expirationMonth,
-      expiration_year: expirationYear,
-    };
+  saveCard(
+    token: CulqiToken,
+    expiration: Pick<CardData, "expiration_month" | "expiration_year">
+  ): Promise<SavedCard> {
+    const payload: SaveCardIn = buildSaveCardPayload(
+      token.id,
+      expiration.expiration_month,
+      expiration.expiration_year
+    );
     return apiClient.post<SavedCard>(ENDPOINTS.WALLET.CARDS, payload);
   },
 

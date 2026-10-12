@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { CardData } from "@/types/payments";
+import { isValidCardExpiration } from "@/lib/payments/card-expiration";
 
 interface CardDataFormProps {
   onSubmit: (cardData: CardData) => Promise<void>;
@@ -58,8 +59,7 @@ export function CardDataForm({
   const isFormValid =
     cardNumber.replace(/\s/g, "").length >= 13 &&
     cardHolder.trim().length >= 2 &&
-    expiryMonth.length === 2 &&
-    expiryYear.length === 4 &&
+    isValidCardExpiration(expiryMonth, expiryYear) &&
     cvv.length >= 3 &&
     email.includes("@");
 

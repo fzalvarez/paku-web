@@ -18,9 +18,6 @@ export interface CulqiToken {
   object: string;
   email: string;
   last_four: string;
-  // Present in observed token responses, but not guaranteed by the published response schema.
-  expiration_month?: number | string;
-  expiration_year?: number | string;
   iin?: CulqiIin;
 }
 

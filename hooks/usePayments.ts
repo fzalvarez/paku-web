@@ -98,7 +98,8 @@ export function usePayments() {
   const savingCardRef = useRef(false);
 
   /**
-   * Tokeniza una tarjeta una vez con Culqi y envía el token al wallet Paku.
+   * Tokeniza una tarjeta una vez con Culqi y envía el token y vencimiento
+   * original del formulario al wallet Paku.
    */
   const saveCard = useCallback(
     async (cardData: CardData): Promise<SavedCard> => {
@@ -114,7 +115,10 @@ export function usePayments() {
 
       try {
         const token = await paymentsService.createToken(cardData);
-        const savedCard = await paymentsService.saveCard(token);
+        const savedCard = await paymentsService.saveCard(token, {
+          expiration_month: cardData.expiration_month,
+          expiration_year: cardData.expiration_year,
+        });
 
         setSavedCards((prev) => [...prev, savedCard]);
         return savedCard;
