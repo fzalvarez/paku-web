@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   CreditCard,
   Plus,
@@ -15,7 +15,6 @@ import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import { EmptyState } from "@/components/account/EmptyState";
 import { InlineAlert } from "@/components/account/InlineAlert";
 import { cn } from "@/lib/utils";
-import { useAuthContext } from "@/contexts/AuthContext";
 import { usePayments } from "@/hooks/usePayments";
 import { CardDataForm } from "@/components/payment/CardDataForm";
 import type { SavedCard, CardData } from "@/types/payments";
@@ -107,7 +106,6 @@ function SavedCardItem({ card, onDelete, deleting }: SavedCardItemProps) {
 // ─── Página principal ─────────────────────────────────────────────────────────
 
 export default function PaymentsPage() {
-  const { user } = useAuthContext();
   const {
     savedCards,
     cardsLoading,
@@ -123,21 +121,10 @@ export default function PaymentsPage() {
 
   const [showForm, setShowForm] = useState(false);
 
-  // Cargar tarjetas al montar
-  useEffect(() => {
-    loadSavedCards();
-  }, [loadSavedCards]);
-
   // Agregar nueva tarjeta
   const handleSaveCard = async (cardData: CardData) => {
     try {
-      await saveCard({
-        cardData,
-        userEmail: user?.email ?? "",
-        userFirstName: user?.first_name ?? "",
-        userLastName: user?.last_name ?? "",
-        userPhone: user?.phone ?? "000000000",
-      });
+      await saveCard(cardData);
       setShowForm(false);
     } catch {
       // error ya visible en saveCardError

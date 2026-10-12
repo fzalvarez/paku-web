@@ -1,7 +1,6 @@
 /**
  * Tipos del dominio de pagos — Culqi
  * Reemplaza la integración anterior de Mercado Pago.
- * Microservicio: https://api.paku.com.pe
  */
 
 // ─── Token de Culqi (respuesta de secure.culqi.com/v2/tokens) ────────────────
@@ -45,6 +44,7 @@ export interface CardData {
 
 export interface SavedCard {
   id: string; // UUID interno del backend para mostrar en la UI
+  user_id: string;
   provider: string; // "culqi"
   payment_method_id: string; // crd_test_xxx — ID de tarjeta en Culqi
   brand: string; // "visa" | "master" | "amex" | ...
@@ -52,53 +52,10 @@ export interface SavedCard {
   exp_month: number; // 0 (Culqi no retorna fecha de vencimiento)
   exp_year: number; // 0
   is_default: boolean;
-  culqi_customer_id?: string; // cus_test_xxx para One-click
-  culqi_card_id?: string; // crd_test_xxx para One-click
+  created_at: string;
 }
 
-// Alias para compatibilidad con componentes
-export type SavedPaymentMethod = SavedCard;
-
-/** Convierte SavedCard al formato normalizado que usa la UI */
-export function toPaymentMethod(card: SavedCard): SavedPaymentMethod {
-  return card;
+/** Payload de POST /wallet/cards. El backend deriva el resto de los datos. */
+export interface SaveCardIn {
+  token_id: string;
 }
-
-// ─── Cliente Culqi (respuesta del backend) ────────────────────────────────────
-
-export interface CulqiCustomer {
-  id: string; // cus_test_xxx — guardar en BD para cobros futuros
-  object: "customer";
-  first_name: string;
-  last_name: string;
-  email: string;
-}
-
-// ─── Payloads hacia el backend ────────────────────────────────────────────────
-
-export interface CreateCustomerPayload {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  address: string;
-  address_city: string;
-  country_code: string;
-}
-
-// El cobro en sí (antes POST /api/culqi/charges, con amount/email/
-// antifraud_details armados a mano acá) migró a POST /orders/{id}/pay —
-// ver lib/api/orders.ts `pay()`. Ese endpoint solo pide { source_id }; el
-// resto (monto, antifraude) lo arma paku-backend server-side con datos que
-// ya tiene. Ver doc_fase1_paku-web_migracion_pago.md.
-
-// ─── Errores de negocio ────────────────────────────────────────────────────────
-
-export type PaymentErrorCode =
-  | "card_declined"
-  | "insufficient_funds"
-  | "expired_card"
-  | "incorrect_cvv"
-  | "processing_error"
-  | "fraud_detected"
-  | "network_error";

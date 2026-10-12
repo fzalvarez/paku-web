@@ -1,6 +1,6 @@
 # Estado — Paku Web
 
-> Actualizado: 2026-10-05 · adaptado al backend de octubre (C-01 a C-21; C-20/C-21 aún sin desplegar). Commits `8f88eb3` a `480150b`,
+> Actualizado: 2026-10-11 · adaptado al backend de octubre (C-01 a C-21; C-20/C-21 aún sin desplegar). Commits `8f88eb3` a `480150b`,
 > sin push.
 
 ## Qué funciona (según código; verificado con Playwright contra el API simulado)
@@ -132,16 +132,18 @@ Tomando ideas de `referencias/nuevo home 2026.html` (no es copia):
 ## Pendientes heredados
 
 - [ ] `home-v2` vs `page.tsx` actual (`HeroSectionV2` es la home en uso).
-- [ ] `.env` no define `NEXT_PUBLIC_CULQI_PUBLIC_KEY` ni `NEXT_PUBLIC_PAYMENT_API_URL/KEY`: sin la clave
-  pública de Culqi no se puede tokenizar una tarjeta nueva (las guardadas sí funcionan).
-- [ ] Credenciales de producción de Culqi.
+- [ ] Confirmar antes del despliegue que la clave pública de Culqi y el backend apuntan al mismo ambiente
+  (`test` o `live`).
+- [ ] Tras verificar el build y el despliegue previsto, retirar `NEXT_PUBLIC_PAYMENT_API_URL` de Vercel:
+  el frontend ya no la consume. También puede retirarse del `.env` local.
+- [ ] Verificar credenciales de producción de Culqi antes de habilitar cobros reales.
 
 ## Observaciones
 
 - Toda la API de paku-backend pasa por `lib/api/client.ts` (refresh de token y errores en español con
   `lib/api/errors.ts`). Textos de valores de la API en `lib/labels.ts`. Fechas de negocio en hora de Lima
   (`lib/utils/dates.ts`).
-- Pagos: solo Culqi. Tokenización en cliente (`secure.culqi.com`); tarjetas guardadas vía culqi-python
-  (`NEXT_PUBLIC_PAYMENT_API_URL`) y `/wallet/cards`; el cobro lo hace paku-backend con
-  `POST /orders/{id}/pay`.
+- Pagos: solo Culqi. Tokenización en cliente (`secure.culqi.com`); tarjetas guardadas mediante
+  `POST /wallet/cards` con el JWT del usuario; paku-backend administra Customer/Card y se comunica con
+  culqi-python. El cobro de órdenes también lo orquesta paku-backend con `POST /orders/{id}/pay`.
 - `pnpm lint`: 0 problemas. `pnpm build`: OK.

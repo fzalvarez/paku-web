@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { paymentsService, getPaymentErrorMessage } from "@/lib/api/payments";
 import { ordersService } from "@/lib/api/orders";
 import { ApiCallError } from "@/lib/api/client";
 import type { SavedCard, CardData } from "@/types/payments";
 import type { OrderOut } from "@/types/orders";
-
-// Local storage key para Culqi customer ID
-const CULQI_CUSTOMER_KEY = "paku_culqi_customer_id";
 
 export function usePayments() {
   // ── Tarjetas guardadas ────────────────────────────────────────────────────
@@ -98,59 +95,26 @@ export function usePayments() {
   // ── Guardar tarjeta ───────────────────────────────────────────────────────
   const [savingCard, setSavingCard] = useState(false);
   const [saveCardError, setSaveCardError] = useState<string | null>(null);
+  const savingCardRef = useRef(false);
 
   /**
-   * Guardar una tarjeta nueva:
-   * 1. Crear o reutilizar Culqi Customer
-   * 2. Tokenizar, guardar en Culqi y persistir en paku-backend
-   *    (paymentsService.saveCard; antes se tokenizaba también aquí y ese
-   *    token no se usaba)
+   * Tokeniza una tarjeta una vez con Culqi y envía el token al wallet Paku.
    */
   const saveCard = useCallback(
-    async (params: {
-      cardData: CardData;
-      userEmail: string;
-      userFirstName?: string;
-      userLastName?: string;
-      userPhone?: string;
-    }): Promise<SavedCard> => {
+    async (cardData: CardData): Promise<SavedCard> => {
+      if (savingCardRef.current) {
+        const error = new Error("Ya se está guardando una tarjeta.");
+        setSaveCardError(error.message);
+        throw error;
+      }
+
+      savingCardRef.current = true;
       setSavingCard(true);
       setSaveCardError(null);
 
       try {
-        // Paso 1: obtener o crear Culqi customer ID
-        let culqiCustomerId: string | null = null;
-
-        // Buscar en localStorage primero
-        if (typeof window !== "undefined") {
-          culqiCustomerId = localStorage.getItem(CULQI_CUSTOMER_KEY);
-        }
-
-        // Si no existe, crear nuevo customer
-        if (!culqiCustomerId) {
-          const customer = await paymentsService.createCustomer({
-            first_name: params.userFirstName || "Usuario",
-            last_name: params.userLastName || "Paku",
-            email: params.userEmail,
-            phone_number: params.userPhone || "000000000",
-            address: "Lima, Peru",
-            address_city: "Lima",
-            country_code: "PE",
-          });
-
-          culqiCustomerId = customer.id;
-
-          // Guardar en localStorage
-          if (typeof window !== "undefined") {
-            localStorage.setItem(CULQI_CUSTOMER_KEY, culqiCustomerId);
-          }
-        }
-
-        // Paso 2: tokenizar y guardar tarjeta
-        const savedCard = await paymentsService.saveCard(
-          culqiCustomerId,
-          params.cardData
-        );
+        const token = await paymentsService.createToken(cardData);
+        const savedCard = await paymentsService.saveCard(token.id);
 
         setSavedCards((prev) => [...prev, savedCard]);
         return savedCard;
@@ -162,6 +126,7 @@ export function usePayments() {
         setSaveCardError(msg);
         throw err;
       } finally {
+        savingCardRef.current = false;
         setSavingCard(false);
       }
     },

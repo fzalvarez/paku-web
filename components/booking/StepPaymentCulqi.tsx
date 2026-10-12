@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import {
   CreditCard,
   Plus,
@@ -16,8 +17,10 @@ import {
 import { cn } from "@/lib/utils";
 import { usePayments } from "@/hooks/usePayments";
 import { paymentsService, getPaymentErrorMessage } from "@/lib/api/payments";
+import { ApiCallError } from "@/lib/api/client";
+import { ordersService } from "@/lib/api/orders";
 import { CardDataForm } from "@/components/payment/CardDataForm";
-import type { SavedCard, CardData } from "@/types/payments";
+import type { SavedCard, CardData, CulqiToken } from "@/types/payments";
 import type { OrderOut } from "@/types/orders";
 
 // ─── Métodos de pago ──────────────────────────────────────────────────────────
@@ -109,6 +112,8 @@ export function StepPaymentCulqi({
   const [payStep, setPayStep] = useState<PayStep>("method-select");
   const [selectedCard, setSelectedCard] = useState<SavedCard | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [tokenizingNewCard, setTokenizingNewCard] = useState(false);
+  const [paymentStatusUnknown, setPaymentStatusUnknown] = useState(false);
 
   // Al seleccionar tarjeta como método, avanzar directamente y cargar tarjetas.
   // Esta lógica se maneja en el handler del botón "Continuar" (ver JSX)
@@ -118,10 +123,19 @@ export function StepPaymentCulqi({
 
   const handlePaymentResult = useCallback(
     (order: OrderOut) => {
+      setPaymentStatusUnknown(false);
       if (order.payment_status === "failed") {
         needsRetryRef.current = true;
         setLocalError("Tu pago fue rechazado. Intenta con otra tarjeta.");
         setPayStep("failed");
+        return;
+      }
+      if (order.payment_status === "pending") {
+        setPaymentStatusUnknown(true);
+        setLocalError(
+          "El pedido sigue pendiente y no podemos confirmar el resultado del pago. Revisa su estado antes de intentar pagar otra vez."
+        );
+        setPayStep("verifying");
         return;
       }
       // "paid" o "verifying" — ambos son un flujo exitoso desde la UI, la
@@ -130,6 +144,37 @@ export function StepPaymentCulqi({
       setTimeout(() => onPaymentSuccess(order), 1200);
     },
     [onPaymentSuccess]
+  );
+
+  const handlePaymentError = useCallback(
+    async (err: unknown) => {
+      const outcomeMayBeUnknown =
+        !(err instanceof ApiCallError) || err.status >= 500;
+
+      if (outcomeMayBeUnknown) {
+        try {
+          const order = await ordersService.detail(orderId);
+          if (order.payment_status !== "pending") {
+            handlePaymentResult(order);
+            return;
+          }
+        } catch {
+          // Sin respuesta de pago ni detalle, no es seguro ofrecer otro cobro.
+        }
+
+        setPaymentStatusUnknown(true);
+        setLocalError(
+          "No pudimos confirmar el resultado del pago. Revisa el estado del pedido antes de intentar pagar otra vez."
+        );
+        setPayStep("verifying");
+        return;
+      }
+
+      needsRetryRef.current = true;
+      setLocalError(getPaymentErrorMessage(err));
+      setPayStep("failed");
+    },
+    [handlePaymentResult, orderId]
   );
 
   const handlePayWithSavedCard = useCallback(async () => {
@@ -144,30 +189,38 @@ export function StepPaymentCulqi({
       const order = await payOrder(orderId, selectedCard.payment_method_id, needsRetryRef.current);
       handlePaymentResult(order);
     } catch (err) {
-      needsRetryRef.current = true;
-      setLocalError(getPaymentErrorMessage(err));
-      setPayStep("failed");
+      await handlePaymentError(err);
     }
-  }, [selectedCard, orderId, payOrder, handlePaymentResult]);
+  }, [selectedCard, orderId, payOrder, handlePaymentResult, handlePaymentError]);
 
   const handleSaveAndPay = useCallback(
     async (cardData: CardData) => {
       setLocalError(null);
+      setTokenizingNewCard(true);
 
       try {
-        // 1. Tokenizar directamente con Culqi
-        const token = await paymentsService.createToken(cardData);
+        let token: CulqiToken;
+        try {
+          // 1. Tokenizar directamente con Culqi
+          token = await paymentsService.createToken(cardData);
+        } catch (err) {
+          setLocalError(getPaymentErrorMessage(err));
+          setPayStep("failed");
+          return;
+        }
 
-        // 2. Cobrar la orden con el token (source_id = tkn_test_xxx)
-        const order = await payOrder(orderId, token.id, needsRetryRef.current);
-        handlePaymentResult(order);
-      } catch (err) {
-        needsRetryRef.current = true;
-        setLocalError(getPaymentErrorMessage(err));
-        setPayStep("failed");
+        try {
+          // 2. Cobrar la orden con el token (source_id = tkn_test_xxx)
+          const order = await payOrder(orderId, token.id, needsRetryRef.current);
+          handlePaymentResult(order);
+        } catch (err) {
+          await handlePaymentError(err);
+        }
+      } finally {
+        setTokenizingNewCard(false);
       }
     },
-    [orderId, payOrder, handlePaymentResult]
+    [orderId, payOrder, handlePaymentResult, handlePaymentError]
   );
 
   const displayAmount = formatAmount(amountCents, currency);
@@ -405,7 +458,7 @@ export function StepPaymentCulqi({
           <h3 className="text-lg font-bold">Nueva tarjeta</h3>
           <CardDataForm
             onSubmit={handleSaveAndPay}
-            isLoading={savingCard || paying}
+            isLoading={savingCard || paying || tokenizingNewCard}
             error={saveCardError || payError || localError}
             onErrorDismiss={() => setLocalError(null)}
             onCancel={() => {
@@ -447,12 +500,18 @@ export function StepPaymentCulqi({
           <div>
             <p className="font-bold text-amber-900">Confirmando tu pago…</p>
             <p className="text-sm text-amber-700">
-              Estamos confirmando tu pago con el banco 🏦, te avisaremos en cuanto se confirme.
+              {paymentStatusUnknown
+                ? localError
+                : "Estamos confirmando tu pago con el banco 🏦, te avisaremos en cuanto se confirme."}
             </p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Redirigiendo…
-          </p>
+          {paymentStatusUnknown ? (
+            <Link href="/account/orders" className="text-sm font-semibold text-primary underline">
+              Revisar mis pedidos
+            </Link>
+          ) : (
+            <p className="text-xs text-muted-foreground">Redirigiendo…</p>
+          )}
         </div>
       )}
 

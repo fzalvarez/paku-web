@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { AlertCircle, Loader2, Lock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,9 @@ export function CardDataForm({
   const [expiryYear, setExpiryYear] = useState("");
   const [cvv, setCvv] = useState("");
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
+  const busy = isLoading || isSubmitting;
 
   // Detectar marca de tarjeta
   const detectBrand = (number: string): string => {
@@ -67,8 +70,10 @@ export function CardDataForm({
   };
 
   const handleSubmit = useCallback(async () => {
-    if (!isFormValid) return;
+    if (!isFormValid || busy || submittingRef.current) return;
 
+    submittingRef.current = true;
+    setIsSubmitting(true);
     try {
       const cardData: CardData = {
         card_number: cardNumber.replace(/\s/g, ""),
@@ -81,8 +86,13 @@ export function CardDataForm({
       await onSubmit(cardData);
     } catch (err) {
       console.error("Error enviando datos de tarjeta:", err);
+    } finally {
+      setCardNumber("");
+      setCvv("");
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
-  }, [cardNumber, cvv, expiryMonth, expiryYear, email, isFormValid, onSubmit]);
+  }, [cardNumber, cvv, expiryMonth, expiryYear, email, isFormValid, busy, onSubmit]);
 
   return (
     <div className="space-y-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
@@ -115,7 +125,7 @@ export function CardDataForm({
             placeholder="1234 5678 9012 3456"
             value={cardNumber}
             onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-            disabled={isLoading}
+            disabled={busy}
             className={cn("font-mono", brand && "border-primary/40 pr-24")}
             maxLength={19}
           />
@@ -137,7 +147,7 @@ export function CardDataForm({
           placeholder="Nombre Apellido"
           value={cardHolder}
           onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-          disabled={isLoading}
+          disabled={busy}
         />
       </div>
 
@@ -149,7 +159,7 @@ export function CardDataForm({
             id="card-exp-month"
             value={expiryMonth}
             onChange={(e) => setExpiryMonth(e.target.value)}
-            disabled={isLoading}
+            disabled={busy}
           >
             <option value="">MM</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -166,7 +176,7 @@ export function CardDataForm({
             id="card-exp-year"
             value={expiryYear}
             onChange={(e) => setExpiryYear(e.target.value)}
-            disabled={isLoading}
+            disabled={busy}
           >
             <option value="">YY</option>
             {Array.from({ length: 20 }, (_, i) => {
@@ -192,7 +202,7 @@ export function CardDataForm({
             placeholder="123"
             value={cvv}
             onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            disabled={isLoading}
+            disabled={busy}
             className="font-mono"
             maxLength={4}
           />
@@ -209,7 +219,7 @@ export function CardDataForm({
           placeholder="correo@ejemplo.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          disabled={isLoading}
+          disabled={busy}
         />
         <p className="text-xs text-muted-foreground">
           Se usa para el recibo y confirmación del pago
@@ -226,11 +236,11 @@ export function CardDataForm({
 
       {/* Botones */}
       <div className="flex items-center justify-between gap-3 pt-2">
-        <Button variant="ghost" onClick={onCancel} disabled={isLoading}>
+        <Button variant="ghost" onClick={onCancel} disabled={busy}>
           Cancelar
         </Button>
-        <Button onClick={handleSubmit} disabled={!isFormValid || isLoading} className="gap-2">
-          {isLoading ? (
+        <Button onClick={handleSubmit} disabled={!isFormValid || busy} className="gap-2">
+          {busy ? (
             <>
               <Loader2 className="size-4 animate-spin" />
               Procesando…

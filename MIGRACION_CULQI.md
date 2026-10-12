@@ -1,5 +1,9 @@
 # Migración de Mercado Pago a Culqi - Integración Completa
 
+> **Documento histórico (2024-12-19):** describe la integración inicial y contiene contratos y ejemplos
+> que ya no aplican, como la gestión de Customers desde el frontend. Para el flujo vigente, consultar
+> [MIGRACION_CULQI_PAKU_WEB.md](./MIGRACION_CULQI_PAKU_WEB.md).
+
 **Estado:** ✅ COMPLETADO - Integración lista para testing
 
 **Fecha:** 2024-12-19
@@ -349,4 +353,3 @@ Para preguntas sobre la implementación, referencias en:
 - `ANALISIS_CRITICO.md` - Detalles del problema original
 - `paku-vet-dev` - Implementación de referencia
 - `lib/api/payments.ts` - Documentación de métodos
-
