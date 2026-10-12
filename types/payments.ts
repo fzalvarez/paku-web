@@ -18,6 +18,9 @@ export interface CulqiToken {
   object: string;
   email: string;
   last_four: string;
+  // Present in observed token responses, but not guaranteed by the published response schema.
+  expiration_month?: number | string;
+  expiration_year?: number | string;
   iin?: CulqiIin;
 }
 
@@ -49,13 +52,15 @@ export interface SavedCard {
   payment_method_id: string; // crd_test_xxx — ID de tarjeta en Culqi
   brand: string; // "visa" | "master" | "amex" | ...
   last4: string; // últimos 4 dígitos
-  exp_month: number; // 0 (Culqi no retorna fecha de vencimiento)
-  exp_year: number; // 0
+  exp_month: number;
+  exp_year: number;
   is_default: boolean;
   created_at: string;
 }
 
-/** Payload de POST /wallet/cards. El backend deriva el resto de los datos. */
+/** Payload de POST /wallet/cards. No incluye PAN ni CVV. */
 export interface SaveCardIn {
   token_id: string;
+  expiration_month: number;
+  expiration_year: number;
 }

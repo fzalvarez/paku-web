@@ -114,7 +114,7 @@ export function usePayments() {
 
       try {
         const token = await paymentsService.createToken(cardData);
-        const savedCard = await paymentsService.saveCard(token.id);
+        const savedCard = await paymentsService.saveCard(token);
 
         setSavedCards((prev) => [...prev, savedCard]);
         return savedCard;

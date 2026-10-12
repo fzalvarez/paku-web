@@ -72,10 +72,31 @@ export const paymentsService = {
 
   /**
    * POST /wallet/cards
-   * Envía únicamente el token; paku-backend administra Customer y Card.
+   * Envía el token y su vencimiento; PAN y CVV permanecen fuera de Paku.
    */
-  saveCard(tokenId: string): Promise<SavedCard> {
-    const payload: SaveCardIn = { token_id: tokenId };
+  saveCard(token: CulqiToken): Promise<SavedCard> {
+     const expirationMonthText = String(token.expiration_month ?? "");
+     const expirationYearText = String(token.expiration_year ?? "");
+     const expirationMonth = Number(expirationMonthText);
+     const expirationYear = Number(expirationYearText);
+     if (
+       !/^\d{1,2}$/.test(expirationMonthText) ||
+       !Number.isInteger(expirationMonth) ||
+       expirationMonth < 1 ||
+       expirationMonth > 12 ||
+       !/^\d{4}$/.test(expirationYearText) ||
+       !Number.isInteger(expirationYear) ||
+       expirationYear < 1000 ||
+      expirationYear > 9999
+    ) {
+      throw new Error("Culqi no devolvió un vencimiento válido para la tarjeta.");
+    }
+
+    const payload: SaveCardIn = {
+      token_id: token.id,
+      expiration_month: expirationMonth,
+      expiration_year: expirationYear,
+    };
     return apiClient.post<SavedCard>(ENDPOINTS.WALLET.CARDS, payload);
   },
 
