@@ -8,6 +8,8 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { usePendingBalance } from "@/hooks/usePendingBalance";
+import { PendingBalanceBanner } from "@/components/account/PendingBalanceBanner";
 
 const NAV_LINKS = [
   { href: "/account/profile",   label: "Mi perfil",           icon: User,        color: "text-primary",   bg: "bg-primary/10" },
@@ -28,6 +30,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   const pathname = usePathname();
   const { loading, isAuthenticated, user } = useAuthContext();
+  const { balance } = usePendingBalance(pathname);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -138,7 +141,13 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
           </aside>
 
           {/* ── Contenido ── */}
-          <main className="min-w-0 flex-1 lg:pt-6">{children}</main>
+          <main className="min-w-0 flex-1 lg:pt-6">
+            {/* Saldo por diferencia de peso (C-24); se reconsulta al navegar (p. ej. tras pagarlo) */}
+            {!pathname.startsWith("/account/orders/") && (
+              <PendingBalanceBanner balance={balance} className="mb-5" />
+            )}
+            {children}
+          </main>
         </div>
       </div>
     </div>

@@ -29,6 +29,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 /** Tarjeta de una mascota en "Mis mascotas". */
+// C-24: con un servicio solicitado el peso no se cambia; el groomer pesa a la mascota en el servicio.
+export const WEIGHT_LOCKED_HINT =
+  "No puedes cambiar el peso mientras tu mascota tenga un servicio solicitado. Lo registrará el groomer.";
+
 export function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardProps) {
   const isCat = pet.species === "cat";
   const photoUrl = safePhotoUrl(pet.photo_url);
@@ -98,9 +102,9 @@ export function PetCard({ pet, onEdit, onDelete, onWeight, mutating }: PetCardPr
               size="icon-sm"
               variant="ghost"
               onClick={() => onWeight(pet)}
-              disabled={mutating}
+              disabled={mutating || pet.weight_locked}
               aria-label={`Registrar peso de ${pet.name}`}
-              title="Registrar peso"
+              title={pet.weight_locked ? WEIGHT_LOCKED_HINT : "Registrar peso"}
             >
               <Weight />
             </Button>

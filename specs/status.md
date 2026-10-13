@@ -129,6 +129,21 @@ Tomando ideas de `referencias/nuevo home 2026.html` (no es copia):
 - Tarjeta de dirección con mapa de solo lectura (`components/common/AddressMiniMap.tsx`) y enlace a Google
   Maps; las direcciones sin coordenadas no muestran mapa.
 
+## Saldo por diferencia de peso y errores de pago — C-23/C-24 (2026-10-12, sin commit)
+
+Feature `paku-backend/specs/features/0003-saldo-por-peso`.
+- Saldo: `GET /orders/pending-balance` (`usePendingBalance`). Aviso `PendingBalanceBanner` en Mi cuenta y en
+  /booking (con saldo el asistente no arranca; el backend responde 409 `PENDING_BALANCE`). Se paga desde el
+  detalle de la orden de ajuste con el flujo de pago existente.
+- Orden de ajuste: el detalle oculta seguimiento, chat y pasos, y explica el saldo con enlace al pedido
+  original; "Mis pedidos" la muestra como "Saldo por diferencia de peso". El pedido original muestra peso
+  declarado, peso registrado y la diferencia.
+- Mascotas: con `weight_locked` se deshabilitan "Registrar peso" (tarjeta, ficha e historial) y el campo de
+  peso al editar; el 409 `PET_WEIGHT_LOCKED` se muestra tal cual.
+- Pago: `PAYMENT_PROVIDER_ERROR` (502) y `PAYMENT_3DS_REQUIRED` (409) ya no se tratan como "resultado
+  desconocido": el backend asegura que no hubo cobro y se ofrece reintentar.
+- Pendiente: la web no ofrece Yape (solo tarjeta guardada o nueva); el backend ya lo acepta.
+
 ## Pendientes heredados
 
 - [ ] `home-v2` vs `page.tsx` actual (`HeroSectionV2` es la home en uso).

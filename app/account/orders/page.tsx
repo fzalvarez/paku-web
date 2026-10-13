@@ -67,9 +67,12 @@ export default function MisPedidosPage() {
                     <div className="flex-1 min-w-0">
                       {/* Estado */}
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge size="md" className={cn(status.bgColor, status.color)}>
-                          {status.label}
-                        </Badge>
+                        {/* Un saldo (orden de ajuste, C-24) no tiene estado de servicio */}
+                        {!order.parent_order_id && (
+                          <Badge size="md" className={cn(status.bgColor, status.color)}>
+                            {status.label}
+                          </Badge>
+                        )}
                         {order.payment_status && (
                           <Badge size="md" className={cn(payment.bgColor, payment.color)}>
                             {payment.label}
@@ -83,6 +86,9 @@ export default function MisPedidosPage() {
                       {/* Servicio principal */}
                       {baseItem && (
                         <h3 className="mt-2 font-bold">{baseItem.name}</h3>
+                      )}
+                      {order.parent_order_id && (
+                        <h3 className="mt-2 font-bold">Saldo por diferencia de peso</h3>
                       )}
 
                       {/* Fecha del servicio */}

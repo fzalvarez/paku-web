@@ -1,4 +1,4 @@
-import type { OrderOut, CreateOrderIn, OrderPhotoOut, DelayReportOut } from "@/types/orders";
+import type { OrderOut, CreateOrderIn, OrderPhotoOut, DelayReportOut, PendingBalanceOut } from "@/types/orders";
 import { apiClient } from "./client";
 import { ENDPOINTS } from "./endpoints";
 
@@ -17,6 +17,15 @@ export const ordersService = {
    */
   detail(id: string): Promise<OrderOut> {
     return apiClient.get<OrderOut>(ENDPOINTS.ORDERS.DETAIL(id));
+  },
+
+  /**
+   * GET /orders/pending-balance (C-24)
+   * Saldo por diferencia de peso: órdenes de ajuste sin pagar. Con amount > 0 el backend no deja
+   * reservar ni crear órdenes (409 PENDING_BALANCE). Cada orden se paga con pay().
+   */
+  pendingBalance(): Promise<PendingBalanceOut> {
+    return apiClient.get<PendingBalanceOut>(ENDPOINTS.ORDERS.PENDING_BALANCE);
   },
 
   /** GET /orders/{id}/photos — fotos del servicio (C-12), en orden de creación. */

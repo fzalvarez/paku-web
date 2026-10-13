@@ -26,6 +26,8 @@ import { AvatarUploader } from "@/components/common/AvatarUploader";
 import { petRecordsService } from "@/lib/api/pet-records";
 import { petBirthDateBounds, petBirthDateError } from "@/lib/utils/pets";
 import { todayLima } from "@/lib/utils/dates";
+import { ApiCallError } from "@/lib/api/client";
+import { WEIGHT_LOCKED_HINT } from "@/components/pets/PetCard";
 import type {
   Pet,
   CreatePetRequest,
@@ -304,6 +306,8 @@ function PetFormDialog({
                 placeholder="Ej. 8.5"
                 value={form.weight_kg}
                 onChange={set("weight_kg")}
+                disabled={!!pet?.weight_locked}
+                title={pet?.weight_locked ? WEIGHT_LOCKED_HINT : undefined}
               />
             </div>
           </div>
@@ -401,8 +405,9 @@ function WeightDialog({
         onOpenChange(false);
         onSuccess();
       }, 1200);
-    } catch {
-      setFeedback({ type: "error", msg: "No se pudo registrar el peso." });
+    } catch (err) {
+      // 409 PET_WEIGHT_LOCKED trae un mensaje claro (C-24)
+      setFeedback({ type: "error", msg: err instanceof ApiCallError ? err.message : "No se pudo registrar el peso." });
     } finally {
       setLoading(false);
     }

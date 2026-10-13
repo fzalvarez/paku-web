@@ -51,6 +51,9 @@ interface StepPaymentCulqiProps {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Errores de POST /orders/{id}/pay en los que el backend asegura que no hubo cobro (C-23).
+const NOT_CHARGED_CODES = new Set(["PAYMENT_PROVIDER_ERROR", "PAYMENT_3DS_REQUIRED"]);
+
 const BRAND_LABELS: Record<string, string> = {
   visa: "VISA",
   master: "MC",
@@ -148,8 +151,10 @@ export function StepPaymentCulqi({
 
   const handlePaymentError = useCallback(
     async (err: unknown) => {
+      // El backend asegura que no hubo cobro (la orden sigue pending): se puede reintentar sin riesgo.
+      const surelyNotCharged = err instanceof ApiCallError && NOT_CHARGED_CODES.has(err.code);
       const outcomeMayBeUnknown =
-        !(err instanceof ApiCallError) || err.status >= 500;
+        !surelyNotCharged && (!(err instanceof ApiCallError) || err.status >= 500);
 
       if (outcomeMayBeUnknown) {
         try {

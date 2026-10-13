@@ -31,6 +31,13 @@ const CODE_MESSAGES: Record<string, string> = {
   SERVICE_NOT_FOUND: "El servicio ya no está disponible.",
   INVALID_SERVICE_ID: "El servicio ya no está disponible.",
   INVALID_ADDON_ID: "Uno de los adicionales no es válido.",
+  // Pago (C-23)
+  PAYMENT_PROVIDER_ERROR: "No pudimos procesar el pago y no se hizo ningún cobro. Inténtalo de nuevo.",
+  PAYMENT_3DS_REQUIRED:
+    "Tu banco pide una validación adicional que aún no soportamos. No se hizo ningún cobro; prueba con otra tarjeta.",
+  // Saldo por diferencia de peso (C-24)
+  PENDING_BALANCE: "Tienes un saldo pendiente por diferencia de peso. Págalo para pedir otro servicio.",
+  PET_WEIGHT_LOCKED: "No puedes cambiar el peso mientras tu mascota tenga un servicio solicitado.",
   // Otros
   TOO_MANY_ATTEMPTS: "Demasiados intentos. Espera un momento y vuelve a intentar.",
   EMAIL_ALREADY_REGISTERED: "El email ya está registrado.",

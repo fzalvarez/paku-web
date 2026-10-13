@@ -91,8 +91,24 @@ export interface OrderOut {
   skip_reason?: SkipReason | null;
   skip_note?: string | null;
   skipped_at?: string | null;
+  /** Peso con que se cotizó el servicio (C-24). Null en órdenes antiguas. */
+  declared_weight_kg?: number | null;
+  /** Peso que registró el groomer en el servicio (C-24). */
+  measured_weight_kg?: number | null;
+  measured_weight_at?: string | null;
+  /** Monto extra por peso mayor al declarado (C-24); lo cobra el admin con una orden de ajuste. */
+  extra_charge?: number | null;
+  /** Orden de ajuste (saldo) generada por esa diferencia (C-24). */
+  adjustment_order_id?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** GET /orders/pending-balance (C-24): órdenes de ajuste sin pagar. Con saldo no se pueden pedir servicios. */
+export interface PendingBalanceOut {
+  amount: number;
+  currency: string;
+  orders: OrderOut[];
 }
 
 export interface ServiceStepLogEntry {

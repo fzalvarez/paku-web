@@ -48,6 +48,8 @@ import { AvatarUploader } from "@/components/common/AvatarUploader";
 import { petBirthDateBounds, petBirthDateError, safePhotoUrl } from "@/lib/utils/pets";
 import { todayLima } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils";
+import { ApiCallError } from "@/lib/api/client";
+import { WEIGHT_LOCKED_HINT } from "@/components/pets/PetCard";
 import type {
   Pet,
   UpdatePetRequest,
@@ -527,8 +529,9 @@ function WeightDialog({ open, onOpenChange, pet, onSuccess }: { open: boolean; o
       });
       setFeedback({ type: "success", msg: "Peso registrado correctamente." });
       setTimeout(() => { onOpenChange(false); onSuccess(); }, 1200);
-    } catch {
-      setFeedback({ type: "error", msg: "No se pudo registrar el peso." });
+    } catch (err) {
+      // 409 PET_WEIGHT_LOCKED trae un mensaje claro (C-24)
+      setFeedback({ type: "error", msg: err instanceof ApiCallError ? err.message : "No se pudo registrar el peso." });
     } finally {
       setLoading(false);
     }
@@ -704,7 +707,14 @@ export default function PetProfilePage() {
             <Button asChild size="sm" variant="outline" className="gap-1.5">
               <Link href={`/account/pets/${pet.id}/panel`}>📊 Ver panel</Link>
             </Button>
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setWeightOpen(true)}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => setWeightOpen(true)}
+              disabled={pet.weight_locked}
+              title={pet.weight_locked ? WEIGHT_LOCKED_HINT : undefined}
+            >
               <Weight className="size-3.5" /> Peso
             </Button>
             <Button size="sm" className="gap-1.5" onClick={() => setEditBasicOpen(true)}>
@@ -734,10 +744,18 @@ export default function PetProfilePage() {
           <div className="rounded-2xl border border-border/60 bg-background p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-extrabold uppercase tracking-widest text-foreground">Historial de peso</h2>
-              <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => setWeightOpen(true)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 gap-1 px-2 text-xs"
+                onClick={() => setWeightOpen(true)}
+                disabled={pet.weight_locked}
+                title={pet.weight_locked ? WEIGHT_LOCKED_HINT : undefined}
+              >
                 <Plus className="size-3" /> Registrar
               </Button>
             </div>
+            {pet.weight_locked && <p className="mb-3 text-xs text-muted-foreground">{WEIGHT_LOCKED_HINT}</p>}
             {weightHistory.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-xl bg-muted/40 py-6 text-center">
                 <TrendingUp className="size-7 text-muted-foreground/40" />

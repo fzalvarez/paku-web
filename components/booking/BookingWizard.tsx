@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { CalendarCheck } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { usePendingBalance } from "@/hooks/usePendingBalance";
+import { PendingBalanceBanner } from "@/components/account/PendingBalanceBanner";
 import { servicesService } from "@/lib/api/services";
 import { petsService } from "@/lib/api/pets";
 import { bookingService } from "@/lib/api/booking";
@@ -97,6 +99,7 @@ function formatDay(iso: string): string {
 
 export function BookingWizard() {
   const { isAuthenticated } = useAuthContext();
+  const { balance } = usePendingBalance();
   const searchParams = useSearchParams();
   const preselectServiceId = searchParams.get("service");
   const preselectPetId = searchParams.get("pet");
@@ -302,6 +305,15 @@ export function BookingWizard() {
         >
           Iniciar sesión
         </button>
+      </div>
+    );
+  }
+
+  // Con saldo por diferencia de peso no se puede reservar (el backend responde 409 PENDING_BALANCE).
+  if (balance && balance.amount > 0 && currentStep !== "order-confirmed") {
+    return (
+      <div className="mx-auto max-w-3xl py-8">
+        <PendingBalanceBanner balance={balance} />
       </div>
     );
   }

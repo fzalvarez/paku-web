@@ -50,6 +50,7 @@ export const ENDPOINTS = {
   ORDERS: {
     LIST: "/orders",
     CREATE: "/orders",
+    PENDING_BALANCE: "/orders/pending-balance",
     DETAIL: (id: string) => `/orders/${id}`,
     PAY: (id: string) => `/orders/${id}/pay`,
     // Fallback — el flujo normal ya no los llama (ver lib/api/orders.ts

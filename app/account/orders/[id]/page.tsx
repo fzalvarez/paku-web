@@ -523,6 +523,10 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
   const currentStatusIdx = STATUS_FLOW.indexOf(order.status);
   const addr = order.delivery_address_snapshot;
   const isActiveOrder = ["on_the_way", "in_service"].includes(order.status);
+  // Orden de ajuste: saldo por diferencia de peso de otro pedido (C-24)
+  const isAdjustment = !!order.parent_order_id;
+  const adjustmentWeight = (order.items_snapshot[0]?.meta as Record<string, unknown> | undefined)
+    ?.measured_weight_kg as number | null | undefined;
   // Se puede pagar (o reintentar tras un rechazo) mientras la orden siga en pie
   const canPay =
     (paymentStatus === "pending" || paymentStatus === "failed") &&
@@ -608,6 +612,24 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
         </DialogContent>
       </Dialog>
 
+      {/* Saldo por diferencia de peso (C-24): no es un servicio, solo se paga */}
+      {isAdjustment ? (
+        <div className="rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+          <p className="font-bold">Saldo por diferencia de peso</p>
+          <p className="mt-1">
+            Al pesar a tu mascota en el servicio
+            {adjustmentWeight != null ? ` (${adjustmentWeight} kg)` : ""}, su peso real dio un precio mayor al
+            que pagaste. Mientras este saldo esté pendiente no podrás pedir otro servicio.
+          </p>
+          <Link
+            href={`/account/orders/${order.parent_order_id}`}
+            className="mt-2 inline-block font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Ver el pedido original #{order.parent_order_id!.slice(0, 8).toUpperCase()}
+          </Link>
+        </div>
+      ) : (
+      <>
       {/* ── Aviso de demora del especialista (antes de llegar) ── */}
       <DelayNotice delays={delays} status={order.status} />
 
@@ -730,6 +752,34 @@ function OrderDetailContent({ order, onOrderUpdated }: OrderDetailContentProps) 
         </div>
       )}
 
+      {/* ── Peso registrado en el servicio (C-24) ── */}
+      {order.measured_weight_kg != null && (
+        <div className="rounded-xl bg-muted/50 px-4 py-3 text-sm">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Peso de tu mascota</p>
+          <p className="mt-1">
+            {order.declared_weight_kg != null && <>Declarado: <b>{order.declared_weight_kg} kg</b> · </>}
+            Registrado en el servicio: <b>{order.measured_weight_kg} kg</b>
+          </p>
+          {(order.extra_charge ?? 0) > 0 && (
+            <p className="mt-1 text-orange-800">
+              El peso real sube el precio en S/ {order.extra_charge!.toFixed(2)}.{" "}
+              {order.adjustment_order_id ? (
+                <Link
+                  href={`/account/orders/${order.adjustment_order_id}`}
+                  className="font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  Ver saldo
+                </Link>
+              ) : (
+                "Te avisaremos cuando el saldo esté listo para pagar."
+              )}
+            </p>
+          )}
+        </div>
+      )}
+      </>
+      )}
+
       {/* ── Items del pedido ── */}
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="mb-3 flex items-center gap-2">
@@ -807,7 +857,7 @@ export default function OrderDetailPage() {
   useEffect(() => {
     if (!order) return;
     const ACTIVE: OrderStatus[] = ["created", "accepted", "on_the_way", "in_service"];
-    if (!ACTIVE.includes(order.status)) return;
+    if (!ACTIVE.includes(order.status) || order.parent_order_id) return; // un saldo no avanza de estado
 
     const interval = setInterval(loadOrder, 15_000);
     return () => clearInterval(interval);

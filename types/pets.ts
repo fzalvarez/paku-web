@@ -24,6 +24,11 @@ export interface Pet {
   notes?: string | null;
   photo_url?: string | null;
   weight_kg?: number | null;
+  /**
+   * true mientras la mascota tenga un servicio solicitado (C-24): no se puede cambiar el peso
+   * (el backend responde 409 PET_WEIGHT_LOCKED). El groomer la pesa en el servicio.
+   */
+  weight_locked?: boolean;
   created_at?: string;
   updated_at?: string;
   // campos opcionales de perfil de grooming
