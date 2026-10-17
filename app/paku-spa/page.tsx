@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from "react";
 import type { CategoryOut, ProductOut } from "@/types/api";
 import { storeService } from "@/lib/api/store";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { AuthDialog } from "@/components/common/AuthDialog";
 import { FinalCtaSection } from "@/components/sections/home/FinalCtaSection";
 import { HowItWorksSection } from "@/components/sections/home/HowItWorksSection";
 
@@ -56,7 +58,17 @@ const ACCENT_TEXT: Record<string, string> = {
   tertiary: "text-tertiary",
 };
 
-function ProductCard({ product, variantIdx }: { product: ProductOut; variantIdx: number }) {
+function ProductCard({
+  product,
+  variantIdx,
+  showPrice,
+  onReserve,
+}: {
+  product: ProductOut;
+  variantIdx: number;
+  showPrice: boolean;
+  onReserve: () => void;
+}) {
   const variant = CARD_VARIANTS[variantIdx % CARD_VARIANTS.length];
 
   return (
@@ -103,19 +115,24 @@ function ProductCard({ product, variantIdx }: { product: ProductOut; variantIdx:
         )}
 
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-4">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Precio</p>
-            <span className={`text-lg font-extrabold ${ACCENT_TEXT[variant.accent]}`}>
-              {product.price ? `S/ ${product.price.toFixed(2)}` : "Consultar"}
-            </span>
-          </div>
-          <Link
-            href={`/booking?service=${product.id}`}
+          {showPrice ? (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Precio</p>
+              <span className={`text-lg font-extrabold ${ACCENT_TEXT[variant.accent]}`}>
+                {product.price ? `S/ ${product.price.toFixed(2)}` : "Consultar"}
+              </span>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">El precio depende del tamaño y pelaje de tu mascota.</p>
+          )}
+          <button
+            type="button"
+            onClick={onReserve}
             className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 bg-linear-to-br ${variant.gradient}`}
           >
             Reservar
             <ArrowRight className="size-3.5" />
-          </Link>
+          </button>
         </div>
       </div>
     </li>
@@ -126,6 +143,14 @@ export default function PakuSpaPage() {
   const [products, setProducts] = useState<ProductOut[]>([]);
   const [loading, setLoading] = useState(true);
   const categorySlug = "paku-spa";
+  const router = useRouter();
+  const { isAuthenticated } = useAuthContext();
+  // Sin sesión: "Reservar" abre el acceso y, al entrar, continúa a la reserva de ese servicio
+  const [pendingService, setPendingService] = useState<string | null>(null);
+  useEffect(() => {
+    if (isAuthenticated && pendingService) router.push(`/booking?service=${pendingService}`);
+  }, [isAuthenticated, pendingService, router]);
+  const reserve = (id: string) => (isAuthenticated ? router.push(`/booking?service=${id}`) : setPendingService(id));
 
   useEffect(() => {
     let mounted = true;
@@ -177,12 +202,23 @@ export default function PakuSpaPage() {
         ) : (
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((p, i) => (
-              <ProductCard key={p.id} product={p} variantIdx={i} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                variantIdx={i}
+                showPrice={isAuthenticated}
+                onReserve={() => reserve(p.id)}
+              />
             ))}
           </ul>
         )}
       </div>
       <HowItWorksSection />
+      <AuthDialog
+        open={!!pendingService && !isAuthenticated}
+        onOpenChange={(open) => !open && setPendingService(null)}
+        defaultTab="login"
+      />
       <FinalCtaSection />
     </>
   );

@@ -9,13 +9,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Si intento acceder a rutas protegidas sin token, redirigir a /login
-  if (
-    !token &&
-    (pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/account") ||
-      pathname.startsWith("/paku-spa"))
-  ) {
+  // Si intento acceder a rutas protegidas sin token, redirigir a /login.
+  // /paku-spa es pública: muestra los servicios sin precio a quien no inició sesión.
+  if (!token && (pathname.startsWith("/dashboard") || pathname.startsWith("/account"))) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -23,5 +19,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/dashboard/:path*", "/account/:path*", "/paku-spa"],
+  matcher: ["/login", "/dashboard/:path*", "/account/:path*"],
 };
