@@ -39,9 +39,9 @@ export default function PrivacidadPage() {
             El servicio Paku es operado por:
           </p>
           <ul className="mb-3 space-y-1 text-sm text-muted-foreground">
-            <li><span className="font-semibold text-foreground">Razón social:</span> [Nombre legal de la empresa responsable de Paku]</li>
-            <li><span className="font-semibold text-foreground">RUC:</span> [RUC]</li>
-            <li><span className="font-semibold text-foreground">Domicilio:</span> [Dirección legal o comercial]</li>
+            <li><span className="font-semibold text-foreground">Razón social:</span> SMARTPETSOLUTIONS S.A.C.</li>
+            <li><span className="font-semibold text-foreground">RUC:</span> 20615013898</li>
+            <li><span className="font-semibold text-foreground">Domicilio:</span> Pje. Corbacho N.° 173, Dpto. B2, Urb. Balconcillo, La Victoria, Lima, Perú</li>
             <li>
               <span className="font-semibold text-foreground">Correo:</span>{" "}
               <a className="underline underline-offset-4 hover:text-foreground" href="mailto:privacidad@paku.com.pe">

@@ -12,6 +12,12 @@ export default function LibroDeReclamacionesPage() {
     <main className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="mb-6 text-2xl font-bold">Libro de Reclamaciones</h1>
 
+      <ul className="mb-6 space-y-1 rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+        <li><span className="font-semibold text-foreground">Razón social:</span> SMARTPETSOLUTIONS S.A.C.</li>
+        <li><span className="font-semibold text-foreground">RUC:</span> 20615013898</li>
+        <li><span className="font-semibold text-foreground">Domicilio:</span> Pje. Corbacho N.° 173, Dpto. B2, Urb. Balconcillo, La Victoria, Lima, Perú</li>
+      </ul>
+
       <p className="mb-4 text-sm text-muted-foreground">
         En Paku nos interesa atender sus consultas y reclamos de manera
         eficiente. Esta página explica cómo presentar un reclamo y proporciona

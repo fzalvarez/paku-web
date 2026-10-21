@@ -36,9 +36,9 @@ export default function TerminosYCondicionesPage() {
             y atención para mascotas. El servicio es operado por:
           </p>
           <ul className="space-y-1 text-sm text-muted-foreground">
-            <li><span className="font-semibold text-foreground">Razón social:</span> [PENDIENTE: razón social legal de la empresa]</li>
-            <li><span className="font-semibold text-foreground">RUC:</span> [PENDIENTE: RUC]</li>
-            <li><span className="font-semibold text-foreground">Domicilio:</span> [PENDIENTE: dirección legal o comercial]</li>
+            <li><span className="font-semibold text-foreground">Razón social:</span> SMARTPETSOLUTIONS S.A.C.</li>
+            <li><span className="font-semibold text-foreground">RUC:</span> 20615013898</li>
+            <li><span className="font-semibold text-foreground">Domicilio:</span> Pje. Corbacho N.° 173, Dpto. B2, Urb. Balconcillo, La Victoria, Lima, Perú</li>
             <li>
               <span className="font-semibold text-foreground">Correo:</span>{" "}
               <a className="underline underline-offset-4 hover:text-foreground" href="mailto:admin@paku.com.pe">

@@ -35,7 +35,7 @@ const CONTACT_CHANNELS = [
   {
     icon: MapPin,
     label: "Ubicación",
-    value: "[PENDIENTE: completar ciudad/distrito de operación]",
+    value: "Lima, Perú",
     href: null,
     description: "Servicios a domicilio en Lima, Perú.",
     external: false,
