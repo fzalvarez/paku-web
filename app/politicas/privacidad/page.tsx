@@ -18,7 +18,7 @@ export default function PrivacidadPage() {
           Política de Privacidad
         </h1>
         <p className="text-sm text-muted-foreground">
-          Última actualización: mayo de 2026
+          Última actualización: octubre de 2026
         </p>
       </header>
 
@@ -56,6 +56,10 @@ export default function PrivacidadPage() {
             </li>
           </ul>
           <p className="text-sm text-muted-foreground">
+            Las aplicaciones móviles de Paku son desarrolladas y publicadas en Google Play por
+            Odyssoft, por encargo del responsable indicado arriba.
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
             Para cualquier consulta sobre privacidad puedes escribirnos a{" "}
             <a className="underline underline-offset-4 hover:text-foreground" href="mailto:privacidad@paku.com.pe">
               privacidad@paku.com.pe
@@ -85,6 +89,21 @@ export default function PrivacidadPage() {
             <li>Fotografías de la mascota, si el usuario las proporciona.</li>
           </ul>
 
+          <h3 className="mb-1.5 font-semibold">Fotos y cámara</h3>
+          <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
+            Con tu permiso, la app usa la cámara o la galería de tu dispositivo para la foto de
+            perfil, las fotos de tu mascota y las fotos previas al servicio que te pedimos para
+            evaluar su pelaje. El groomer puede tomar fotos de tu mascota durante el servicio para
+            documentar su estado y el resultado de la atención.
+          </p>
+
+          <h3 className="mb-1.5 font-semibold">Transmisión en vivo</h3>
+          <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
+            Durante el servicio, el groomer puede transmitir video en vivo desde la unidad Paku
+            para que veas a tu mascota. Solo puede verla el titular del pedido y la transmisión
+            no se graba.
+          </p>
+
           <h3 className="mb-1.5 font-semibold">Datos técnicos</h3>
           <ul className="mb-4 list-disc pl-5 text-sm leading-relaxed text-muted-foreground">
             <li>Tipo de dispositivo y sistema operativo.</li>
@@ -97,6 +116,8 @@ export default function PrivacidadPage() {
             Paku puede solicitar información de ubicación o dirección para coordinar servicios
             a domicilio. Esta información se usa únicamente para gestionar la atención,
             asignación de servicios, rutas o comunicación relacionada con el servicio solicitado.
+            La app del equipo Paku registra la ubicación del groomer únicamente mientras se dirige
+            a tu domicilio, para mostrarte el seguimiento y la hora estimada de llegada.
           </p>
         </section>
 
@@ -124,7 +145,8 @@ export default function PrivacidadPage() {
             pago podrá ser procesada por proveedores externos especializados. Paku no almacena
             directamente datos completos de tarjetas bancarias, salvo que se indique expresamente
             lo contrario. Los pagos son procesados mediante plataformas seguras de terceros,
-            según corresponda.
+            según corresponda. Actualmente los pagos con tarjeta y otros medios digitales son
+            procesados por Culqi.
           </p>
         </section>
 
@@ -149,7 +171,7 @@ export default function PrivacidadPage() {
           </p>
           <ul className="mb-3 list-disc pl-5 text-sm leading-relaxed text-muted-foreground">
             <li>Con groomers, aliados o personal encargado de realizar la atención.</li>
-            <li>Con proveedores tecnológicos (almacenamiento, hosting, analítica, notificaciones o soporte).</li>
+            <li>Con proveedores tecnológicos (almacenamiento, hosting, analítica, notificaciones o soporte), como Google y Firebase para el inicio de sesión con Google, las notificaciones y los mapas.</li>
             <li>Con plataformas de pago, si corresponde.</li>
             <li>Con autoridades, cuando exista una obligación legal.</li>
           </ul>
@@ -202,13 +224,23 @@ export default function PrivacidadPage() {
             </a>{" "}
             incluyendo información suficiente para identificarte y atender correctamente el pedido.
           </p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Tratamos tus datos conforme a la Ley N.° 29733, Ley de Protección de Datos Personales,
+            y su Reglamento. Si no quedas conforme con la respuesta, puedes acudir a la Autoridad
+            Nacional de Protección de Datos Personales.
+          </p>
         </section>
 
         {/* 10 */}
         <section>
           <h2 className="mb-3 text-xl font-bold">10. Eliminación de cuenta y datos</h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Puedes solicitar la eliminación de tu cuenta y datos personales escribiendo a{" "}
+            Puedes solicitar la eliminación de tu cuenta y datos personales desde la app (Perfil →
+            Eliminar mi cuenta), en{" "}
+            <a className="underline underline-offset-4 hover:text-foreground" href="/eliminar-cuenta">
+              paku.com.pe/eliminar-cuenta
+            </a>{" "}
+            o escribiendo a{" "}
             <a className="underline underline-offset-4 hover:text-foreground" href="mailto:privacidad@paku.com.pe">
               privacidad@paku.com.pe
             </a>.
