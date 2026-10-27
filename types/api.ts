@@ -45,6 +45,8 @@ export interface ProductOut {
   allowed_breeds: string[] | null;
   is_active: boolean;
   price: number | null;
+  /** "Desde": precio más bajo de su tabla (C-33). */
+  min_price?: number | null;
   currency: string | null;
   /** Lista de lo que incluye el producto — null en productos sin este dato aún */
   included_items: string[] | null;
@@ -59,6 +61,8 @@ export interface AddonOut {
   allowed_breeds: string[] | null;
   is_active: boolean;
   price: number | null;
+  /** "Desde": precio más bajo de su tabla (C-33). */
+  min_price?: number | null;
   currency: string | null;
 }
 

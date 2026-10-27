@@ -112,7 +112,12 @@ export default function TerminosYCondicionesPage() {
           <ul className="list-disc pl-5 space-y-1 text-sm leading-relaxed text-muted-foreground">
             <li>Los precios se muestran en soles peruanos (PEN) e incluyen los impuestos aplicables, salvo indicación contraria.</li>
             <li>Paku puede actualizar sus tarifas. El precio vigente al momento de la reserva es el que aplica.</li>
-            <li>Las políticas de reembolso se informan al momento de la reserva o a través del soporte.</li>
+            <li>
+              Las cancelaciones, reprogramaciones, cargos y devoluciones se rigen por la{" "}
+              <a className="underline underline-offset-4 hover:text-foreground" href="/politicas/cancelacion-y-reembolso">
+                Política de Cancelación y Reembolso
+              </a>.
+            </li>
           </ul>
         </section>
 

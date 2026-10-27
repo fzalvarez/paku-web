@@ -23,6 +23,7 @@ export const ROUTES = {
     TERMINOS: "/politicas/terminos-y-condiciones",
     PRIVACIDAD: "/politicas/privacidad",
     COOKIES: "/politicas/cookies",
+    CANCELACION: "/politicas/cancelacion-y-reembolso",
   },
 } as const;
 

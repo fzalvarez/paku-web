@@ -115,11 +115,19 @@ function ProductCard({
         )}
 
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-4">
-          {showPrice ? (
+          {showPrice && product.price ? (
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Precio</p>
               <span className={`text-lg font-extrabold ${ACCENT_TEXT[variant.accent]}`}>
-                {product.price ? `S/ ${product.price.toFixed(2)}` : "Consultar"}
+                S/ {product.price.toFixed(2)}
+              </span>
+            </div>
+          ) : product.min_price ? (
+            // Sin precio exacto (sin sesión o sin mascota): el "desde" de su tabla; depende de tamaño y pelaje
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Desde</p>
+              <span className={`text-lg font-extrabold ${ACCENT_TEXT[variant.accent]}`}>
+                S/ {product.min_price.toFixed(2)}
               </span>
             </div>
           ) : (

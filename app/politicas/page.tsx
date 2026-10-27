@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, Shield, Cookie, ChevronRight } from "lucide-react";
+import { FileText, Shield, Cookie, ChevronRight, RotateCcw } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 
 export const metadata: Metadata = {
   title: "Políticas Legales | Paku",
   description:
-    "Consulta los términos, la política de privacidad y la política de cookies de Paku.",
+    "Consulta los términos, la política de privacidad, de cancelación y reembolso y de cookies de Paku.",
 };
 
 const POLICIES = [
@@ -24,7 +24,15 @@ const POLICIES = [
     title: "Política de Privacidad",
     description:
       "Cómo recopilamos, usamos y protegemos tu información personal y la de tu mascota.",
-    updated: "Mayo 2026",
+    updated: "Octubre 2026",
+  },
+  {
+    href: ROUTES.POLITICAS.CANCELACION,
+    icon: RotateCcw,
+    title: "Cancelación y Reembolso",
+    description:
+      "Plazos para cancelar o reprogramar, cargos aplicables, saldo a favor y devoluciones.",
+    updated: "Octubre 2026",
   },
   {
     href: ROUTES.POLITICAS.COOKIES,

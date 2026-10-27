@@ -77,6 +77,7 @@ const NAV_COLUMNS = [
       { label: "Términos y condiciones", href: ROUTES.POLITICAS.TERMINOS },
       { label: "Política de privacidad", href: ROUTES.POLITICAS.PRIVACIDAD },
       { label: "Política de cookies", href: ROUTES.POLITICAS.COOKIES },
+      { label: "Cancelación y reembolso", href: ROUTES.POLITICAS.CANCELACION },
       { label: "Eliminar cuenta", href: ROUTES.ELIMINAR_CUENTA },
       { label: "Soporte", href: ROUTES.SOPORTE },
     ],
