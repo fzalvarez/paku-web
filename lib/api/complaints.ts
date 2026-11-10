@@ -1,6 +1,6 @@
 import { publicApiClient } from "./client";
 
-// Libro de Reclamaciones (paku-backend C-51). Público: no requiere sesión.
+// Libro de Reclamaciones (paku-backend C-52). Público: no requiere sesión.
 
 export type ComplaintKind = "reclamo" | "queja";
 export type ComplaintDocType = "dni" | "ce" | "pasaporte" | "ruc";
