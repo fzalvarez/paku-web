@@ -38,7 +38,7 @@ export default function TerminosYCondicionesPage() {
           <ul className="space-y-1 text-sm text-muted-foreground">
             <li><span className="font-semibold text-foreground">Razón social:</span> SMARTPETSOLUTIONS S.A.C.</li>
             <li><span className="font-semibold text-foreground">RUC:</span> 20615013898</li>
-            <li><span className="font-semibold text-foreground">Domicilio:</span> Pje. Corbacho N.° 173, Dpto. B2, Urb. Balconcillo, La Victoria, Lima, Perú</li>
+            <li><span className="font-semibold text-foreground">Domicilio:</span> Av. San Borja Sur 586, Dpto. 902, San Borja, Lima, Perú</li>
             <li>
               <span className="font-semibold text-foreground">Correo:</span>{" "}
               <a className="underline underline-offset-4 hover:text-foreground" href="mailto:admin@paku.com.pe">

@@ -4,80 +4,51 @@ import ReclamacionesForm from "@/components/libro/ReclamacionesForm";
 
 export const metadata: Metadata = {
   title: "Libro de Reclamaciones",
-  description: "Información y guía para presentar reclamos relacionados con Paku.",
+  description: "Libro de Reclamaciones virtual de Paku (SMARTPETSOLUTIONS S.A.C.). Registra tu reclamo o queja.",
 };
 
 export default function LibroDeReclamacionesPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="mb-6 text-2xl font-bold">Libro de Reclamaciones</h1>
-
-      <ul className="mb-6 space-y-1 rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-        <li><span className="font-semibold text-foreground">Razón social:</span> SMARTPETSOLUTIONS S.A.C.</li>
-        <li><span className="font-semibold text-foreground">RUC:</span> 20615013898</li>
-        <li><span className="font-semibold text-foreground">Domicilio:</span> Pje. Corbacho N.° 173, Dpto. B2, Urb. Balconcillo, La Victoria, Lima, Perú</li>
-      </ul>
-
-      <p className="mb-4 text-sm text-muted-foreground">
-        En Paku nos interesa atender sus consultas y reclamos de manera
-        eficiente. Esta página explica cómo presentar un reclamo y proporciona
-        acceso al Libro de Reclamaciones electrónico del Indecopi cuando sea
-        necesario.
-      </p>
-
-      <div className="mb-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+      <div className="mb-6 flex items-center gap-4">
         <Image
           src="/assets/libro_reclamaciones.jpeg"
           alt="Libro de Reclamaciones"
           width={240}
           height={120}
-          className="h-24 w-auto object-contain"
+          className="h-16 w-auto object-contain"
         />
-
-        <div>
-          <p className="text-sm text-muted-foreground">
-            Si desea presentar una queja formal sobre un servicio, producto o
-            atención, siga estos pasos:
-          </p>
-          <ol className="ml-5 mt-3 list-decimal text-sm text-muted-foreground">
-            <li>Contacte primero a nuestro equipo a <a className="underline" href="mailto:admin@paku.com.pe">admin@paku.com.pe</a> o WhatsApp al <a className="underline" href="https://wa.me/51993019869">+51 993 019 869</a>.</li>
-            <li>Adjunte evidencia (factura, fotos, descripción detallada) y espere nuestra respuesta.</li>
-            <li>Si no recibe solución o la respuesta no es satisfactoria, puede presentar un reclamo ante Indecopi usando el Libro de Reclamaciones electrónico.</li>
-          </ol>
-        </div>
+        <h1 className="text-2xl font-bold">Libro de Reclamaciones</h1>
       </div>
 
-      <section className="mb-6">
-        <h2 className="mb-2 text-lg font-semibold">Acceso al Libro de Reclamaciones electrónico</h2>
-        <p className="mb-3 text-sm text-muted-foreground">
-          Puede acceder al libro de reclamaciones electrónico del Indecopi aquí:
-        </p>
-        <a
-          className="inline-flex items-center gap-2 rounded bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-          href="https://enlinea.indecopi.gob.pe/reclamavirtual/#/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Ir al Libro de Reclamaciones de Indecopi
-        </a>
-      </section>
+      <ul className="mb-6 space-y-1 rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+        <li><span className="font-semibold text-foreground">Razón social:</span> SMARTPETSOLUTIONS S.A.C.</li>
+        <li><span className="font-semibold text-foreground">RUC:</span> 20615013898</li>
+        <li><span className="font-semibold text-foreground">Domicilio:</span> Av. San Borja Sur 586, Dpto. 902, San Borja, Lima, Perú</li>
+      </ul>
 
-      {/* Formulario interactivo para preparar la reclamación */}
-      <section className="mb-6">
-        <h2 className="mb-2 text-lg font-semibold">Formulario de reclamación</h2>
-        <p className="mb-3 text-sm text-muted-foreground">A continuación puede preparar su reclamación antes de ser redirigido al sistema de Reclamovirtual.</p>
-        {/* Client component: formulario */}
-        <ReclamacionesForm />
-      </section>
+      <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
+        Conforme al Código de Protección y Defensa del Consumidor, contamos con un Libro de Reclamaciones virtual.
+        Completa la hoja: al enviarla recibirás su número y una copia en tu correo. Te responderemos en un plazo
+        máximo de 15 días hábiles.
+      </p>
 
-      <section>
-        <h2 className="mb-2 text-lg font-semibold">Soporte y tiempos</h2>
-        <p className="text-sm text-muted-foreground">
-          Nuestro equipo revisa las solicitudes en el menor tiempo posible. Los
-          plazos pueden variar según la complejidad del caso; siempre comunicaremos
-          el estado y las acciones tomadas por correo o WhatsApp.
+      <ReclamacionesForm />
+
+      <div className="mt-6 space-y-2 text-xs leading-relaxed text-muted-foreground">
+        <p>
+          <span className="font-semibold text-foreground">Reclamo:</span> disconformidad relacionada a los productos o
+          servicios. <span className="font-semibold text-foreground">Queja:</span> disconformidad no relacionada a los
+          productos o servicios, o malestar o descontento respecto a la atención al público.
         </p>
-      </section>
+        <p>
+          La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito
+          previo para interponer una denuncia ante el INDECOPI.
+        </p>
+        <p>
+          El proveedor deberá dar respuesta al reclamo o queja en un plazo no mayor a quince (15) días hábiles.
+        </p>
+      </div>
     </main>
   );
 }

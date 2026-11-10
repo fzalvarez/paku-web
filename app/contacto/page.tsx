@@ -34,10 +34,10 @@ const CONTACT_CHANNELS = [
   },
   {
     icon: MapPin,
-    label: "Ubicación",
-    value: "Lima, Perú",
+    label: "Dirección",
+    value: "Av. San Borja Sur 586, Dpto. 902, San Borja, Lima, Perú",
     href: null,
-    description: "Servicios a domicilio en Lima, Perú.",
+    description: "SMARTPETSOLUTIONS S.A.C. · RUC 20615013898. Atendemos a domicilio en Lima.",
     external: false,
   },
 ] as const;

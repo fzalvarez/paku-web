@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const WHATSAPP = "https://wa.me/51993019869";
-const EMAIL = "soporte@paku.com.pe";
+const EMAIL = "admin@paku.com.pe";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

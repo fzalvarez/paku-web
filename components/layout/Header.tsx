@@ -165,7 +165,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
 
           <DropdownMenuItem asChild>
             <a
-              href="mailto:soporte@paku.pe"
+              href="mailto:admin@paku.com.pe"
               className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
@@ -173,7 +173,7 @@ function UserMenu({ onLogout }: { onLogout: () => void }) {
               </span>
               <div>
                 <p className="font-semibold leading-none">Centro de ayuda</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">soporte@paku.pe</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">admin@paku.com.pe</p>
               </div>
             </a>
           </DropdownMenuItem>
@@ -420,7 +420,7 @@ export function Header() {
                     Pagos
                   </Link>
                   <a
-                    href="mailto:soporte@paku.pe"
+                    href="mailto:admin@paku.com.pe"
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
                   >
                     <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">

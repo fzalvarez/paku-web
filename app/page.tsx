@@ -38,8 +38,9 @@ const jsonLd = {
   email: "admin@paku.com.pe",
   address: {
     "@type": "PostalAddress",
+    streetAddress: "Av. San Borja Sur 586, Dpto. 902",
     addressCountry: "PE",
-    addressLocality: "Lima",
+    addressLocality: "San Borja",
     addressRegion: "Lima",
   },
   geo: {
@@ -53,11 +54,6 @@ const jsonLd = {
     opens: "08:00",
     closes: "19:00",
   },
-  sameAs: [
-    "https://www.facebook.com/pakuperu",
-    "https://www.instagram.com/pakuperu",
-    "https://www.tiktok.com/@pakuperu",
-  ],
   priceRange: "S/.",
 };
 

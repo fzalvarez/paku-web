@@ -9,6 +9,7 @@ export const ROUTES = {
   PAKU_SPA: "/paku-spa",
   NOSOTROS: "/nosotros",
   CONTACTO: "/contacto",
+  LIBRO_RECLAMACIONES: "/libro-de-reclamaciones",
   SOPORTE: "/soporte",
   ELIMINAR_CUENTA: "/eliminar-cuenta",
   ACCOUNT: {

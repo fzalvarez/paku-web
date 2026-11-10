@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import type { CategoryOut, ProductOut } from "@/types/api";
 import { storeService } from "@/lib/api/store";
 import { useRouter } from "next/navigation";
@@ -52,6 +53,26 @@ const CARD_VARIANTS = [
   },
 ] as const;
 
+// Foto de cada servicio (public/assets/servicios), por nombre sin tildes. Sin foto: ícono ilustrado.
+const SERVICE_PHOTOS: Record<string, string> = {
+  "express-sin-agua": "/assets/servicios/express-sin-agua.jpeg",
+  "fresco-y-limpio": "/assets/servicios/fresco-limpio.jpeg",
+  "cuidado-especial": "/assets/servicios/cuidado-especial.jpeg",
+  "spa-deluxe": "/assets/servicios/spa-deluxe.jpeg",
+};
+
+function photoFor(name: string): string | undefined {
+  const slug = name
+    .normalize("NFD")
+    .split("")
+    .filter((ch) => ch.charCodeAt(0) < 0x300 || ch.charCodeAt(0) > 0x36f) // quita las tildes
+    .join("")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-");
+  return SERVICE_PHOTOS[slug];
+}
+
 const ACCENT_TEXT: Record<string, string> = {
   primary: "text-primary",
   secondary: "text-secondary",
@@ -70,10 +91,22 @@ function ProductCard({
   onReserve: () => void;
 }) {
   const variant = CARD_VARIANTS[variantIdx % CARD_VARIANTS.length];
+  const photo = photoFor(product.name);
 
   return (
     <li className="group overflow-hidden rounded-[1.5rem] border border-border/60 bg-background shadow-sm transition-shadow hover:shadow-lg">
-      {/* Header ilustrado */}
+      {photo ? (
+        <div className="relative aspect-[3/2] overflow-hidden bg-muted">
+          <Image
+            src={photo}
+            alt={`${product.name} — servicio de Paku Spa`}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+        </div>
+      ) : (
+      /* Header ilustrado */
       <div className={`relative flex h-36 items-center justify-center overflow-hidden bg-linear-to-br ${variant.gradient}`}>
         <svg
           viewBox="0 0 24 24"
@@ -87,6 +120,7 @@ function ProductCard({
           {variant.icon}
         </div>
       </div>
+      )}
 
       {/* Contenido */}
       <div className="p-5">
