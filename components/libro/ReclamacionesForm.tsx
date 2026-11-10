@@ -128,7 +128,9 @@ export default function ReclamacionesForm() {
 
   if (receipt) {
     return (
-      <div className="rounded-lg border border-emerald-300 bg-emerald-50/60 p-5 text-sm dark:border-emerald-800 dark:bg-emerald-950/30">
+      // data-print-area: la web solo imprime los bloques marcados (ver globals.css).
+      <div data-print-area className="rounded-lg border border-emerald-300 bg-emerald-50/60 p-5 text-sm dark:border-emerald-800 dark:bg-emerald-950/30">
+        <p className="mb-2 hidden text-base font-bold print:block">Libro de Reclamaciones — Paku</p>
         <div className="mb-3 flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
           <CheckCircle2 className="size-5" />
           <h3 className="text-lg font-semibold">Hoja de reclamación registrada</h3>
@@ -140,11 +142,32 @@ export default function ReclamacionesForm() {
           <div><dt className="text-xs text-muted-foreground">Respuesta a más tardar</dt><dd>{fmtDate(receipt.response_due)}</dd></div>
           <div className="sm:col-span-2"><dt className="text-xs text-muted-foreground">Proveedor</dt><dd>{receipt.provider_legal_name} · RUC {receipt.provider_ruc} · {receipt.provider_address}</dd></div>
         </dl>
+        <dl className="mt-4 grid grid-cols-1 gap-y-2 border-t border-emerald-200 pt-4 dark:border-emerald-900">
+          {[
+            ["Consumidor", `${form.consumer_name} · ${DOC_TYPES.find((d) => d.value === form.doc_type)?.label ?? ""} ${form.doc_number}`],
+            ["Correo", form.email],
+            ["Teléfono", form.phone],
+            ["Domicilio", form.address],
+            ["Padre, madre o apoderado", form.is_minor ? form.guardian_name : ""],
+            ["Bien contratado", `${form.item_type === "producto" ? "Producto" : "Servicio"}: ${form.item_description}`],
+            ["Número de pedido", form.order_reference],
+            ["Monto reclamado", form.amount_claimed ? `S/ ${form.amount_claimed}` : ""],
+            ["Detalle", form.detail],
+            ["Pedido", form.request],
+          ]
+            .filter(([, v]) => v && v.trim())
+            .map(([k, v]) => (
+              <div key={k}>
+                <dt className="text-xs text-muted-foreground">{k}</dt>
+                <dd className="whitespace-pre-wrap break-words">{v}</dd>
+              </div>
+            ))}
+        </dl>
         <p className="mt-4 text-muted-foreground">
           Enviamos una copia de tu hoja a <strong className="text-foreground">{receipt.email}</strong>. Si no la ves,
           revisa tu carpeta de spam. Te responderemos a ese correo dentro de los 15 días hábiles.
         </p>
-        <div className="mt-4 flex flex-wrap gap-2 print:hidden">
+        <div data-print-hide className="mt-4 flex flex-wrap gap-2">
           <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
             <Printer className="size-4" /> Imprimir o guardar en PDF
           </button>
