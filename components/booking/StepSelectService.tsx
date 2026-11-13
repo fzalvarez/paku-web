@@ -47,6 +47,30 @@ export function StepSelectService({
   const [loadedAddons, setLoadedAddons] = useState<ServiceAddon[]>([]);
   const [loadedForId, setLoadedForId] = useState<string | null>(null);
   const [quoteState, setQuoteState] = useState<QuoteState | null>(null);
+  const [replacedNote, setReplacedNote] = useState<string | null>(null);
+
+  // Adicionales alternativos (C-53): al elegir uno se quitan los que no se combinan con él, en vez de dejar que
+  // la cotización falle. Se compara en ambos sentidos por si un adicional no trae la lista.
+  const toggleAddon = (addon: ServiceAddon) => {
+    if (selectedAddonIds.includes(addon.id)) {
+      setReplacedNote(null);
+      onToggleAddon(addon);
+      return;
+    }
+    const clashes = loadedAddons.filter(
+      (other) =>
+        selectedAddonIds.includes(other.id) &&
+        ((!!other.code && (addon.incompatible_with ?? []).includes(other.code)) ||
+          (!!addon.code && (other.incompatible_with ?? []).includes(addon.code)))
+    );
+    clashes.forEach((other) => onToggleAddon(other));
+    onToggleAddon(addon);
+    setReplacedNote(
+      clashes.length
+        ? `Quitamos ${clashes.map((c) => `«${c.name}»`).join(" y ")}: no se combina con «${addon.name}».`
+        : null
+    );
+  };
 
   const selectedService = services.find((s) => s.id === selectedServiceId);
   const currentKey = selectedService ? quoteKey(selectedService.id, selectedAddonIds) : null;
@@ -245,7 +269,7 @@ export function StepSelectService({
                             return (
                               <button
                                 key={addon.id}
-                                onClick={() => onToggleAddon(addon)}
+                                onClick={() => toggleAddon(addon)}
                                 disabled={!addonHasPrice && !isAddonSelected}
                                 className={cn(
                                   "flex w-full items-center justify-between rounded-xl px-3 py-2.5 transition-all disabled:cursor-not-allowed disabled:opacity-60",
@@ -276,6 +300,9 @@ export function StepSelectService({
                             );
                           })}
                         </div>
+                        {replacedNote && (
+                          <p className="mt-2 text-xs text-muted-foreground">{replacedNote}</p>
+                        )}
                       </>
                     ) : (
                       <p className="text-xs text-muted-foreground">Sin adicionales disponibles.</p>

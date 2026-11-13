@@ -28,6 +28,10 @@ export interface ServiceAddon {
   /** Precio para la mascota (ej. 15.00). Null si no aplica o no tiene precio. */
   price: number | null;
   currency: string;
+  /** Código del adicional (ADD_CORTE_EST…). */
+  code?: string | null;
+  /** Códigos que no se pueden combinar con este (paku-backend C-53). */
+  incompatible_with?: string[];
 }
 
 // ── Producto — respuesta de GET /store/categories/{slug}/products ──────────────
